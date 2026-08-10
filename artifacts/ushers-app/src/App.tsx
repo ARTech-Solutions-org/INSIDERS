@@ -4,6 +4,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import NotFound from '@/pages/not-found';
 import { Route, Switch, Router as WouterRouter } from 'wouter';
 import { AppLayout } from '@/components/layout/AppLayout';
+import { Watermark } from '@/components/ui/watermark';
 
 // Pages
 import Login from '@/pages/login';
@@ -34,7 +35,7 @@ function ProtectedRoutes() {
         <Route path="/profile" component={Profile} />
         <Route path="/documents" component={Documents} />
         <Route path="/ratings" component={Ratings} />
-        
+
         <Route component={NotFound} />
       </Switch>
     </AppLayout>
@@ -47,7 +48,7 @@ function Router() {
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
       <Route path="/pending" component={Pending} />
-      
+
       <Route path="*">
         <ProtectedRoutes />
       </Route>
@@ -59,9 +60,12 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
-          <Router />
-        </WouterRouter>
+        <div className="brand-app min-h-[100dvh]">
+          <Watermark />
+          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
+            <Router />
+          </WouterRouter>
+        </div>
         <Toaster position="top-center" richColors />
       </TooltipProvider>
     </QueryClientProvider>

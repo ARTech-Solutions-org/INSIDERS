@@ -47,13 +47,14 @@ export default function Login() {
         <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent pointer-events-none" />
         
         <div className="max-w-md space-y-6 relative z-10">
-          <div className="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/20">
-            <span className="text-3xl font-serif font-bold text-secondary">A</span>
+           <div className="w-16 h-16 bg-secondary flex items-center justify-center border border-primary-foreground/30">
+             <span className="text-3xl font-bold text-secondary-foreground">A</span>
           </div>
-          <h1 className="text-5xl font-bold tracking-tight">ARTech</h1>
-          <h2 className="text-2xl font-light text-primary-foreground/80 tracking-widest uppercase">Live The Experience</h2>
+           <div className="brand-slashes text-2xl">//////</div>
+           <h1 className="brand-display text-7xl tracking-tight">INSIDERS</h1>
+           <h2 className="brand-meta text-primary-foreground/80">COMMAND THE ROOM. OWN THE FLOW.</h2>
           <p className="text-lg text-primary-foreground/60 leading-relaxed pt-4">
-            Operations and event management platform. Login to manage ushers, events, and resources.
+             The operations desk for people who keep the room moving.
           </p>
         </div>
       </div>
@@ -66,12 +67,12 @@ export default function Login() {
              <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center mx-auto mb-4">
               <span className="text-xl font-serif font-bold text-secondary">A</span>
             </div>
-            <h1 className="text-3xl font-bold">ARTech Admin</h1>
+             <h1 className="brand-display text-3xl">INSIDERS / ADMIN</h1>
           </div>
 
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold tracking-tight text-foreground">Welcome back</h2>
-            <p className="text-sm text-muted-foreground">Enter your credentials to access the admin portal.</p>
+             <h2 className="brand-display text-3xl tracking-tight text-foreground">BACK IN CONTROL</h2>
+             <p className="brand-meta text-muted-foreground">ENTER YOUR ACCESS DETAILS</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -114,7 +115,7 @@ export default function Login() {
               </div>
             </div>
 
-            <Button type="submit" className="w-full" disabled={isPending}>
+             <Button type="submit" className="w-full rounded-none uppercase tracking-wider font-bold" disabled={isPending}>
               {isPending ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />

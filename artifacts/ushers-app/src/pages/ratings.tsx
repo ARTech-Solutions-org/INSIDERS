@@ -21,7 +21,7 @@ export default function Ratings() {
       {[1, 2, 3, 4, 5].map(star => (
         <Star
           key={star}
-          className={`${size} ${star <= value ? 'text-secondary fill-secondary' : 'text-muted fill-muted'}`}
+          className={`${size} ${star <= value ? 'text-accent fill-accent' : 'text-muted fill-muted'}`}
         />
       ))}
     </div>
@@ -34,13 +34,16 @@ export default function Ratings() {
 
   return (
     <div className="p-4 flex flex-col h-full">
-      <h1 className="text-2xl font-bold text-foreground mb-4">My Ratings</h1>
+      <div className="pt-3 mb-5">
+        <p className="brand-meta text-accent mb-2">Feedback loop</p>
+        <h1 className="brand-display text-4xl text-foreground">My Ratings</h1>
+      </div>
 
       {/* Summary card */}
       {!isLoading && safeRatings.length > 0 && (
-        <div className="bg-gradient-to-br from-secondary/20 to-primary/10 border border-secondary/20 rounded-2xl p-5 flex items-center gap-5 mb-5 shadow-sm">
-          <div className="w-14 h-14 rounded-full bg-secondary/20 flex items-center justify-center shrink-0">
-            <Award className="w-7 h-7 text-secondary" />
+        <div className="bg-gradient-to-br from-accent/20 to-accent/5 border border-accent/20 rounded-3xl p-5 flex items-center gap-5 mb-5 shadow-sm">
+          <div className="w-14 h-14 rounded-full bg-accent/20 flex items-center justify-center shrink-0">
+            <Award className="w-7 h-7 text-accent" />
           </div>
           <div className="flex-1">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">Overall Score</p>
@@ -62,7 +65,7 @@ export default function Ratings() {
           {[1, 2, 3].map(i => <Skeleton key={i} className="h-32 w-full rounded-2xl" />)}
         </div>
       ) : safeRatings.length === 0 ? (
-        <div className="bg-muted/30 border border-dashed border-border rounded-2xl p-8 text-center mt-6">
+        <div className="bg-card/60 border border-dashed border-card-border rounded-3xl p-8 text-center mt-6">
           <Star className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
           <p className="text-muted-foreground font-medium">No ratings yet</p>
           <p className="text-xs text-muted-foreground mt-1">Complete events to get rated.</p>
@@ -70,7 +73,7 @@ export default function Ratings() {
       ) : (
         <div className="space-y-3 pb-safe">
           {safeRatings.map((rating: any) => (
-            <div key={rating.id} className="bg-card border border-border p-4 rounded-2xl shadow-sm">
+            <div key={rating.id} className="bg-card border border-card-border p-4 rounded-3xl shadow-sm">
               {/* Event info header */}
               {rating.eventTitle && (
                 <div className="flex items-center gap-2 mb-3 pb-3 border-b border-border/60">
@@ -93,11 +96,10 @@ export default function Ratings() {
                   </p>
                   {renderStars(rating.ratingValue)}
                 </div>
-                <div className={`font-bold text-xl px-3 py-1 rounded-lg ${
-                  rating.ratingValue >= 4 ? 'bg-green-500/10 text-green-600'
-                  : rating.ratingValue >= 3 ? 'bg-secondary/10 text-secondary'
-                  : 'bg-red-500/10 text-red-600'
-                }`}>
+                <div className={`font-bold text-xl px-3 py-1 rounded-lg ${rating.ratingValue >= 4 ? 'bg-green-500/10 text-green-600'
+                    : rating.ratingValue >= 3 ? 'bg-accent/20 text-accent-foreground'
+                      : 'bg-red-500/10 text-red-600'
+                  }`}>
                   {rating.ratingValue?.toFixed(1) || '0.0'}
                 </div>
               </div>

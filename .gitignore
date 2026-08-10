@@ -47,3 +47,11 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# User ignored items
+Vectorized SVG.svg
+JCE-Opencode-Tools
+montagna-ltd
+artifacts/ushers-app/public.zip
+.agents
+main.zip

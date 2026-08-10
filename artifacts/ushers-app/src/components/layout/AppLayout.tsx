@@ -18,16 +18,16 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="min-h-[100dvh] flex items-center justify-center bg-background">
-        <div className="w-10 h-10 border-4 border-secondary border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-[100dvh] flex items-center justify-center">
+        <div className="brand-display text-2xl text-primary">LOADING <span className="brand-slashes">//////</span></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-[100dvh] bg-background text-foreground flex flex-col font-sans pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)]">
+    <div className="brand-app min-h-[100dvh] text-foreground flex flex-col font-sans pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] relative overflow-hidden">
       <Header />
-      <main className="flex-1 w-full max-w-md mx-auto overflow-x-hidden pt-16 pb-20 relative">
+      <main className="flex-1 w-full max-w-md mx-auto overflow-x-hidden pt-[76px] pb-24 relative z-10">
         {children}
       </main>
       <BottomNav />

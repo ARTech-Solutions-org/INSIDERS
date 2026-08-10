@@ -1,26 +1,23 @@
 import React from 'react';
 import { Bell } from 'lucide-react';
+import { Logo } from '@/components/ui/logo';
 import { Link } from 'wouter';
 import { useListMyNotifications } from '@workspace/api-client-react';
 
 export function Header() {
-  const { data: notifications } = useListMyNotifications({ unread: true }, { query: { queryKey: ['notifications', 'unread'] }});
+  const { data: notifications } = useListMyNotifications({ unread: true }, { query: { queryKey: ['notifications', 'unread'] } });
   const unreadCount = notifications?.length || 0;
 
   return (
-    <header className="fixed top-0 left-0 right-0 bg-primary text-primary-foreground h-16 z-50 flex items-center justify-between px-4 shadow-md">
-      <Link href="/" className="font-bold tracking-widest text-xl flex items-center gap-2 outline-none">
-        {/* Abstract shape representing Artech */}
-        <div className="w-6 h-6 bg-secondary rounded-sm rotate-45 flex items-center justify-center">
-          <div className="w-2 h-2 bg-primary rounded-full" />
-        </div>
-        ARTECH
+    <header className="fixed top-0 left-0 right-0 bg-primary text-primary-foreground h-[76px] z-50 flex items-center justify-between px-5 border-b border-primary-foreground/10">
+      <Link href="/" className="flex items-center outline-none relative z-10">
+        <Logo className="h-10 w-auto" color="white" />
       </Link>
-      
-      <Link href="/notifications" className="relative p-2 rounded-full hover:bg-primary-foreground/10 transition-colors">
-        <Bell className="w-5 h-5 text-secondary" />
+
+      <Link href="/notifications" aria-label="Open notifications" className="relative w-10 h-10 rounded-xl bg-primary-foreground/10 border border-primary-foreground/20 flex items-center justify-center hover:bg-primary-foreground/20 transition-colors z-10">
+        <Bell className="w-5 h-5 text-primary-foreground" />
         {unreadCount > 0 && (
-          <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-destructive border-2 border-primary rounded-full" />
+          <span className="absolute top-2 right-2 w-2 h-2 bg-accent rounded-full shadow-sm" />
         )}
       </Link>
     </header>

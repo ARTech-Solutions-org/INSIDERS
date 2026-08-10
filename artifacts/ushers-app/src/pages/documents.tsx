@@ -23,13 +23,13 @@ export default function Documents() {
       return;
     }
 
-    addMutation.mutate({ 
-      data: { 
-        docType, 
+    addMutation.mutate({
+      data: {
+        docType,
         fileUrl: 'https://example.com/dummy.pdf', // In a real app, upload first
         fileKey: 'dummy-key',
         expiryDate: expiryDate ? new Date(expiryDate).toISOString() : undefined
-      } 
+      }
     }, {
       onSuccess: () => {
         toast.success('Document added');
@@ -45,36 +45,40 @@ export default function Documents() {
   const safeDocs = Array.isArray(documents) ? documents : [];
 
   return (
-    <div className="p-4 flex flex-col h-full">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-foreground">Documents</h1>
+    <div className="p-5 flex flex-col h-full relative min-h-screen">
+      <div className="flex items-end justify-between pt-2 mb-6 relative z-10 border-b border-border/50 pb-4">
+        <div>
+          <h1 className="brand-display text-4xl text-foreground mb-1 uppercase tracking-widest">DOCUMENTS</h1>
+          <p className="text-muted-foreground font-medium">Keep it current</p>
+        </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button size="sm" className="rounded-xl font-semibold">
-              <Plus className="w-4 h-4 mr-1" /> Add Doc
+            <Button size="sm" className="rounded-lg border-border font-bold text-[10px] tracking-widest uppercase shadow-sm">
+              <Plus className="w-3 h-3 mr-1" /> ADD DOC
             </Button>
           </DialogTrigger>
-          <DialogContent className="w-[90vw] max-w-[400px] rounded-2xl">
+          <DialogContent className="w-[90vw] max-w-[400px] rounded-2xl border border-border p-6 bg-card shadow-lg">
             <DialogHeader>
-              <DialogTitle>Upload Document</DialogTitle>
+              <DialogTitle className="brand-display text-2xl uppercase tracking-wide">UPLOAD DOCUMENT</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4 pt-4">
+            <div className="space-y-5 pt-4">
               <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase text-muted-foreground">Document Type</label>
-                <Input value={docType} onChange={e => setDocType(e.target.value)} placeholder="e.g., ID Card, Health Certificate" />
+                <label className="font-semibold text-xs text-foreground/90">Document Type</label>
+                <Input value={docType} onChange={e => setDocType(e.target.value)} placeholder="e.g., ID Card, Health Certificate" className="rounded-xl border-border h-11" />
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase text-muted-foreground">Expiration Date (Optional)</label>
-                <Input 
+                <label className="font-semibold text-xs text-foreground/90">Expiration Date (Optional)</label>
+                <Input
                   type="date"
                   value={expiryDate}
                   onChange={e => setExpiryDate(e.target.value)}
+                  className="rounded-xl border-border h-11"
                 />
               </div>
 
-              <Button className="w-full rounded-xl mt-2" onClick={handleAdd} disabled={addMutation.isPending}>
-                {addMutation.isPending ? 'Uploading...' : 'Save Document'}
+              <Button className="w-full rounded-xl h-11 text-xs font-bold tracking-widest uppercase mt-4 shadow-sm" onClick={handleAdd} disabled={addMutation.isPending}>
+                {addMutation.isPending ? 'UPLOADING...' : 'SAVE DOCUMENT'}
               </Button>
             </div>
           </DialogContent>
@@ -82,38 +86,38 @@ export default function Documents() {
       </div>
 
       {isLoading ? (
-        <div className="space-y-3">
-          {[1, 2].map(i => <Skeleton key={i} className="h-24 w-full rounded-2xl" />)}
+        <div className="space-y-4 relative z-10">
+          {[1, 2].map(i => <Skeleton key={i} className="h-24 w-full rounded-2xl border border-border" />)}
         </div>
       ) : safeDocs.length === 0 ? (
-        <div className="bg-muted/30 border border-dashed border-border rounded-2xl p-8 text-center mt-10">
-          <FileText className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-          <p className="text-muted-foreground font-medium">No documents uploaded</p>
-          <p className="text-xs text-muted-foreground mt-1">Add your ID and certificates here.</p>
+        <div className="border border-border/50 bg-card p-10 text-center mt-6 flex flex-col items-center justify-center relative overflow-hidden z-10 rounded-2xl shadow-sm">
+          <FileText className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3 relative z-10" />
+          <p className="brand-meta text-foreground/60 relative z-10 mb-1">NO DOCUMENTS UPLOADED</p>
+          <p className="text-xs text-muted-foreground mt-1 uppercase tracking-widest relative z-10">ADD YOUR ID AND CERTIFICATES</p>
         </div>
       ) : (
-        <div className="space-y-3 pb-safe">
+        <div className="space-y-3 pb-safe relative z-10">
           {safeDocs.map(doc => {
             const isExpiringSoon = doc.expiryDate && new Date(doc.expiryDate).getTime() - new Date().getTime() < 30 * 24 * 60 * 60 * 1000;
             const isExpired = doc.expiryDate && new Date(doc.expiryDate) < new Date();
-            
+
             return (
-              <div key={doc.id} className="bg-card border border-border p-4 rounded-2xl shadow-sm flex items-center justify-between">
+              <div key={doc.id} className="bg-card border border-border rounded-2xl p-4 flex items-center justify-between shadow-sm">
                 <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isExpired ? 'bg-destructive/10 text-destructive' : 'bg-primary/5 text-primary'}`}>
+                  <div className={`w-12 h-12 border rounded-full flex items-center justify-center ${isExpired ? 'bg-destructive/10 text-destructive border-destructive/20' : 'bg-primary/5 text-primary border-primary/20'}`}>
                     <FileText className="w-6 h-6" />
                   </div>
                   <div>
-                    <p className="font-semibold">{doc.docType}</p>
+                    <p className="font-bold tracking-wide uppercase">{doc.docType}</p>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${doc.status === 'approved' ? 'bg-green-500/10 text-green-600' : doc.status === 'rejected' ? 'bg-destructive/10 text-destructive' : 'bg-secondary/10 text-secondary'}`}>
+                      <span className={`brand-meta px-2 py-1 border rounded-md ${doc.status === 'approved' ? 'bg-green-500/10 text-green-600 border-green-500/20' : doc.status === 'rejected' ? 'bg-destructive/10 text-destructive border-destructive/20' : 'bg-secondary/10 text-secondary border-secondary/20'}`}>
                         {doc.status}
                       </span>
                     </div>
                     {doc.expiryDate && (
-                      <p className={`text-xs flex items-center gap-1 mt-1.5 ${isExpired ? 'text-destructive font-semibold' : isExpiringSoon ? 'text-secondary font-semibold' : 'text-muted-foreground'}`}>
+                      <p className={`text-[10px] font-mono flex items-center gap-1 mt-2 uppercase tracking-widest ${isExpired ? 'text-destructive font-bold' : isExpiringSoon ? 'text-secondary font-bold' : 'text-muted-foreground'}`}>
                         <Calendar className="w-3 h-3" />
-                        {isExpired ? 'Expired' : 'Expires'}: {format(new Date(doc.expiryDate), 'MMM d, yyyy')}
+                        {isExpired ? 'EXPIRED' : 'EXPIRES'}: {format(new Date(doc.expiryDate), 'MMM d, yyyy').toUpperCase()}
                         {isExpiringSoon && !isExpired && <AlertCircle className="w-3 h-3 ml-1" />}
                       </p>
                     )}

@@ -1,6 +1,6 @@
-# [Project name]
+# Insiders Ushering Management System
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+An event-staffing operations platform for managing ushers, events, assignments, attendance, balances, and performance.
 
 ## Run & Operate
 
@@ -22,24 +22,33 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/admin-app` — desktop-oriented admin operations app
+- `artifacts/ushers-app` — mobile-first usher portal
+- `artifacts/api-server` — Express API service
+- `lib/db/src/schema` — Drizzle/PostgreSQL schema
+- `lib/api-spec` — OpenAPI source of truth
+- `artifacts/*/src/index.css` — app-specific Insiders brand tokens and global styles
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- The admin and usher experiences remain separate web apps while sharing the generated API client and backend.
+- The Insiders visual system is implemented at each app's theme layer so existing page behavior and routes remain unchanged.
+- The apps use cream/charcoal/forest-green tokens with Anton display headings and Cairo body/UI text to match the provided brand manual.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Admins manage ushers, events, broadcasts, audit logs, and staffing operations.
+- Ushers register, review assignments, check in/out, track balances, receive notifications, and view their event history.
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- Preserve existing functionality while applying the Insiders brand identity consistently across both apps.
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- Frontend preview services are managed through each artifact's `.replit-artifact/artifact.toml`; use the exact artifact workflow names when restarting.
+- The API requires `PORT` and a configured `DATABASE_URL` to run.
 
 ## Pointers
 
-- See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
+- See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.

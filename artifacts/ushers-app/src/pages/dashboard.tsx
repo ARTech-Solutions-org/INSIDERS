@@ -1,123 +1,168 @@
 import React from 'react';
 import { useGetMyUsherProfile, useListMyAssignments, MyAssignment } from '@workspace/api-client-react';
 import { Link } from 'wouter';
-import { Star, ChevronRight, MapPin, Calendar, Clock, Banknote } from 'lucide-react';
+import { Star, ChevronRight, MapPin, Calendar, Clock, Banknote, ArrowUpRight } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 
 export default function Dashboard() {
   const { data: profile, isLoading: isProfileLoading } = useGetMyUsherProfile();
   const { data: assignmentsData, isLoading: isAssignmentsLoading } = useListMyAssignments({ status: 'pending,assigned,accepted,checked_in' });
-  
+
   const upcomingAssignments: MyAssignment[] = Array.isArray(assignmentsData)
     ? assignmentsData.slice(0, 3)
     : (Array.isArray((assignmentsData as any)?.data) ? (assignmentsData as any).data.slice(0, 3) : []);
 
+  const firstName = profile?.fullName?.split(' ')[0] || 'USHER';
+
   return (
-    <div className="p-4 space-y-6">
-      {/* Greeting & Quick Stats */}
-      <div className="flex flex-col gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">
-            {isProfileLoading ? <Skeleton className="h-8 w-48" /> : `Hello, ${profile?.fullName?.split(' ')[0] || 'Usher'}`}
-          </h1>
-          <p className="text-muted-foreground">Ready for your next event?</p>
+    <div className="p-5 space-y-7">
+
+      {/* Greeting */}
+      <div>
+        <h1 className="brand-display text-2xl text-foreground mb-1 uppercase tracking-wider">
+          {isProfileLoading ? <Skeleton className="h-10 w-48 rounded-xl" /> : `HELLO, ${firstName}`}
+        </h1>
+        <p className="text-muted-foreground font-medium">Ready for your next event?</p>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 gap-4">
+        {/* Balance Card - CALM GREEN */}
+        <div className="relative overflow-hidden rounded-2xl border border-primary/20 group hover:-translate-y-1 transition-all duration-300 shadow-md hover:shadow-lg bg-primary/10">
+          {/* The Glow */}
+          <div className="absolute w-48 h-48 bg-accent/40 blur-[50px] -left-8 -top-8 group-hover:bg-accent/60 transition-colors duration-500 z-0 pointer-events-none"></div>
+          
+          <div className="relative z-10 bg-gradient-to-br from-primary/95 to-[#1c3a32]/95 backdrop-blur-md p-5 flex flex-col justify-between min-h-[120px] h-full overflow-hidden">
+            {/* Decorative Pattern Bottom Right */}
+            <div 
+              className="absolute -right-4 -bottom-4 w-32 h-32 opacity-20 pointer-events-none transition-transform duration-500 group-hover:scale-110 group-hover:opacity-30 z-0" 
+              style={{ 
+                backgroundImage: 'radial-gradient(circle, currentColor 1.5px, transparent 1.5px)', 
+                backgroundSize: '12px 12px',
+                color: 'hsl(var(--primary-foreground))',
+                maskImage: 'radial-gradient(circle at bottom right, black, transparent 70%)',
+                WebkitMaskImage: 'radial-gradient(circle at bottom right, black, transparent 70%)'
+              }} 
+            />
+            
+            <div className="relative z-10">
+              <span className="brand-meta text-primary-foreground/70 tracking-widest">BALANCE</span>
+            </div>
+            <div className="mt-4 relative z-10">
+              {isProfileLoading ? (
+                <Skeleton className="h-8 w-24 bg-primary-foreground/20 rounded-xl" />
+              ) : (
+                <p className="brand-display text-3xl tracking-wide text-primary-foreground group-hover:scale-[1.02] origin-left transition-transform duration-300">
+                  EGP {profile?.balance?.toLocaleString() || '0.00'}
+                </p>
+              )}
+              <div className="flex items-center gap-1 text-[10px] font-bold uppercase mt-2 text-primary-foreground/80 tracking-wider">
+                <ArrowUpRight className="w-3 h-3 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform duration-300" /> AVAILABLE NOW
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-primary text-primary-foreground p-4 rounded-2xl shadow-md relative overflow-hidden">
-            <div className="absolute -right-4 -top-4 w-16 h-16 bg-white/10 rounded-full blur-xl" />
-            <div className="flex items-center gap-2 mb-2 text-primary-foreground/80">
-              <Banknote className="w-4 h-4" />
-              <span className="text-xs font-semibold uppercase tracking-wider">Balance</span>
+        {/* Rating Card */}
+        <div className="relative overflow-hidden rounded-2xl border border-border group hover:-translate-y-1 transition-all duration-300 shadow-sm hover:shadow-md bg-card/50">
+          {/* The Glow */}
+          <div className="absolute w-48 h-48 bg-accent/40 blur-[50px] -left-8 -top-8 group-hover:bg-accent/60 transition-colors duration-500 z-0 pointer-events-none"></div>
+          
+          <div className="relative z-10 bg-card/90 backdrop-blur-md p-5 flex flex-col justify-between min-h-[120px] h-full">
+            <div className="flex items-center justify-between mb-1 relative z-10">
+              <span className="brand-meta text-muted-foreground tracking-widest">RATING</span>
+              <div className="w-8 h-8 rounded-full border border-accent/30 bg-accent/10 flex items-center justify-center group-hover:bg-accent/20 transition-colors duration-300">
+                <Star className="w-4 h-4 text-accent fill-accent/50 group-hover:scale-110 group-hover:fill-accent transition-all duration-300" />
+              </div>
             </div>
-            {isProfileLoading ? (
-              <Skeleton className="h-8 w-24 bg-primary-foreground/20" />
-            ) : (
-              <p className="text-2xl font-bold">EGP {profile?.balance?.toLocaleString() || '0'}</p>
-            )}
-          </div>
-
-          <div className="bg-card border border-border p-4 rounded-2xl shadow-sm flex flex-col justify-center">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Rating</span>
-              <Star className="w-4 h-4 text-secondary fill-secondary" />
+            <div className="mt-4 relative z-10">
+              {isProfileLoading ? (
+                <Skeleton className="h-8 w-16 rounded-xl" />
+              ) : (
+                <p className="brand-display text-4xl text-foreground group-hover:text-accent transition-colors duration-300">{profile?.avgRating?.toFixed(1) || 'N/A'}</p>
+              )}
+              <p className="brand-meta text-muted-foreground mt-2">YOUR FLOOR SCORE</p>
             </div>
-            {isProfileLoading ? (
-              <Skeleton className="h-8 w-16" />
-            ) : (
-              <p className="text-2xl font-bold text-foreground">{profile?.avgRating?.toFixed(1) || 'N/A'}</p>
-            )}
           </div>
         </div>
       </div>
 
       {/* Quick Actions */}
       <div className="grid grid-cols-3 gap-3">
-        <Link href="/events" className="bg-card border border-border rounded-xl p-3 flex flex-col items-center justify-center gap-2 hover:bg-muted/50 transition-colors">
-          <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center">
-            <Calendar className="w-5 h-5 text-secondary" />
+        <Link href="/events" className="relative overflow-hidden rounded-xl border border-border group hover:-translate-y-1 transition-all duration-300 shadow-sm hover:shadow-md block bg-card/50">
+          <div className="absolute w-32 h-32 bg-primary/20 blur-[30px] -left-8 -top-8 group-hover:bg-primary/40 transition-colors duration-500 z-0 pointer-events-none"></div>
+          <div className="relative z-10 bg-card/90 backdrop-blur-md p-4 flex flex-col items-center justify-center gap-3 h-full group-hover:bg-card/95 transition-colors">
+            <Calendar className="w-5 h-5 text-foreground/80 group-hover:scale-110 group-hover:text-primary transition-all duration-300" strokeWidth={1.5} />
+            <span className="brand-meta group-hover:text-primary transition-colors">MY EVENTS</span>
           </div>
-          <span className="text-xs font-medium">My Events</span>
         </Link>
-        <Link href="/balance" className="bg-card border border-border rounded-xl p-3 flex flex-col items-center justify-center gap-2 hover:bg-muted/50 transition-colors">
-          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-            <Banknote className="w-5 h-5 text-primary" />
+        <Link href="/balance" className="relative overflow-hidden rounded-xl border border-border group hover:-translate-y-1 transition-all duration-300 shadow-sm hover:shadow-md block bg-card/50">
+          <div className="absolute w-32 h-32 bg-primary/20 blur-[30px] -left-8 -top-8 group-hover:bg-primary/40 transition-colors duration-500 z-0 pointer-events-none"></div>
+          <div className="relative z-10 bg-card/90 backdrop-blur-md p-4 flex flex-col items-center justify-center gap-3 h-full group-hover:bg-card/95 transition-colors">
+            <Banknote className="w-5 h-5 text-foreground/80 group-hover:scale-110 group-hover:text-primary transition-all duration-300" strokeWidth={1.5} />
+            <span className="brand-meta text-center group-hover:text-primary transition-colors">TRANSACTIONS</span>
           </div>
-          <span className="text-xs font-medium">Transactions</span>
         </Link>
-        <Link href="/profile" className="bg-card border border-border rounded-xl p-3 flex flex-col items-center justify-center gap-2 hover:bg-muted/50 transition-colors">
-          <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-            <Star className="w-5 h-5 text-muted-foreground" />
+        <Link href="/ratings" className="relative overflow-hidden rounded-xl border border-border group hover:-translate-y-1 transition-all duration-300 shadow-sm hover:shadow-md block bg-card/50">
+          <div className="absolute w-32 h-32 bg-accent/20 blur-[30px] -left-8 -top-8 group-hover:bg-accent/40 transition-colors duration-500 z-0 pointer-events-none"></div>
+          <div className="relative z-10 bg-card/90 backdrop-blur-md p-4 flex flex-col items-center justify-center gap-3 h-full group-hover:bg-card/95 transition-colors">
+            <Star className="w-5 h-5 text-foreground/80 group-hover:scale-110 group-hover:text-primary transition-all duration-300" strokeWidth={1.5} />
+            <span className="brand-meta group-hover:text-primary transition-colors">RATINGS</span>
           </div>
-          <span className="text-xs font-medium">Ratings</span>
         </Link>
       </div>
 
       {/* Upcoming Events */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold">Upcoming Assignments</h2>
-          <Link href="/events" className="text-sm font-medium text-secondary flex items-center">
-            See all <ChevronRight className="w-4 h-4 ml-1" />
+      <div className="space-y-4 pb-4">
+        <div className="flex items-center justify-between border-b border-border/40 pb-2">
+          <h2 className="brand-display text-xl tracking-wider">UPCOMING ASSIGNMENTS</h2>
+          <Link href="/events" className="brand-meta text-secondary flex items-center hover:underline">
+            SEE ALL <ChevronRight className="w-3 h-3 ml-1" />
           </Link>
         </div>
 
         {isAssignmentsLoading ? (
           <div className="space-y-3">
-            {[1, 2].map(i => <Skeleton key={i} className="h-28 w-full rounded-2xl" />)}
+            {[1, 2].map(i => <Skeleton key={i} className="h-32 w-full rounded-2xl" />)}
           </div>
         ) : upcomingAssignments.length > 0 ? (
           <div className="space-y-3">
             {upcomingAssignments.map((assignment) => (
               <Link key={assignment.id} href={`/events/${assignment.eventId}`} className="block">
-                <div className="bg-card border border-border p-4 rounded-2xl shadow-sm hover:shadow-md transition-shadow active:scale-[0.98] transform duration-150">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-bold text-foreground line-clamp-1 flex-1 pr-2">{assignment.event.title}</h3>
-                    {(assignment.status === 'pending' || assignment.status === 'assigned') && (
-                      <span className="px-2 py-0.5 rounded-full bg-secondary/20 text-secondary text-[10px] font-bold uppercase tracking-wide shrink-0">
-                        Needs Action
-                      </span>
-                    )}
-                    {assignment.status === 'accepted' && (
-                      <span className="px-2 py-0.5 rounded-full bg-green-500/10 text-green-600 text-[10px] font-bold uppercase tracking-wide shrink-0">
-                        Confirmed
-                      </span>
-                    )}
-                  </div>
+                <div className="relative overflow-hidden rounded-2xl border border-border group hover:-translate-y-1 transition-all duration-300 shadow-sm hover:shadow-md active:scale-[0.98] bg-card/50">
+                  <div className="absolute w-48 h-48 bg-primary/20 blur-[50px] -left-12 -top-12 group-hover:bg-primary/40 transition-colors duration-500 z-0 pointer-events-none"></div>
                   
-                  <div className="space-y-1.5 text-sm text-muted-foreground mt-3">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-primary/50" />
-                      <span>{format(new Date(assignment.event.startTime), 'MMM d, yyyy')}</span>
+                  <div className="relative z-10 bg-card/90 backdrop-blur-md p-4 h-full overflow-hidden">
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary/40 group-hover:bg-primary transition-colors duration-300 z-20" />
+
+                    <div className="flex justify-between items-start mb-3 relative z-10">
+                      <h3 className="brand-display text-lg text-foreground line-clamp-1 flex-1 pr-2 tracking-wide pl-2 group-hover:text-primary transition-colors duration-300">{assignment.event.title}</h3>
+                      {(assignment.status === 'pending' || assignment.status === 'assigned') && (
+                        <span className="brand-meta px-2 py-1 bg-accent/20 text-accent-foreground border border-accent/30 rounded-md">
+                          NEEDS ACTION
+                        </span>
+                      )}
+                      {assignment.status === 'accepted' && (
+                        <span className="brand-meta px-2 py-1 bg-muted/20 text-muted-foreground border border-muted/30 rounded-md">
+                          CONFIRMED
+                        </span>
+                      )}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-primary/50" />
-                      <span>{format(new Date(assignment.event.startTime), 'h:mm a')} - {format(new Date(assignment.event.endTime), 'h:mm a')}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-primary/50" />
-                      <span className="line-clamp-1">{assignment.event.eventLocName || 'Location TBA'}</span>
+
+                    <div className="space-y-2 text-sm text-muted-foreground font-medium pl-2 relative z-10">
+                      <div className="flex items-center gap-3">
+                        <Calendar className="w-4 h-4 text-foreground/40 group-hover:text-primary/60 transition-colors duration-300" />
+                        <span>{format(new Date(assignment.event.startTime), 'MMM d, yyyy')}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Clock className="w-4 h-4 text-foreground/40 group-hover:text-primary/60 transition-colors duration-300" />
+                        <span>{format(new Date(assignment.event.startTime), 'h:mm a')} - {format(new Date(assignment.event.endTime), 'h:mm a')}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <MapPin className="w-4 h-4 text-foreground/40 group-hover:text-primary/60 transition-colors duration-300" />
+                        <span className="line-clamp-1">{assignment.event.eventLocName || 'Location TBA'}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -125,10 +170,10 @@ export default function Dashboard() {
             ))}
           </div>
         ) : (
-          <div className="bg-muted/30 border border-dashed border-border rounded-2xl p-8 text-center">
-            <Calendar className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-            <p className="text-muted-foreground font-medium">No upcoming assignments</p>
-            <p className="text-xs text-muted-foreground mt-1">Enjoy your free time!</p>
+          <div className="bg-card border border-border border-dashed rounded-2xl p-10 text-center flex flex-col items-center justify-center min-h-[160px]">
+            <Calendar className="w-10 h-10 text-foreground/20 mb-3" strokeWidth={1} />
+            <p className="brand-meta text-foreground/60 mb-1">NO UPCOMING ASSIGNMENTS</p>
+            <p className="text-xs text-muted-foreground">Enjoy your free time!</p>
           </div>
         )}
       </div>

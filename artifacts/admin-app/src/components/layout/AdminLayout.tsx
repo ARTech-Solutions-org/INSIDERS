@@ -7,7 +7,6 @@ import {
   Calendar, 
   Settings, 
   LogOut, 
-  Bell, 
   ShieldAlert,
   Megaphone
 } from "lucide-react";
@@ -36,7 +35,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   }, [isLoading, isError, user, setLocation]);
 
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center bg-muted/20">Loading...</div>;
+    return <div className="min-h-screen flex items-center justify-center bg-background brand-display text-2xl">LOADING <span className="brand-slashes ml-3">//////</span></div>;
   }
 
   // Redirecting via useEffect if not admin
@@ -57,28 +56,26 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   ].filter(item => !item.hide);
 
   return (
-    <div className="min-h-screen flex bg-muted/20">
+    <div className="brand-app min-h-screen flex bg-background">
       {/* Sidebar */}
       <div className="w-64 bg-sidebar border-r border-sidebar-border flex flex-col hidden md:flex">
         <div className="p-6 border-b border-sidebar-border">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold font-serif">A</span>
+             <div className="w-8 h-8 bg-sidebar-primary flex items-center justify-center">
+                <span className="text-sidebar-primary-foreground font-bold">( )</span>
             </div>
-            <span className="font-bold text-lg text-sidebar-foreground uppercase tracking-wider">ARTech</span>
+             <span className="brand-display text-lg text-sidebar-foreground">INSIDERS</span>
           </div>
-          <div className="mt-1 text-xs text-sidebar-foreground/70 tracking-widest">LIVE THE EXPERIENCE</div>
+            <div className="mt-1 brand-meta text-sidebar-foreground/70">COMMAND THE CROWD</div>
         </div>
 
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {navigation.map((item) => {
             const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
             return (
-              <Link key={item.name} href={item.href}>
-                <a className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium' : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'}`}>
+              <Link key={item.name} href={item.href} className={`flex items-center gap-3 px-3 py-2 transition-colors border-l-2 ${isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium border-sidebar-primary' : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground border-transparent'}`}>
                   <item.icon className="w-5 h-5" />
                   {item.name}
-                </a>
               </Link>
             );
           })}
@@ -91,7 +88,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
               <p className="text-xs text-sidebar-foreground/60 capitalize">{user?.role?.replace('_', ' ')}</p>
             </div>
           </div>
-          <Button variant="outline" className="w-full justify-start text-sidebar-foreground" onClick={() => logout()}>
+           <Button variant="outline" className="w-full justify-start text-sidebar-foreground uppercase tracking-wider font-bold rounded-none" onClick={() => logout()}>
             <LogOut className="w-4 h-4 mr-2" />
             Logout
           </Button>
@@ -105,14 +102,14 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             <div className="w-6 h-6 bg-primary rounded bg-primary flex items-center justify-center">
               <span className="text-primary-foreground text-xs font-bold font-serif">A</span>
             </div>
-            <span className="font-bold text-foreground uppercase tracking-wider">ARTech</span>
+             <span className="brand-display text-foreground">INSIDERS</span>
           </div>
           <Button variant="ghost" size="icon" onClick={() => logout()}>
             <LogOut className="w-5 h-5" />
           </Button>
         </header>
 
-        <main className="flex-1 p-6 overflow-auto">
+         <main className="flex-1 p-5 md:p-8 overflow-auto">
           {children}
         </main>
       </div>

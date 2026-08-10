@@ -3,18 +3,18 @@ import { useListMyAssignments, MyAssignment } from '@workspace/api-client-react'
 import { Link } from 'wouter';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MapPin, Calendar, Clock, ChevronRight } from 'lucide-react';
+import { MapPin, Clock, ArrowUpRight } from 'lucide-react';
 import { format } from 'date-fns';
 
-function AssignmentList({ status }: { status: string }) {
+function AssignmentList({ status, colorClass }: { status: string, colorClass: string }) {
   const { data: assignmentsData, isLoading } = useListMyAssignments({ status });
-  const assignments: MyAssignment[] = Array.isArray(assignmentsData) 
-    ? assignmentsData 
+  const assignments: MyAssignment[] = Array.isArray(assignmentsData)
+    ? assignmentsData
     : (Array.isArray((assignmentsData as any)?.data) ? (assignmentsData as any).data : []);
 
   if (isLoading) {
     return (
-      <div className="space-y-3 mt-4">
+      <div className="space-y-4 mt-6">
         {[1, 2, 3].map(i => <Skeleton key={i} className="h-32 w-full rounded-2xl" />)}
       </div>
     );
@@ -22,65 +22,63 @@ function AssignmentList({ status }: { status: string }) {
 
   if (assignments.length === 0) {
     return (
-      <div className="bg-muted/30 border border-dashed border-border rounded-2xl p-8 text-center mt-4">
-        <Calendar className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-        <p className="text-muted-foreground font-medium">No events found</p>
-        <p className="text-xs text-muted-foreground mt-1">Check back later for new assignments.</p>
+      <div className="border border-border/50 bg-card/40 rounded-2xl p-10 text-center mt-6 flex flex-col items-center justify-center relative overflow-hidden">
+        <p className="brand-meta text-foreground/60 relative z-10 mb-1">NO EVENTS FOUND</p>
+        <p className="text-xs text-muted-foreground relative z-10">Check back later for new assignments.</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-3 mt-4">
-      {assignments.map((assignment) => (
-        <Link key={assignment.id} href={`/events/${assignment.eventId}`} className="block">
-          <div className="bg-card border border-border p-4 rounded-2xl shadow-sm hover:shadow-md transition-shadow active:scale-[0.98] transform duration-150">
-            <div className="flex justify-between items-start mb-3">
-              <h3 className="font-bold text-foreground line-clamp-2 pr-2 leading-tight">{assignment.event.title}</h3>
-              <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
-            </div>
-            
-            <div className="space-y-2 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-primary/60" />
-                <span>{format(new Date(assignment.event.startTime), 'EEEE, MMM d, yyyy')}</span>
+    <div className="space-y-4 mt-6">
+      {assignments.map((assignment) => {
+        const startDate = new Date(assignment.event.startTime);
+        return (
+          <Link key={assignment.id} href={`/events/${assignment.eventId}`} className="block">
+            <div className={`bg-card border border-border/80 rounded-2xl overflow-hidden hover:shadow-md transition-shadow active:scale-[0.99] transform duration-150 flex items-stretch min-h-[110px]`}>
+              
+              {/* Date Block */}
+              <div className="w-20 border-r border-border/40 flex flex-col items-center justify-center p-2 bg-foreground/[0.02]">
+                <span className="brand-display text-4xl leading-none text-foreground">{format(startDate, 'dd')}</span>
+                <span className="brand-meta text-muted-foreground mt-1">{format(startDate, 'MMM')}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-primary/60" />
-                <span>{format(new Date(assignment.event.startTime), 'h:mm a')} - {format(new Date(assignment.event.endTime), 'h:mm a')}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm text-muted-foreground pt-1">
-                <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <MapPin className="w-4 h-4 text-primary/60 shrink-0" />
-                  <span className="line-clamp-1">{assignment.event.eventLocName || 'Location TBA'}</span>
+              
+              {/* Event Info */}
+              <div className="flex-1 p-4 flex flex-col justify-between">
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="brand-display text-lg text-foreground line-clamp-2 pr-2 leading-tight tracking-wide">{assignment.event.title}</h3>
                 </div>
-                {assignment.event.eventLocName && (
-                  <a 
-                    href={
-                      assignment.event.eventLocUrl ||
-                      (assignment.event.venueLat && assignment.event.venueLng
-                        ? `https://www.google.com/maps/search/?api=1&query=${assignment.event.venueLat},${assignment.event.venueLng}`
-                        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(assignment.event.eventLocName + ', Egypt')}`)
-                    }
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    className="text-xs font-semibold text-secondary hover:underline shrink-0 ml-2 bg-secondary/10 px-2 py-0.5 rounded-full flex items-center gap-1"
-                  >
-                    Maps ↗
-                  </a>
+
+                <div className="space-y-2 text-xs text-muted-foreground font-medium">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-3.5 h-3.5 text-foreground/40" />
+                    <span>{format(startDate, 'h:mm a')} - {format(new Date(assignment.event.endTime), 'h:mm a')}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <MapPin className="w-3.5 h-3.5 text-foreground/40 shrink-0" />
+                      <span className="line-clamp-1">{assignment.event.eventLocName || 'Location TBA'}</span>
+                    </div>
+                    {assignment.event.eventLocName && (
+                      <div className="shrink-0 ml-2 bg-background border border-border px-2 py-0.5 rounded-sm flex items-center gap-1">
+                        MAPS <ArrowUpRight className="w-3 h-3" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {assignment.isTeamLead && (
+                  <div className="mt-3">
+                    <span className="brand-meta px-2 py-1 bg-primary text-primary-foreground rounded-md">
+                      TEAM LEAD
+                    </span>
+                  </div>
                 )}
               </div>
             </div>
-            
-            {assignment.isTeamLead && (
-              <div className="mt-3 inline-flex px-2 py-1 bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wide rounded-md">
-                Team Lead
-              </div>
-            )}
-          </div>
-        </Link>
-      ))}
+          </Link>
+        );
+      })}
     </div>
   );
 }
@@ -89,28 +87,51 @@ export default function Events() {
   const [activeTab, setActiveTab] = useState('pending');
 
   return (
-    <div className="p-4 flex flex-col h-full">
-      <h1 className="text-2xl font-bold text-foreground mb-4">My Events</h1>
+    <div className="p-5 flex flex-col h-full relative overflow-hidden">
+      <div className="pt-2 mb-6">
+        <h1 className="brand-display text-4xl text-foreground mb-1 tracking-wider uppercase">MY EVENTS</h1>
+        <p className="text-muted-foreground font-medium">Every call time, in one place.</p>
+      </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 flex flex-col">
-        <TabsList className="w-full h-auto flex flex-wrap bg-muted/50 p-1 rounded-xl">
-          <TabsTrigger value="pending" className="flex-1 text-xs rounded-lg py-2">Pending</TabsTrigger>
-          <TabsTrigger value="accepted" className="flex-1 text-xs rounded-lg py-2">Accepted</TabsTrigger>
-          <TabsTrigger value="completed" className="flex-1 text-xs rounded-lg py-2">Completed</TabsTrigger>
-          <TabsTrigger value="cancelled" className="flex-1 text-xs rounded-lg py-2">Past/Cancel</TabsTrigger>
+        <TabsList className="w-full h-auto flex flex-wrap bg-transparent border-b border-border/50 p-0 rounded-none justify-start">
+          <TabsTrigger 
+            value="pending" 
+            className="rounded-none border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:bg-transparent data-[state=active]:text-foreground text-xs uppercase tracking-wider font-bold py-3 px-4"
+          >
+            Pending
+          </TabsTrigger>
+          <TabsTrigger 
+            value="accepted" 
+            className="rounded-none border-b-2 border-transparent data-[state=active]:border-muted data-[state=active]:bg-transparent data-[state=active]:text-foreground text-xs uppercase tracking-wider font-bold py-3 px-4"
+          >
+            Accepted
+          </TabsTrigger>
+          <TabsTrigger 
+            value="completed" 
+            className="rounded-none border-b-2 border-transparent data-[state=active]:border-secondary data-[state=active]:bg-transparent data-[state=active]:text-foreground text-xs uppercase tracking-wider font-bold py-3 px-4"
+          >
+            Completed
+          </TabsTrigger>
+          <TabsTrigger 
+            value="cancelled" 
+            className="rounded-none border-b-2 border-transparent data-[state=active]:border-destructive data-[state=active]:bg-transparent data-[state=active]:text-foreground text-xs uppercase tracking-wider font-bold py-3 px-4"
+          >
+            Past/Cancel
+          </TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="pending" className="flex-1 outline-none">
-          <AssignmentList status="pending,assigned" />
+          <AssignmentList status="pending,assigned" colorClass="" />
         </TabsContent>
         <TabsContent value="accepted" className="flex-1 outline-none">
-          <AssignmentList status="accepted,checked_in" />
+          <AssignmentList status="accepted,checked_in" colorClass="" />
         </TabsContent>
         <TabsContent value="completed" className="flex-1 outline-none">
-          <AssignmentList status="completed" />
+          <AssignmentList status="completed" colorClass="" />
         </TabsContent>
         <TabsContent value="cancelled" className="flex-1 outline-none">
-          <AssignmentList status="cancelled,no_show,declined" />
+          <AssignmentList status="cancelled,no_show,declined" colorClass="" />
         </TabsContent>
       </Tabs>
     </div>

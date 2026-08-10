@@ -1,0 +1,28 @@
+I'm attaching our brand manual PDF (Insiders — "We Command the Crowd"). Please restyle my existing ushering/events website to match this brand identity exactly. Apply the following design system across every page and component:
+
+COLOR PALETTE
+- Background (primary): #F4F1EA (warm off-white/cream — NOT pure white)
+- Primary text / dark elements: #242226 (near-black charcoal)
+- Primary accent: #1F4A3E (dark forest green) — use for buttons, highlights, key headers
+- Secondary accent 1: #A9D0DE (sky blue)
+- Secondary accent 2: #84A278 (moss green)
+- Secondary accent 3: #F0DA9B (soft yellow)
+- Keep accent colors used sparingly — as highlights, tags, icons, or section backgrounds, not as dominant colors. The palette should feel mostly black/cream with green as the "signature" color.
+
+TYPOGRAPHY
+- Headings / display text: a bold, condensed, tall sans-serif (use "Montagna" if available via Google Fonts/Fontshare, otherwise fall back to a similar bold condensed grotesk like "Anton", "Bebas Neue", or "Oswald Bold"). Headings should be set in ALL CAPS, tight letter-spacing, large scale — confident and attention-grabbing.
+- Body text / UI text: "Cairo" (Google Font) in Light/Regular/Bold weights — clean, highly legible, works for both Latin and Arabic content.
+
+VISUAL LANGUAGE / LAYOUT
+- Generous whitespace, minimal clutter, strong grid alignment.
+- Section labels and small metadata text in uppercase, letter-spaced, small size (like "CHAPTER 01" style tags).
+- Use parentheses () as a recurring brand motif where relevant (e.g., around a logo mark or key word in a headline).
+- Add a small decorative element of 6 diagonal slashes "//////" as a signature graphic accent in corners or section breaks.
+- Footer/header bars: simple 3-column layout (left: brand/logo, center: page or section name, right: small tag/label) — clean and minimal, small uppercase text, muted gray-ish tone.
+- Buttons: solid dark green (#1F4A3E) or solid black, bold uppercase label, condensed font, minimal border-radius (sharp-ish, not overly rounded) — the brand feels bold/urban, not soft/playful.
+- Cards/sections: cream or white backgrounds with black borders or subtle shadows, occasional full-bleed green/blue/yellow blocks for contrast sections.
+
+TONE
+- Overall brand personality: confident, bold, in-control, urban, slightly edgy but professional — think "we manage the crowd/event with authority." Avoid soft pastel/cute styling — keep it sharp and structured.
+
+Please apply this consistently: navbar, buttons, forms, cards, headers, footer, and any existing components — matching the reference PDF's look and feel as closely as possible. Keep all existing functionality intact; this is a visual restyle only.
