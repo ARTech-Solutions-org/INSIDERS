@@ -1,0 +1,318 @@
+# Build Prompt: Ushering Management System (Web-Only)
+
+## Project Overview
+Build a full-stack **Ushering Management System** for an event-staffing agency called Artech. This is a **web-only** platform (no native mobile apps) consisting of **two separate web applications** sharing one backend and database:
+
+1. **Ushers Web App** — used by ushers (event staff) to register, view/accept assigned events, check in/out on-site, track balance and rating, and view event history.
+2. **Admin Web App** — used by the agency's management team to approve ushers, create and staff events, define balance/deduction rules, and monitor performance across ushers and events.
+
+Together these replace manual scheduling, spreadsheets, and messaging with one system that runs the full cycle: usher signs up → gets matched to the right event → checks in/out → gets paid.
+
+## Tech Expectations
+- Full-stack web app (React frontend + Node/Express or similar backend — use whatever stack Replit sets up best, but keep frontend and backend cleanly separated).
+- PostgreSQL database — **use the exact schema provided below**, do not redesign it.
+- Responsive design: ushers will mostly use this on their phone browsers, so the Ushers App must be fully mobile-responsive. The Admin App is primarily desktop but should not break on tablets.
+- Authentication: separate login flows for ushers, admins, and event coordinators (role-based access — see roles below).
+- Use the browser's Geolocation API for GPS check-in/check-out (no native GPS SDKs).
+- Use Web Push notifications (or email/SMS fallback) instead of native mobile push.
+
+## Design Direction
+- Clean, modern, professional look — this is an enterprise operations tool, not a consumer app.
+- Primary brand color: dark navy (similar to `#1B2340` / `#161B33`) with a warm gold/amber accent (similar to `#C79A5B`), matching the Artech brand identity (navy header bar with "ARTECH — LIVE THE EXPERIENCE" wordmark).
+- Ushers App: simple, large touch targets, minimal steps to complete actions (accept event, check in, check out) — optimized for one-handed phone use.
+- Admin App: dense data tables, dashboard cards with stats, filters, and a clear left-side navigation. Should feel like a proper admin/ops dashboard (think Linear or Retool, not a generic CRUD scaffold).
+- Use skeleton loaders and empty states, not blank screens.
+
+## Database Schema (PostgreSQL — use exactly as-is)
+
+```sql
+-- ==========================================
+-- 1. CORE & USER MANAGEMENT
+-- ==========================================
+
+CREATE TABLE admins (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    role VARCHAR(50) NOT NULL,
+    created_by_admin_id INT REFERENCES admins(id) ON DELETE SET NULL
+);
+
+CREATE TABLE ushers (
+    id SERIAL PRIMARY KEY,
+    full_name VARCHAR(255) NOT NULL,
+    phone VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    national_id_number VARCHAR(100) UNIQUE NOT NULL,
+    national_id_doc_url TEXT,
+    national_id_doc_key TEXT,
+    profile_photo_url TEXT,
+    profile_photo_key TEXT,
+    status VARCHAR(50) DEFAULT 'pending',
+    avg_rating FLOAT DEFAULT 0.0,
+    balance FLOAT DEFAULT 0.0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE usher_documents (
+    id SERIAL PRIMARY KEY,
+    usher_id INT NOT NULL REFERENCES ushers(id) ON DELETE CASCADE,
+    doc_type VARCHAR(100) NOT NULL,
+    file_url TEXT NOT NULL,
+    file_key TEXT NOT NULL,
+    expiry_date DATE,
+    status VARCHAR(50) DEFAULT 'pending'
+);
+
+CREATE TABLE usher_skills (
+    id SERIAL PRIMARY KEY,
+    usher_id INT NOT NULL REFERENCES ushers(id) ON DELETE CASCADE,
+    skill_type VARCHAR(100) NOT NULL,
+    value VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE usher_availability (
+    id SERIAL PRIMARY KEY,
+    usher_id INT NOT NULL REFERENCES ushers(id) ON DELETE CASCADE,
+    date DATE NOT NULL,
+    is_available BOOLEAN DEFAULT TRUE
+);
+
+-- ==========================================
+-- 2. EVENTS & OPERATIONS
+-- ==========================================
+
+CREATE TABLE events (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    event_loc_name VARCHAR(255),
+    event_loc_url TEXT,
+    venue_lat FLOAT,
+    venue_lng FLOAT,
+    meeting_point_lat FLOAT,
+    meeting_point_lng FLOAT,
+    dress_code TEXT,
+    instructions TEXT,
+    start_time TIMESTAMP NOT NULL,
+    end_time TIMESTAMP NOT NULL,
+    checkin_radius_m INT DEFAULT 100,
+    event_budget FLOAT DEFAULT 0.0,
+    contact_name VARCHAR(255),
+    contact_phone VARCHAR(50),
+    status VARCHAR(50) DEFAULT 'draft',
+    created_by_admin_id INT REFERENCES admins(id) ON DELETE SET NULL
+);
+
+CREATE TABLE event_assignments (
+    id SERIAL PRIMARY KEY,
+    event_id INT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+    usher_id INT NOT NULL REFERENCES ushers(id) ON DELETE CASCADE,
+    status VARCHAR(50) DEFAULT 'assigned',
+    is_team_lead BOOLEAN DEFAULT FALSE,
+    checkin_time TIMESTAMP,
+    checkin_lat FLOAT,
+    checkin_lng FLOAT,
+    checkin_method VARCHAR(50),
+    checkout_time TIMESTAMP,
+    checkout_lat FLOAT,
+    checkout_lng FLOAT
+);
+
+CREATE TABLE waitlist (
+    id SERIAL PRIMARY KEY,
+    event_id INT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+    usher_id INT NOT NULL REFERENCES ushers(id) ON DELETE CASCADE,
+    priority_order INT NOT NULL
+);
+
+CREATE TABLE cancellations (
+    id SERIAL PRIMARY KEY,
+    event_assignment_id INT UNIQUE NOT NULL REFERENCES event_assignments(id) ON DELETE CASCADE,
+    cancelled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    reason TEXT,
+    penalty_applied BOOLEAN DEFAULT FALSE
+);
+
+CREATE TABLE deduction_rules (
+    id SERIAL PRIMARY KEY,
+    event_id INT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+    rule_type VARCHAR(100) NOT NULL,
+    amount FLOAT NOT NULL
+);
+
+CREATE TABLE event_holder_links (
+    id SERIAL PRIMARY KEY,
+    event_id INT UNIQUE NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+    unique_token VARCHAR(255) UNIQUE NOT NULL
+);
+
+-- ==========================================
+-- 3. FINANCE & EVALUATION
+-- ==========================================
+
+CREATE TABLE balance_transactions (
+    id SERIAL PRIMARY KEY,
+    usher_id INT NOT NULL REFERENCES ushers(id) ON DELETE CASCADE,
+    event_assignment_id INT REFERENCES event_assignments(id) ON DELETE SET NULL,
+    amount FLOAT NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    reason TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE payouts (
+    id SERIAL PRIMARY KEY,
+    usher_id INT NOT NULL REFERENCES ushers(id) ON DELETE CASCADE,
+    amount FLOAT NOT NULL,
+    method VARCHAR(50) NOT NULL,
+    status VARCHAR(50) DEFAULT 'pending',
+    paid_at TIMESTAMP
+);
+
+CREATE TABLE ratings (
+    id SERIAL PRIMARY KEY,
+    event_assignment_id INT NOT NULL REFERENCES event_assignments(id) ON DELETE CASCADE,
+    rated_by_type VARCHAR(50) NOT NULL,
+    rating_value INT CHECK (rating_value >= 1 AND rating_value <= 5),
+    comment TEXT
+);
+
+-- ==========================================
+-- 4. SYSTEM & COMMUNICATIONS
+-- ==========================================
+
+CREATE TABLE notifications (
+    id SERIAL PRIMARY KEY,
+    recipient_type VARCHAR(50) NOT NULL,
+    recipient_id INT NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    message TEXT NOT NULL,
+    is_read BOOLEAN DEFAULT FALSE,
+    sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE broadcast_messages (
+    id SERIAL PRIMARY KEY,
+    sent_by_admin_id INT REFERENCES admins(id) ON DELETE SET NULL,
+    message TEXT NOT NULL,
+    target_filter TEXT,
+    sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE audit_log (
+    id SERIAL PRIMARY KEY,
+    admin_id INT REFERENCES admins(id) ON DELETE SET NULL,
+    action_type VARCHAR(100) NOT NULL,
+    target_table VARCHAR(100) NOT NULL,
+    target_id INT,
+    details TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+## User Roles
+1. **Super Admin** — full access. Approves new admin accounts, sets/edits event budgets and balance rules. Only role that can touch financial configuration.
+2. **Admin** — day-to-day management: approves ushers, creates/edits events, assigns ushers, sends broadcasts. Cannot create other admin accounts or change budgets.
+3. **Event Coordinator** — limited role, meant for on-site staff. Can only confirm manual check-in/check-out for the events they're assigned to. No access to balances, approvals, or event creation.
+4. **Usher** — the end staff member using the Ushers App.
+
+Every admin-side action that changes ushers' balances, approvals, or event assignments must be recorded in `audit_log` (who did what, when, to which record).
+
+---
+
+## FEATURE SPEC — USHERS APP
+
+### 1. Registration & Profile
+- Sign-up form: full name, phone, email, national ID number, upload of National ID document and profile photo.
+- New ushers land in `status = 'pending'` until an admin approves or declines them. Show a clear "pending review" screen if not yet approved.
+- Once approved, usher can edit their profile info, photo, and contact details anytime.
+- Ushers can upload additional documents/certifications (`usher_documents`), each with an optional expiry date.
+
+### 2. Event Assignment & Details
+- Ushers see a list of events they've been assigned to (`event_assignments` where `usher_id` = them), grouped by status: pending response / accepted / completed / past.
+- Each event detail view shows: title, date/time (start & end), venue location (map/link), a **meeting point** that may differ from the venue (e.g. staff entrance), dress code, event-specific instructions, and the on-site contact person's name and phone.
+- Usher can **Accept** or **Decline** each assigned event. Declining respects the cancellation policy (see below).
+- If other ushers are assigned to the same event, show the team list and who the team lead is (`is_team_lead`).
+
+### 3. Notifications
+- Notify the usher immediately when assigned to a new event.
+- Reminder notifications: one the day before the event and one closer to start time.
+- Notify on approval status changes and on any balance adjustment.
+- Implement as web push notifications with an in-app notification bell/list as fallback (reading `notifications` table where `recipient_type = 'usher'`).
+
+### 4. Check-in / Check-out
+- On the day of the event, usher taps "Check in" — app requests browser geolocation permission, captures lat/lng, and compares against the event's `venue_lat`/`venue_lng` within `checkin_radius_m`.
+- If within radius and within the scheduled time window, mark `checkin_time` + `checkin_lat/lng` + `checkin_method = 'gps'`.
+- If GPS fails or is out of range, show a clear message and let them know an admin/coordinator can confirm manually (`checkin_method = 'manual'`).
+- Same flow for check-out. Event assignment only becomes `'completed'` once both check-in and check-out are recorded.
+
+### 5. Balance & Payout History
+- Usher can see their live `balance` value at the top of their dashboard.
+- A transaction history screen listing every `balance_transactions` entry (credit, debit, bonus, deduction) with the reason and related event.
+- A payout history screen listing `payouts` (amount, method, status, date paid).
+
+### 6. Ratings
+- After an event is marked completed and rated, usher can see their own rating for that event and their running `avg_rating`.
+
+### 7. Cancellations
+- Usher can cancel an already-accepted assignment. Show the cutoff rule clearly (e.g. "cancel more than 48 hours before start = no penalty; same-day = balance deduction") — pull the applicable rule from `deduction_rules` for that event.
+- On cancellation, create a `cancellations` record and, if applicable, a matching `balance_transactions` deduction.
+
+---
+
+## FEATURE SPEC — ADMIN APP
+
+### 1. Auth & Roles
+- Login screen for admins/coordinators. Super admin can invite/approve new admin accounts and assign roles.
+- Role-gated navigation: hide balance/budget screens from Event Coordinators.
+
+### 2. Dashboard / Statistics
+- Overview cards: total active ushers, pending approvals, upcoming events this week, total balance owed to ushers.
+- Per-event stats: attendance rate, punctuality, ushers completed vs. cancelled.
+- Per-usher stats: jobs completed, average rating, reliability over time.
+- Use simple charts (bar/line) for trends over time.
+
+### 3. Usher Management
+- Table of all ushers with filters by status (pending/approved/declined), search by name/phone.
+- Usher detail page: profile info, uploaded documents (with expiry flags — see below), skills/tags, availability calendar, full event history, balance transactions, and rating history.
+- Approve / decline pending ushers from here.
+
+### 4. Event Management
+- Create/edit event form matching all `events` fields: title, venue location (with map picker), meeting point, dress code, instructions, start/end time, check-in radius, budget (super admin only), contact person.
+- Define `deduction_rules` per event (no-show penalty, late penalty, bonus, etc.) — super admin only for amounts tied to budget.
+- **Smart assignment**: instead of scrolling a full usher list, show a ranked/filtered shortlist based on rating, availability (`usher_availability`), and skill tags (`usher_skills`) matching what the event needs (e.g. language, height, brand experience).
+- Manage the `waitlist` per event as a backup pool for late cancellations.
+- Manual override to confirm an usher's check-in/check-out if the app didn't capture it.
+
+### 5. Multi-Admin & Permissions
+- List of admins with role and who created them (`created_by_admin_id`).
+- Full `audit_log` viewer: filterable by admin, action type, and date — shows who approved which usher, who assigned which event, who changed a deduction rule, etc.
+
+### 6. Broadcast Messaging
+- Simple composer to send a message to a filtered group of ushers (e.g. by city/availability) or to everyone, stored in `broadcast_messages` and fanned out into `notifications`.
+
+### 7. Document Expiry Tracking
+- Dashboard widget/list showing `usher_documents` with `expiry_date` approaching (e.g. within 30 days) or already expired, with the ability to flag/restrict that usher from new assignments until updated.
+
+### 8. Event Coordinator View
+- Stripped-down view for the coordinator role: today's assigned events only, with a big "confirm check-in / confirm check-out" action per usher. No balances, no approvals, no event creation screens visible.
+
+### 9. Event Holder Link & Rating
+- When an event is fully staffed, generate a public link (`event_holder_links.unique_token`) that shows the assigned ushers' names and photos (no phone numbers) to the client.
+- After check-out, prompt the event holder (via that link) to rate the ushers. Store this as a `ratings` row with `rated_by_type = 'event_holder'`, combined with the admin's own rating into the usher's single overall `avg_rating` (not tracked as a separate figure).
+
+---
+
+## Non-Functional Requirements
+- All monetary values (`balance`, `amount`, `event_budget`) should be treated as currency and formatted consistently (assume EGP).
+- All timestamps should be stored in UTC and displayed in the local timezone of the viewer.
+- Seed the database with a handful of realistic demo records (a few ushers in different statuses, a few events, some completed assignments with ratings and transactions) so the app isn't empty on first load.
+- Keep the two apps (Ushers / Admin) as clearly separated route groups or separate front-ends, both served from the same backend/API and database.
+
+## Deliverable
+A working Replit project with:
+- The Postgres schema above applied via migration.
+- A working Admin App covering all sections above.
+- A working Ushers App covering all sections above.
+- Seeded demo data so both apps can be explored immediately after setup.

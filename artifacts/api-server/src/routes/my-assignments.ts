@@ -1,0 +1,174 @@
+import { Router } from "express";
+import { db, eventAssignmentsTable, eventsTable, ushersTable, deductionRulesTable, cancellationsTable, balanceTransactionsTable } from "@workspace/db";
+import { eq, and, ne, sql, inArray, lt } from "drizzle-orm";
+import { requireUsher } from "../middleware/auth.js";
+import {
+  DeclineAssignmentBody,
+  UsherCheckinBody,
+  CancelAssignmentBody,
+  GpsCheckinInput,
+} from "@workspace/api-zod";
+import { calculateAndApplyAutoRating } from "../lib/auto-rating-engine.js";
+
+const router = Router();
+
+async function buildMyAssignment(assignment: any) {
+  const [event] = await db.select().from(eventsTable).where(eq(eventsTable.id, assignment.eventId));
+  const deductionRules = await db.select().from(deductionRulesTable).where(eq(deductionRulesTable.eventId, assignment.eventId));
+  const teamRows = await db.select({ id: ushersTable.id, fullName: ushersTable.fullName, profilePhotoUrl: ushersTable.profilePhotoUrl, isTeamLead: eventAssignmentsTable.isTeamLead }).from(eventAssignmentsTable).innerJoin(ushersTable, eq(eventAssignmentsTable.usherId, ushersTable.id)).where(and(eq(eventAssignmentsTable.eventId, assignment.eventId), ne(eventAssignmentsTable.usherId, assignment.usherId)));
+  const eventDetail = { ...event, assignments: [], deductionRules };
+  return { id: assignment.id, eventId: assignment.eventId, status: assignment.status, isTeamLead: assignment.isTeamLead, checkinTime: assignment.checkinTime, checkoutTime: assignment.checkoutTime, checkinMethod: assignment.checkinMethod, event: eventDetail, teamMembers: teamRows };
+}
+
+function haversineMeters(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371000;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+// GET /my/assignments
+router.get("/my/assignments", requireUsher, async (req, res) => {
+  // Automatically mark events as completed if their end time has passed
+  await db
+    .update(eventsTable)
+    .set({ status: "completed" })
+    .where(
+      and(
+        lt(eventsTable.endTime, new Date()),
+        ne(eventsTable.status, "completed")
+      )
+    );
+
+  const { status } = req.query as Record<string, string>;
+  let query = db.select().from(eventAssignmentsTable).where(eq(eventAssignmentsTable.usherId, req.user!.id)).$dynamic();
+  if (status && status !== "all") {
+    const statuses = status.split(",").map(s => s.trim()).filter(Boolean);
+    if (statuses.length === 1) {
+      query = query.where(and(eq(eventAssignmentsTable.usherId, req.user!.id), eq(eventAssignmentsTable.status, statuses[0])));
+    } else if (statuses.length > 1) {
+      query = query.where(and(eq(eventAssignmentsTable.usherId, req.user!.id), inArray(eventAssignmentsTable.status, statuses)));
+    }
+  }
+  const rows = await query;
+  const result = await Promise.all(rows.map(buildMyAssignment));
+
+  // Automatically mark missed assignments as no_show
+  const now = new Date();
+  for (const item of result) {
+    if (new Date(item.event.endTime) < now && (item.status === "assigned" || item.status === "accepted")) {
+      item.status = "no_show";
+      await db.update(eventAssignmentsTable)
+        .set({ status: "no_show" })
+        .where(eq(eventAssignmentsTable.id, item.id));
+    }
+  }
+
+  // Filter out items that no longer match the requested status
+  let finalResult = result;
+  if (status && status !== "all") {
+    const statuses = status.split(",").map(s => s.trim()).filter(Boolean);
+    finalResult = result.filter(item => statuses.includes(item.status));
+  }
+
+  res.json(finalResult);
+});
+
+// POST /my/assignments/:assignmentId/accept
+router.post("/my/assignments/:assignmentId/accept", requireUsher, async (req, res) => {
+  const assignmentId = parseInt(req.params.assignmentId as string, 10);
+  const [existingAssignment] = await db.select().from(eventAssignmentsTable).where(and(eq(eventAssignmentsTable.id, assignmentId), eq(eventAssignmentsTable.usherId, req.user!.id)));
+  if (!existingAssignment) { res.status(404).json({ error: "Not found" }); return; }
+
+  const [event] = await db.select().from(eventsTable).where(eq(eventsTable.id, existingAssignment.eventId));
+  if (event.status === "completed" || new Date(event.endTime) < new Date()) {
+    res.status(400).json({ error: "Cannot accept an assignment for a completed event." });
+    return;
+  }
+
+  const [assignment] = await db.update(eventAssignmentsTable).set({ status: "accepted" }).where(eq(eventAssignmentsTable.id, assignmentId)).returning();
+  if (!assignment) { res.status(404).json({ error: "Not found" }); return; }
+  res.json(await buildMyAssignment(assignment));
+});
+
+// POST /my/assignments/:assignmentId/decline
+router.post("/my/assignments/:assignmentId/decline", requireUsher, async (req, res) => {
+  const assignmentId = parseInt(req.params.assignmentId as string, 10);
+  const [assignment] = await db.update(eventAssignmentsTable).set({ status: "declined" }).where(and(eq(eventAssignmentsTable.id, assignmentId), eq(eventAssignmentsTable.usherId, req.user!.id))).returning();
+  if (!assignment) { res.status(404).json({ error: "Not found" }); return; }
+  res.json(await buildMyAssignment(assignment));
+});
+
+// POST /my/assignments/:assignmentId/checkin
+router.post("/my/assignments/:assignmentId/checkin", requireUsher, async (req, res) => {
+  const parsed = UsherCheckinBody.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.flatten() }); return; }
+  const { lat, lng } = parsed.data;
+  const assignmentId = parseInt(req.params.assignmentId as string, 10);
+  const [assignment] = await db.select().from(eventAssignmentsTable).where(and(eq(eventAssignmentsTable.id, assignmentId), eq(eventAssignmentsTable.usherId, req.user!.id)));
+  if (!assignment) { res.status(404).json({ error: "Not found" }); return; }
+  const [event] = await db.select().from(eventsTable).where(eq(eventsTable.id, assignment.eventId));
+  if (event.venueLat && event.venueLng) {
+    const dist = haversineMeters(lat, lng, event.venueLat, event.venueLng);
+    if (dist > (event.checkinRadiusM ?? 100)) {
+      res.status(400).json({ error: `You are ${Math.round(dist)}m away from the venue. Must be within ${event.checkinRadiusM ?? 100}m.` });
+      return;
+    }
+  }
+  const now = new Date();
+  // Calculate late arrival: how many minutes after event start
+  const lateArrivalMinutes = event.startTime
+    ? Math.max(0, Math.round((now.getTime() - new Date(event.startTime).getTime()) / 60000))
+    : 0;
+  const [updated] = await db.update(eventAssignmentsTable).set({ checkinTime: now, checkinLat: lat, checkinLng: lng, checkinMethod: "gps", status: "checked_in", lateArrivalMinutes } as any).where(eq(eventAssignmentsTable.id, assignment.id)).returning();
+  res.json(await buildMyAssignment(updated));
+});
+
+// POST /my/assignments/:assignmentId/checkout
+router.post("/my/assignments/:assignmentId/checkout", requireUsher, async (req, res) => {
+  const assignmentId = parseInt(req.params.assignmentId as string, 10);
+  const { lat, lng } = req.body || {};
+  
+  const [assignment] = await db.select().from(eventAssignmentsTable).where(and(eq(eventAssignmentsTable.id, assignmentId), eq(eventAssignmentsTable.usherId, req.user!.id)));
+  if (!assignment) { res.status(404).json({ error: "Not found" }); return; }
+
+  const [event] = await db.select().from(eventsTable).where(eq(eventsTable.id, assignment.eventId));
+  if (event && event.venueLat && event.venueLng) {
+    if (lat === undefined || lng === undefined || lat === null || lng === null) {
+      res.status(400).json({ error: "GPS location is required to check out." });
+      return;
+    }
+    const dist = haversineMeters(Number(lat), Number(lng), event.venueLat, event.venueLng);
+    const maxRadius = event.checkinRadiusM ?? 100;
+    if (dist > maxRadius) {
+      res.status(400).json({ error: `You are ${Math.round(dist)}m away from the venue. Must be within ${maxRadius}m range to check out.` });
+      return;
+    }
+  }
+
+  const checkoutNow = new Date();
+  // Calculate early leave: how many minutes before event end the usher left
+  const earlyLeaveMinutes = event.endTime
+    ? Math.max(0, Math.round((new Date(event.endTime).getTime() - checkoutNow.getTime()) / 60000))
+    : 0;
+  const [updated] = await db.update(eventAssignmentsTable).set({ checkoutTime: checkoutNow, checkoutLat: lat ? Number(lat) : null, checkoutLng: lng ? Number(lng) : null, status: "completed", earlyLeaveMinutes } as any).where(eq(eventAssignmentsTable.id, assignment.id)).returning();
+  if (!updated) { res.status(404).json({ error: "Not found" }); return; }
+  // Trigger automated rating evaluation and default 5-star fallback
+  await calculateAndApplyAutoRating(updated.id);
+  res.json(await buildMyAssignment(updated));
+});
+
+// POST /my/assignments/:assignmentId/cancel
+router.post("/my/assignments/:assignmentId/cancel", requireUsher, async (req, res) => {
+  const parsed = CancelAssignmentBody.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.flatten() }); return; }
+  const assignmentId = parseInt(req.params.assignmentId as string, 10);
+  const [assignment] = await db.update(eventAssignmentsTable).set({ status: "cancelled" }).where(and(eq(eventAssignmentsTable.id, assignmentId), eq(eventAssignmentsTable.usherId, req.user!.id))).returning();
+  if (!assignment) { res.status(404).json({ error: "Not found" }); return; }
+  const [cancellation] = await db.insert(cancellationsTable).values({ eventAssignmentId: assignment.id, reason: parsed.data.reason ?? null, penaltyApplied: false }).returning();
+  const ma = await buildMyAssignment(assignment);
+  res.json({ assignment: ma, cancellation, penaltyApplied: false, penaltyAmount: null });
+});
+
+export default router;

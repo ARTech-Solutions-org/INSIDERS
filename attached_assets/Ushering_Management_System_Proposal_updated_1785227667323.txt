@@ -1,0 +1,124 @@
+﻿Artech — Ushering Management System
+
+
+  
+
+	USHERING MANAGEMENT SYSTEM
+Ushers App & Admin App
+ABOUT THE SYSTEM
+The Ushering Management System is a two-app platform built for ushering and event-staffing agencies. The ushers app lets staff register, view and accept assigned events, check in and out on-site, track their balance and rating, and see their event history. The admin app lets the agency's management team approve ushers, create and staff events, define balance and deduction rules, and monitor performance across every usher and event from one place. Together, the two apps replace manual scheduling, spreadsheets, and back-and-forth messaging with a single system that runs the full cycle — from an usher signing up, to being matched with the right event, to getting paid.
+USHER APP FEATURES
+1. Web app (browser link)
+The ushers app is delivered as a web app opened through a shared link — no install needed, works instantly on any phone or computer, and is the fastest and cheapest option to build and update. Good as a starting point, or as the only platform if a simpler rollout is preferred.
+☐  Feature included
+2. iOS app (Apple App Store)
+A native app built for iPhone, published on the Apple App Store. Gives a more polished, app-like feel, supports push notifications more reliably, and allows better use of the phone's GPS and camera for check-in and document upload. Takes longer to build than the web version, and updates go through Apple's review process.
+☐  Feature included
+3. Android app (Google Play)
+A native app built for Android, published on Google Play. Same benefits as the iOS app — more reliable notifications, better GPS/camera access — for the Android side of the usher base. Can be built alongside or instead of iOS depending on which platform the agency's ushers mostly use.
+☐  Feature included
+4. Usher registration & profile
+Ushers sign up and fill out a profile with their personal details, then upload their National ID and any required documents for verification. The admin team reviews this submission and approves or declines it before the usher becomes active on the app. The profile also holds ongoing details like contact info and photo, which ushers can update over time.
+☐  Feature included
+5. Event assignment with full event details
+Admins assign events to ushers, and each usher can accept or decline based on their own schedule. Every assigned event comes with full details — start/end time, venue location, a specific meeting point (which can be different from the actual event venue, e.g. a staff entrance or nearby landmark), dress code, any brief instructions specific to that event, and the name and contact of the person to report to on-site.
+Recommendation: Since each event has a defined dress code, this could open a future revenue stream — showing ushers relevant clothing store ads or recommendations that match what they need to wear for a given event. Not core to the initial build, but worth keeping in mind as a monetization option down the line.
+☐  Feature included
+6. Notifications
+Ushers are automatically notified the moment they're assigned an event, reminded before it starts (e.g. the day before and again closer to the time), and updated whenever their approval status changes or their balance is adjusted.
+☐  Feature included
+7. Location-based check-in / check-out
+Ushers check in and check out using their phone's GPS, matched against the event's location within a set radius defined per event (flexible for a small venue vs. a large one like a stadium or exhibition hall). The event is only marked completed once both check-in and check-out are confirmed within the scheduled time window. A manual override is included, so an admin or on-site coordinator can confirm attendance by hand if the app fails to capture it (dead phone, weak signal, etc.).
+☐  Feature included
+8. Credit & balance tracking
+Every event has its own balance value and its own deduction/bonus rules — for example, a fixed deduction for a no-show, a smaller one for arriving late, or a bonus for a demanding event. When an usher completes an event, their balance updates automatically; missed or late attendance triggers the deduction defined for that specific event, not a blanket company-wide rule.
+☐  Feature included
+9. Payout / money handling
+Moves beyond simple balance tracking to actually transferring money to ushers through Instabay, mobile wallet or bank account manually. Includes a full payout history so ushers can see exactly what they were paid and when.
+☐  Feature included
+
+
+10. Rating system
+After each event, ushers are rated — either by the admin only, or also by the on-site client/event organizer, depending on preference. Ushers can see their own rating, giving them a reason to perform well, and this rating feeds directly into smart assignment on the admin side, letting admins prioritize top-performing ushers for bigger or more high-profile events.
+☐  Feature included
+11. Cancellation handling
+Ushers can back out of an event they've already accepted, within a cutoff window defined by the agency (for example, no penalty if cancelled 48 hours ahead, but a balance deduction if it's same-day). Paired with a backup/waitlist pool per event — a pre-filtered shortlist of available replacement ushers — so a late cancellation doesn't turn into a scramble to find someone from scratch.
+☐  Feature included
+12. Team assignment context
+On events with multiple ushers, each usher can see who else is working the same event and who the team lead is, so people arrive already knowing their team rather than meeting everyone cold on-site. Useful for larger activations where on-the-day coordination matters.
+☐  Feature included
+ADMIN APP FEATURES
+1. Admin & super admin access
+Admins log in with credentials issued by a super admin to manage events and ushers day-to-day. The super admin sits above regular admins — they approve new admin accounts and control the budget/balance assigned to each event, keeping financial decisions in fewer, trusted hands even as the admin team grows.
+☐  Feature included
+2. Statistics & reporting
+A dashboard showing performance per event (attendance rate, punctuality, how many ushers completed vs cancelled) and per usher (jobs completed, average rating, reliability over time). Gives a clear picture of the operation without digging through spreadsheets, and helps identify top ushers or recurring problem events.
+☐  Feature included
+3. Smart assignment
+Instead of an admin scrolling through a full list of ushers by hand, this shows a filtered, ranked list based on rating, availability, and proximity to the event — turning assignment into a quick decision instead of a manual search. Includes an availability calendar, where ushers mark themselves available/unavailable ahead of time instead of admins sending requests one by one and waiting on responses, and skill/attribute tags on each profile (languages spoken, height, prior brand or client experience) so admins can match specific requirements — e.g. English-speaking, tall ushers for a luxury brand activation — in seconds.
+☐  Feature included
+4. Multi-admin management
+Allows more than one person on the team to have admin access, not just a single super admin. Adds defined roles and permissions per admin, plus an audit log recording every action taken (who approved which usher, who assigned which event, who changed a deduction rule) — keeping things traceable once more than one person can affect ushers' balances and assignments.
+☐  Feature included
+5. Broadcast / bulk messaging
+Lets an admin send a message to a group of ushers at once — for example, alerting every available usher in a certain city about a new event, or sending a general announcement to the whole usher base — instead of messaging people one by one outside the app.
+☐  Feature included
+6. Document expiry tracking
+If any documents or certifications ushers upload have an expiry date, the system flags when they're approaching renewal and can restrict that usher from new assignments until it's updated — keeping the usher base compliant without manually tracking paperwork dates.
+☐  Feature included
+7. Event coordinator role
+A role below full admin, meant for someone physically on-site during an event. They can confirm check-ins/check-outs manually and handle on-the-ground issues, without access to the rest of the admin panel (balances, approvals, event creation). Useful once events are running that the core admin team can't personally attend.
+☐  Feature included
+8. Event holder link & rating
+Once an event is fully staffed, the event holder (the agency's client for that event) receives a link showing the assigned ushers' name and photo, so they know who to expect on the day. No phone number is shown, keeping the agency as the point of contact for any changes or issues. After check-out, the event holder gets a notification prompting them to rate the ushers who worked their event. This rating is combined with the admin's rating into a single overall score for each usher, rather than being tracked as a separate figure.
+☐  Feature included
+INFRASTRUCTURE & DEPLOYMENT
+Running the system will require the following ongoing infrastructure and services:
+•  Backend hosting and a managed database
+•  File storage for usher photos, ID documents, and certifications
+•  Push notification service
+•  Maps / geolocation service for geofenced check-in and check-out
+•  Apple Developer Program and Google Play Developer accounts, if native apps are built
+ESTIMATED RUNNING COSTS
+Beyond the one-time build cost, the system carries ongoing running costs for hosting and services, plus app store distribution costs if the client chooses to build native mobile apps.
+Monthly Infrastructure & Services
+Item
+	Provider(s)
+	Estimated Monthly Cost
+	Backend hosting
+	AWS / DigitalOcean / Hetzner, or a local Egypt-based VPS
+	$35 - $60/month
+	Managed database
+	Managed Postgres/MySQL (AWS RDS, DO Managed DB, Supabase)
+	$20 - $35/month
+	File storage
+	S3-compatible storage (AWS S3, DO Spaces, Backblaze)
+	$10 - $20/month
+	Push notifications
+	Firebase Cloud Messaging (FCM) / OneSignal
+	$3 - $10/month
+	Maps / geolocation (GPS check-in)
+	Google Maps Platform
+	$15 - $60/month
+	
+
+Rough total for a small-to-medium rollout (a few hundred active ushers): roughly $83-185/month, excluding payment gateway transaction fees and SMS/WhatsApp volume, which scale with actual usage rather than being a flat cost.
+App Store Distribution (if native mobile apps are built)
+Item
+	Cost
+	Frequency
+	Apple Developer Program
+	$99/year
+	Annual, recurring - required to keep the iOS app live
+	Google Play Developer account
+	$25 one-time
+	Paid once, ever
+	Apple review/update cycle
+	No extra fee (slower review)
+	Per release
+	Google review/update cycle
+	No extra fee (faster review)
+	Per release
+	
+
+Page

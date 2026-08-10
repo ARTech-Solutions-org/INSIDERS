@@ -1,0 +1,11 @@
+{
+  "name": "@workspace/api-spec",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "codegen": "orval --config ./orval.config.ts && find ../../lib/api-zod/src/generated -name '*.ts' -exec sed -i \"s|from 'zod'|from 'zod/v4'|g\" {} \\; && node -e \"const fs=require('fs');const api=fs.readFileSync('../../lib/api-zod/src/generated/api.ts','utf8');const dir='../../lib/api-zod/src/generated/types';const removed=[];fs.readdirSync(dir).filter(f=>f!=='index.ts').forEach(f=>{const name=f.replace('.ts','');const pascal=name.charAt(0).toUpperCase()+name.slice(1).replace(/-([a-z])/g,(_,c)=>c.toUpperCase());if(api.includes('export const '+pascal)){fs.unlinkSync(dir+'/'+f);removed.push(name);console.log('Removed conflicting type file:',f);}});if(removed.length){const idx=dir+'/index.ts';let content=fs.readFileSync(idx,'utf8');removed.forEach(n=>{content=content.split('\\n').filter(l=>!l.includes(\\\"./\\\"+n)).join('\\n');});fs.writeFileSync(idx,content);}\" && pnpm -w run typecheck:libs"
+  },
+  "devDependencies": {
+    "orval": "^8.23.0"
+  }
+}

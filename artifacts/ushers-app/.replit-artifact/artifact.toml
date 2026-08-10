@@ -1,0 +1,27 @@
+kind = "web"
+previewPath = "/"
+title = "Ushers App"
+version = "1.0.0"
+id = "artifacts/ushers-app"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18131
+
+[services.development]
+run = "pnpm --filter @workspace/ushers-app run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/ushers-app", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/ushers-app/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18131"
+BASE_PATH = "/"
