@@ -61,8 +61,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       <div className="w-64 bg-sidebar border-r border-sidebar-border flex flex-col hidden md:flex">
         <div className="p-6 border-b border-sidebar-border">
           <div className="flex items-center gap-2">
-             <div className="w-8 h-8 bg-sidebar-primary flex items-center justify-center">
-                <span className="text-sidebar-primary-foreground font-bold">( )</span>
+             <div className="w-8 h-8 flex items-center justify-center">
+                <img src="/insiders-logo.png" alt="Insiders Logo" className="w-full h-full object-contain" />
             </div>
              <span className="brand-display text-lg text-sidebar-foreground">INSIDERS</span>
           </div>
@@ -99,8 +99,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       <div className="flex-1 flex flex-col min-w-0">
         <header className="h-16 bg-card border-b border-border flex items-center justify-between px-6 sticky top-0 z-10 md:hidden">
            <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-primary rounded bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground text-xs font-bold font-serif">A</span>
+            <div className="w-8 h-8 flex items-center justify-center">
+              <img src="/insiders-logo.png" alt="Insiders Logo" className="w-full h-full object-contain" />
             </div>
              <span className="brand-display text-foreground">INSIDERS</span>
           </div>

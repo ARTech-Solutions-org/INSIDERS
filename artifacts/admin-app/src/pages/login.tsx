@@ -47,8 +47,8 @@ export default function Login() {
         <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent pointer-events-none" />
         
         <div className="max-w-md space-y-6 relative z-10">
-           <div className="w-16 h-16 bg-secondary flex items-center justify-center border border-primary-foreground/30">
-             <span className="text-3xl font-bold text-secondary-foreground">A</span>
+           <div className="w-16 h-16 flex items-center justify-center">
+             <img src="/insiders-logo.png" alt="Insiders Logo" className="w-full h-full object-contain" />
           </div>
            <div className="brand-slashes text-2xl">//////</div>
            <h1 className="brand-display text-7xl tracking-tight">INSIDERS</h1>
@@ -64,8 +64,8 @@ export default function Login() {
         <div className="w-full max-w-sm mx-auto space-y-8">
           
           <div className="space-y-2 lg:hidden text-center mb-8">
-             <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center mx-auto mb-4">
-              <span className="text-xl font-serif font-bold text-secondary">A</span>
+             <div className="w-16 h-16 flex items-center justify-center mx-auto mb-4">
+              <img src="/insiders-logo.png" alt="Insiders Logo" className="w-full h-full object-contain" />
             </div>
              <h1 className="brand-display text-3xl">INSIDERS / ADMIN</h1>
           </div>
