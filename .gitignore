@@ -55,3 +55,10 @@ montagna-ltd
 artifacts/ushers-app/public.zip
 .agents
 main.zip
+
+# Environment files
+.env
+.env.*
+
+# Vercel build output
+artifacts/api-server/api/
