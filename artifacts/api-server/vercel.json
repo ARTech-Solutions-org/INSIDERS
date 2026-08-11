@@ -1,16 +1,15 @@
 {
   "version": 2,
-  "buildCommand": "pnpm run vercel-build",
   "builds": [
     {
-      "src": "api/vercel.mjs",
+      "src": "src/vercel.ts",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/api/vercel.mjs"
+      "dest": "/src/vercel.ts"
     }
   ]
 }
