@@ -60,12 +60,11 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       {/* Sidebar */}
       <div className="w-64 bg-sidebar border-r border-sidebar-border flex flex-col hidden md:flex">
         <div className="p-6 border-b border-sidebar-border">
-          <div className="flex items-center gap-2 mb-2">
-             <div className="h-10 w-auto flex items-center justify-start">
+          <div className="flex items-center gap-2">
+             <div className="h-16 w-auto flex items-center justify-start">
                 <img src="/insiders-logo.png" alt="Insiders Logo" className="h-full w-auto object-contain brightness-0 invert" />
             </div>
           </div>
-            <div className="mt-1 brand-meta text-sidebar-foreground/70">COMMAND THE CROWD</div>
         </div>
 
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
@@ -98,7 +97,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       <div className="flex-1 flex flex-col min-w-0">
         <header className="h-16 bg-card border-b border-border flex items-center justify-between px-6 sticky top-0 z-10 md:hidden">
            <div className="flex items-center gap-2">
-            <div className="h-8 w-auto flex items-center justify-center">
+            <div className="h-10 w-auto flex items-center justify-center">
               <img src="/insiders-logo.png" alt="Insiders Logo" className="h-full w-auto object-contain brightness-0 invert" />
             </div>
           </div>
