@@ -47,11 +47,10 @@ export default function Login() {
         <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent pointer-events-none" />
         
         <div className="max-w-md space-y-6 relative z-10">
-           <div className="w-16 h-16 flex items-center justify-center">
-             <img src="/insiders-logo.png" alt="Insiders Logo" className="w-full h-full object-contain" />
+           <div className="h-24 w-auto flex items-center justify-start">
+             <img src="/insiders-logo.png" alt="Insiders Logo" className="h-full w-auto object-contain brightness-0 invert" />
           </div>
            <div className="brand-slashes text-2xl">//////</div>
-           <h1 className="brand-display text-7xl tracking-tight">INSIDERS</h1>
            <h2 className="brand-meta text-primary-foreground/80">COMMAND THE ROOM. OWN THE FLOW.</h2>
           <p className="text-lg text-primary-foreground/60 leading-relaxed pt-4">
              The operations desk for people who keep the room moving.
@@ -64,10 +63,10 @@ export default function Login() {
         <div className="w-full max-w-sm mx-auto space-y-8">
           
           <div className="space-y-2 lg:hidden text-center mb-8">
-             <div className="w-16 h-16 flex items-center justify-center mx-auto mb-4">
-              <img src="/insiders-logo.png" alt="Insiders Logo" className="w-full h-full object-contain" />
+             <div className="h-16 w-auto flex items-center justify-center mx-auto mb-4">
+              <img src="/insiders-logo.png" alt="Insiders Logo" className="h-full w-auto object-contain brightness-0 invert" />
             </div>
-             <h1 className="brand-display text-3xl">INSIDERS / ADMIN</h1>
+             <h1 className="brand-display text-3xl">/ ADMIN</h1>
           </div>
 
           <div className="space-y-2">
