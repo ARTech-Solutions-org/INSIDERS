@@ -11,7 +11,7 @@ globalThis.require = createRequire(import.meta.url);
 const artifactDir = path.dirname(fileURLToPath(import.meta.url));
 
 async function buildForVercel() {
-  const outDir = path.resolve(artifactDir, "api");
+  const outDir = path.resolve(artifactDir, "_vercel_build");
   await rm(outDir, { recursive: true, force: true });
 
   await esbuild({

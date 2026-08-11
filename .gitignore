@@ -61,4 +61,4 @@ main.zip
 .env.*
 
 # Vercel build output
-artifacts/api-server/api/
+artifacts/api-server/_vercel_build/
