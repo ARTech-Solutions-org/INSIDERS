@@ -1,17 +1,15 @@
 {
   "version": 2,
-  "buildCommand": "cd ../.. && pnpm install && cd artifacts/api-server && node ./build.mjs",
-  "outputDirectory": "dist",
-  "functions": {
-    "dist/index.mjs": {
-      "runtime": "nodejs20.x",
-      "maxDuration": 30
+  "builds": [
+    {
+      "src": "api/index.ts",
+      "use": "@vercel/node"
     }
-  },
+  ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/dist/index.mjs"
+      "dest": "/api/index.ts"
     }
   ]
 }
