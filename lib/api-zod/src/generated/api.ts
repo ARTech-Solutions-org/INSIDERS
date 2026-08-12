@@ -20,7 +20,7 @@ export const GetHealthResponse = zod.object({
  */
 export const RegisterUsherBody = zod.object({
   "fullName": zod.string(),
-  "phone": zod.string(),
+  "phone": zod.string().regex(/^01[0125][0-9]{8}$/, 'Must be a valid Egyptian phone number'),
   "email": zod.email(),
   "nationalIdNumber": zod.string(),
   "password": zod.string(),

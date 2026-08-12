@@ -16,7 +16,7 @@ import { UserPlus, ArrowUpRight } from 'lucide-react';
 
 const registerSchema = z.object({
   fullName: z.string().min(2, 'Full name is required'),
-  phone: z.string().min(8, 'Phone number is required'),
+  phone: z.string().regex(/^01[0125][0-9]{8}$/, 'Must be a valid Egyptian phone number (e.g., 01012345678)'),
   email: z.string().email('Valid email is required'),
   nationalIdNumber: z.string().min(14, 'National ID must be 14 digits').max(14),
   password: z.string().min(6, 'Password must be at least 6 characters'),
