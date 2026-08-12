@@ -115,8 +115,20 @@ router.post("/my/assignments/:assignmentId/checkin", requireUsher, async (req, r
       res.status(400).json({ error: `You are ${Math.round(dist)}m away from the venue. Must be within ${event.checkinRadiusM ?? 100}m.` });
       return;
     }
+  } else {
+    res.status(400).json({ error: "Event location is not set by the admin. Cannot verify GPS." });
+    return;
   }
   const now = new Date();
+  
+  if (event.startTime) {
+    const eventStart = new Date(event.startTime);
+    const earlyMinutes = (eventStart.getTime() - now.getTime()) / 60000;
+    if (earlyMinutes > 5) {
+      res.status(400).json({ error: `Check-in opens 5 minutes before the event starts. Please wait ${Math.ceil(earlyMinutes - 5)} more minutes.` });
+      return;
+    }
+  }
   // Calculate late arrival: how many minutes after event start
   const lateArrivalMinutes = event.startTime
     ? Math.max(0, Math.round((now.getTime() - new Date(event.startTime).getTime()) / 60000))
@@ -145,6 +157,9 @@ router.post("/my/assignments/:assignmentId/checkout", requireUsher, async (req, 
       res.status(400).json({ error: `You are ${Math.round(dist)}m away from the venue. Must be within ${maxRadius}m range to check out.` });
       return;
     }
+  } else {
+    res.status(400).json({ error: "Event location is not set by the admin. Cannot verify GPS checkout." });
+    return;
   }
 
   const checkoutNow = new Date();

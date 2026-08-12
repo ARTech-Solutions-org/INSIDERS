@@ -52,6 +52,12 @@ export default function EventDetail() {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locationPermission, setLocationPermission] = useState<'unknown' | 'granted' | 'denied' | 'prompt'>('unknown');
   const [showLocationDialog, setShowLocationDialog] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  React.useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 10000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Check and request location permission on mount
   React.useEffect(() => {
@@ -208,6 +214,10 @@ export default function EventDetail() {
           setGpsLoading(false);
           return;
         }
+      } else {
+        toast.error('Event location is not set on the map. Cannot verify your location.');
+        setGpsLoading(false);
+        return;
       }
 
       checkinMutation.mutate({ assignmentId, data: { lat: userLat, lng: userLng } }, {
@@ -240,6 +250,10 @@ export default function EventDetail() {
           setGpsLoading(false);
           return;
         }
+      } else {
+        toast.error('Event location is not set on the map. Cannot verify your location.');
+        setGpsLoading(false);
+        return;
       }
 
       checkoutMutation.mutate({ assignmentId, data: { lat: userLat, lng: userLng } }, {
@@ -253,14 +267,13 @@ export default function EventDetail() {
       toast.error('GPS unavailable — please enable location services or contact your coordinator.');
     } finally {
       setGpsLoading(false);
-    }
-  };
-
   const status = assignment?.status;
   const isPending = status === 'pending' || status === 'assigned';
   const isAccepted = status === 'accepted';
   const hasCheckedIn = !!assignment?.checkinTime;
   const hasCheckedOut = !!assignment?.checkoutTime;
+
+  const isTooEarly = eventDetails?.startTime ? (new Date(eventDetails.startTime).getTime() - currentTime.getTime()) / 60000 > 5 : false;
 
   return (
     <div className="pb-24">
@@ -346,16 +359,25 @@ export default function EventDetail() {
 
               {isAccepted && !hasCheckedIn && (
                 <div className="space-y-4">
-                  <Button className="w-full h-14 text-sm tracking-widest bg-secondary text-secondary-foreground hover:bg-secondary/90 shadow-sm rounded-xl uppercase font-bold" onClick={handleCheckin} disabled={checkinMutation.isPending || gpsLoading}>
+                  <Button 
+                    className="w-full h-14 text-sm tracking-widest bg-secondary text-secondary-foreground hover:bg-secondary/90 shadow-sm rounded-xl uppercase font-bold" 
+                    onClick={handleCheckin} 
+                    disabled={checkinMutation.isPending || gpsLoading || isTooEarly}
+                  >
                     {(checkinMutation.isPending || gpsLoading) ? (
                       <div className="w-5 h-5 border-2 border-secondary-foreground border-t-transparent rounded-full animate-spin" />
                     ) : (
                       <>
                         <Navigation className="w-5 h-5 mr-2" />
-                        GPS CHECK-IN
+                        {isTooEarly ? 'TOO EARLY FOR CHECK-IN' : 'GPS CHECK-IN'}
                       </>
                     )}
                   </Button>
+                  {isTooEarly && (
+                    <p className="text-xs text-center text-muted-foreground font-bold uppercase tracking-wider">
+                      Check-in opens 5 mins before start
+                    </p>
+                  )}
                   <Button variant="ghost" className="w-full text-destructive rounded-xl text-xs tracking-wider" onClick={() => setShowCancelDialog(true)}>
                     CANCEL ASSIGNMENT
                   </Button>
