@@ -56,6 +56,10 @@ export default function Profile() {
   }, [profile]);
 
   const handleSave = () => {
+    if (!/^01[0125][0-9]{8}$/.test(formData.phone)) {
+      toast.error('Please enter a valid Egyptian phone number (e.g. 01012345678)');
+      return;
+    }
     updateMutation.mutate({ data: formData }, {
       onSuccess: () => {
         toast.success('Profile updated');
@@ -148,8 +152,16 @@ export default function Profile() {
               />
               <Input
                 value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, '');
+                  if (val.length <= 11) {
+                    setFormData({ ...formData, phone: val });
+                  }
+                }}
                 className="text-center rounded-xl border-border"
+                placeholder="Phone Number"
+                type="tel"
+                inputMode="numeric"
               />
               <div className="flex gap-2 pt-2">
                 <Button variant="outline" className="flex-1 rounded-xl text-xs font-bold tracking-widest uppercase" onClick={() => setIsEditing(false)}>CANCEL</Button>
