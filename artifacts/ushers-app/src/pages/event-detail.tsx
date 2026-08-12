@@ -288,6 +288,8 @@ export default function EventDetail() {
     isOutOfRange = distToVenue > allowedRadius;
   }
 
+  const isGpsMissing = locationPermission === 'denied' || !userLocation;
+
   const formatCountdown = (ms: number) => {
     const totalSeconds = Math.floor(ms / 1000);
     const h = Math.floor(totalSeconds / 3600);
@@ -381,7 +383,18 @@ export default function EventDetail() {
 
               {isAccepted && !hasCheckedIn && (
                 <div className="space-y-4">
-                  {isTooEarly ? (
+                  {isGpsMissing ? (
+                    <div className="w-full bg-destructive/10 border-2 border-dashed border-destructive/40 rounded-xl p-4 flex flex-col items-center justify-center gap-2 text-center">
+                      <LocateFixed className="w-6 h-6 text-destructive mb-1" />
+                      <span className="text-[10px] text-destructive font-bold tracking-widest uppercase">GPS REQUIRED</span>
+                      <span className="text-xs font-medium text-destructive/90">Please enable GPS, allow location permissions, and turn off any VPN (e.g. iCloud Private Relay on iOS).</span>
+                      {locationPermission !== 'granted' && (
+                        <Button variant="outline" size="sm" className="mt-2 text-xs h-8 border-destructive/30 text-destructive hover:bg-destructive/10" onClick={requestLocationPermission}>
+                          REQUEST PERMISSION
+                        </Button>
+                      )}
+                    </div>
+                  ) : isTooEarly ? (
                     <div className="w-full h-14 bg-card border-2 border-dashed border-primary/40 rounded-xl flex items-center justify-center gap-3">
                       <Clock className="w-5 h-5 text-primary" />
                       <div className="flex flex-col">
@@ -432,16 +445,37 @@ export default function EventDetail() {
                       </span>
                     )}
                   </div>
-                  <Button className="w-full h-14 text-sm tracking-widest bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm rounded-xl uppercase font-bold" onClick={handleCheckout} disabled={checkoutMutation.isPending || gpsLoading}>
-                    {(checkoutMutation.isPending || gpsLoading) ? (
-                      <div className="w-5 h-5 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <>
-                        <Navigation className="w-5 h-5 mr-2" />
-                        GPS CHECK-OUT
-                      </>
-                    )}
-                  </Button>
+                  {isGpsMissing ? (
+                    <div className="w-full bg-destructive/10 border-2 border-dashed border-destructive/40 rounded-xl p-4 flex flex-col items-center justify-center gap-2 text-center mt-4">
+                      <LocateFixed className="w-6 h-6 text-destructive mb-1" />
+                      <span className="text-[10px] text-destructive font-bold tracking-widest uppercase">GPS REQUIRED</span>
+                      <span className="text-xs font-medium text-destructive/90">Please enable GPS, allow location permissions, and turn off any VPN (e.g. iCloud Private Relay on iOS).</span>
+                      {locationPermission !== 'granted' && (
+                        <Button variant="outline" size="sm" className="mt-2 text-xs h-8 border-destructive/30 text-destructive hover:bg-destructive/10" onClick={requestLocationPermission}>
+                          REQUEST PERMISSION
+                        </Button>
+                      )}
+                    </div>
+                  ) : isOutOfRange ? (
+                    <div className="w-full h-14 bg-destructive/5 border-2 border-dashed border-destructive/30 rounded-xl flex items-center justify-center gap-3 mt-4">
+                      <AlertTriangle className="w-5 h-5 text-destructive" />
+                      <div className="flex flex-col text-center">
+                        <span className="text-[10px] text-destructive font-bold tracking-widest uppercase">OUT OF RANGE</span>
+                        <span className="text-[10px] text-destructive/80 font-bold uppercase">{distToVenue}M AWAY (MAX {allowedRadius}M)</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <Button className="w-full h-14 text-sm tracking-widest bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm rounded-xl uppercase font-bold mt-4 animate-in fade-in zoom-in duration-300" onClick={handleCheckout} disabled={checkoutMutation.isPending || gpsLoading}>
+                      {(checkoutMutation.isPending || gpsLoading) ? (
+                        <div className="w-5 h-5 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <>
+                          <Navigation className="w-5 h-5 mr-2" />
+                          GPS CHECK-OUT
+                        </>
+                      )}
+                    </Button>
+                  )}
                 </div>
               )}
 
