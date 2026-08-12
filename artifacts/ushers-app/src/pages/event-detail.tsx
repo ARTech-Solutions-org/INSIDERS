@@ -267,6 +267,9 @@ export default function EventDetail() {
       toast.error('GPS unavailable — please enable location services or contact your coordinator.');
     } finally {
       setGpsLoading(false);
+    }
+  };
+
   const status = assignment?.status;
   const isPending = status === 'pending' || status === 'assigned';
   const isAccepted = status === 'accepted';
