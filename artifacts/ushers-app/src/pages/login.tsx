@@ -42,7 +42,13 @@ export default function Login() {
         }
       },
       onError: (err: any) => {
-        toast.error(err.message || 'Failed to login. Please check your credentials.');
+        const message = err.message || 'Failed to login. Please check your credentials.';
+        if (message.toLowerCase().includes('does not exist')) {
+          toast.error('This account does not exist. Redirecting to register...');
+          setTimeout(() => setLocation('/register'), 2000);
+        } else {
+          toast.error(message);
+        }
       }
     });
   };

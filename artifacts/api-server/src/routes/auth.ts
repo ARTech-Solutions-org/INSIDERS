@@ -55,7 +55,7 @@ router.post("/auth/usher/login", async (req, res) => {
   const usher = ushers.find(u => u.email.trim().toLowerCase() === cleanEmail);
   if (!usher) {
     console.log("[DEBUG USHER LOGIN] No usher matched email:", cleanEmail);
-    res.status(401).json({ error: "Invalid credentials" });
+    res.status(404).json({ error: "This account does not exist" });
     return;
   }
   const isMatch = await bcrypt.compare(password, usher.passwordHash);
@@ -85,7 +85,7 @@ router.post("/auth/admin/login", async (req, res) => {
   const admin = admins.find(a => a.email.trim().toLowerCase() === cleanEmail);
   if (!admin) {
     console.log("[DEBUG LOGIN] No admin matched email:", cleanEmail);
-    res.status(401).json({ error: "Invalid credentials" });
+    res.status(404).json({ error: "This account does not exist" });
     return;
   }
   const isMatch = await bcrypt.compare(password, admin.passwordHash);
