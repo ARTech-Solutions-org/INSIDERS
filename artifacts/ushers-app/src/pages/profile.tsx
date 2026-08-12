@@ -125,6 +125,18 @@ export default function Profile() {
     });
   };
 
+  const handleEditAvail = (av: any) => {
+    setAvailDate(format(new Date(av.date), 'yyyy-MM-dd'));
+    setIsAvail(av.isAvailable);
+    setShowAvailDialog(true);
+  };
+
+  const handleOpenAddAvail = () => {
+    setAvailDate('');
+    setIsAvail(true);
+    setShowAvailDialog(true);
+  };
+
   if (isLoading) {
     return (
       <div className="p-4 space-y-4">
@@ -269,7 +281,7 @@ export default function Profile() {
             </h3>
             <Dialog open={showAvailDialog} onOpenChange={setShowAvailDialog}>
               <DialogTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-secondary rounded-xl hover:bg-secondary/10">
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-secondary rounded-xl hover:bg-secondary/10" onClick={handleOpenAddAvail}>
                   <Plus className="w-5 h-5" />
                 </Button>
               </DialogTrigger>
@@ -293,11 +305,16 @@ export default function Profile() {
 
           <div className="space-y-2">
             {Array.isArray(availabilities) && availabilities.length ? availabilities.map(av => (
-              <div key={av.id} className="flex justify-between items-center bg-background border border-border rounded-xl p-3">
-                <span className="text-sm font-bold tracking-wide uppercase">{format(new Date(av.date), 'MMM d, yyyy')}</span>
-                <span className={`brand-meta px-2 py-1 border rounded-md ${av.isAvailable ? 'bg-green-500/10 text-green-600 border-green-500/20' : 'bg-destructive/10 text-destructive border-destructive/20'}`}>
-                  {av.isAvailable ? 'AVAILABLE' : 'BUSY'}
+              <div key={av.id} className="flex justify-between items-center bg-background border border-border rounded-xl p-3 cursor-pointer hover:bg-accent/50 transition-colors" onClick={() => handleEditAvail(av)}>
+                <span className="text-sm font-bold tracking-wide uppercase flex items-center gap-2">
+                  {format(new Date(av.date), 'MMM d, yyyy')}
                 </span>
+                <div className="flex items-center gap-3">
+                  <span className={`brand-meta px-2 py-1 border rounded-md ${av.isAvailable ? 'bg-green-500/10 text-green-600 border-green-500/20' : 'bg-destructive/10 text-destructive border-destructive/20'}`}>
+                    {av.isAvailable ? 'AVAILABLE' : 'BUSY'}
+                  </span>
+                  <Pencil className="w-4 h-4 text-muted-foreground" />
+                </div>
               </div>
             )) : (
               <p className="text-xs font-medium text-muted-foreground p-3 border border-dashed border-border text-center w-full">NO UPCOMING AVAILABILITY DECLARED.</p>
