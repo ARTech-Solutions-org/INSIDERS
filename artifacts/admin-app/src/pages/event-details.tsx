@@ -626,7 +626,7 @@ export default function EventDetails() {
                             <p className="text-sm font-medium leading-none">{candidate.fullName}</p>
                             {!candidate.isAvailable && (
                               <Badge variant="destructive" className="text-[10px] h-4 px-1.5 leading-none">
-                                مشغول (Busy)
+                                Busy
                               </Badge>
                             )}
                           </div>
