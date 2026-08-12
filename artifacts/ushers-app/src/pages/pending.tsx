@@ -28,9 +28,7 @@ export default function Pending() {
     if (user && user.status === 'active') {
       setLocation('/');
     } else if (user && user.status === 'declined') {
-      clearAuthToken();
-      import('sonner').then(({ toast }) => toast.error('Your application has been declined.'));
-      setLocation('/login');
+      setLocation('/declined');
     }
   }, [user, setLocation]);
 

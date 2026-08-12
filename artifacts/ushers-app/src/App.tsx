@@ -10,6 +10,7 @@ import { Watermark } from '@/components/ui/watermark';
 import Login from '@/pages/login';
 import Register from '@/pages/register';
 import Pending from '@/pages/pending';
+import Declined from '@/pages/declined';
 import Dashboard from '@/pages/dashboard';
 import Events from '@/pages/events';
 import EventDetail from '@/pages/event-detail';
@@ -48,6 +49,7 @@ function Router() {
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
       <Route path="/pending" component={Pending} />
+      <Route path="/declined" component={Declined} />
 
       <Route path="*">
         <ProtectedRoutes />

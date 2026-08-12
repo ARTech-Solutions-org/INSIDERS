@@ -37,6 +37,8 @@ export default function Login() {
         toast.success('Logged in successfully');
         if (res.usher.status === 'pending') {
           setLocation('/pending');
+        } else if (res.usher.status === 'declined') {
+          setLocation('/declined');
         } else {
           setLocation('/');
         }

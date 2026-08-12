@@ -14,11 +14,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     } else if (user && user.status === 'pending') {
       setLocation('/pending');
     } else if (user && user.status === 'declined') {
-      import('@/lib/auth').then(({ clearAuthToken }) => {
-        clearAuthToken();
-        import('sonner').then(({ toast }) => toast.error('Your application has been declined.'));
-        setLocation('/login');
-      });
+      setLocation('/declined');
     }
   }, [isError, user, setLocation]);
 
