@@ -21,6 +21,7 @@ export default function EventsNew() {
     venueLat: "",
     venueLng: "",
     checkinRadiusM: "100",
+    checkinWindowMinutes: "5",
     startDate: "",
     startTime: "",
     endDate: "",
@@ -65,6 +66,7 @@ export default function EventsNew() {
         venueLat: parseFloat(formData.venueLat),
         venueLng: parseFloat(formData.venueLng),
         checkinRadiusM: parseInt(formData.checkinRadiusM, 10) || 100,
+        checkinWindowMinutes: parseInt(formData.checkinWindowMinutes, 10) || 5,
         startTime: startDateTime.toISOString(),
         endTime: endDateTime.toISOString(),
         dressCode: formData.dressCode || undefined,
@@ -174,6 +176,34 @@ export default function EventsNew() {
               <p className="text-xs text-muted-foreground">
                 Ushers must be within this distance from the event location coordinates to mark arrival (Check-in) and departure (Check-out).
               </p>
+            </div>
+
+            {/* Check-in Window */}
+            <div className="pt-2 border-t border-border space-y-3">
+              <div className="flex justify-between items-center">
+                <Label htmlFor="checkinWindowMinutes" className="font-semibold text-sm flex items-center gap-1.5">
+                  <Clock className="h-4 w-4 text-primary" />
+                  Check-in Opens Before (Minutes)
+                </Label>
+                <span className="text-xs font-bold bg-primary/10 text-primary px-2.5 py-1 rounded-full">
+                  {formData.checkinWindowMinutes || 5} mins
+                </span>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Input
+                  id="checkinWindowMinutes"
+                  name="checkinWindowMinutes"
+                  type="number"
+                  min="0"
+                  max="1440"
+                  placeholder="5"
+                  value={formData.checkinWindowMinutes}
+                  onChange={handleChange}
+                  className="w-32 font-bold"
+                />
+                <span className="text-xs text-muted-foreground">minutes before event</span>
+              </div>
             </div>
           </CardContent>
         </Card>

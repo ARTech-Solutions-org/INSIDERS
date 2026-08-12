@@ -536,12 +536,19 @@ export default function EventDetails() {
                           {assignment.usher?.fullName}
                           {assignment.isTeamLead && <Badge variant="secondary" className="text-[10px] h-4">Lead</Badge>}
                         </div>
-                        <div className="text-xs text-muted-foreground flex items-center gap-2">
+                        <div className="text-xs text-muted-foreground flex items-center gap-2 mt-1">
                           <span className="flex items-center">
                             <Star className="w-3 h-3 text-secondary mr-1 fill-current" />
                             {assignment.usher?.avgRating?.toFixed(1) || 'N/A'}
                           </span>
-                          <span className="capitalize text-[10px] bg-muted px-1.5 rounded-full">{assignment.status.replace('_', ' ')}</span>
+                          <span className="capitalize text-[10px] bg-muted px-1.5 py-0.5 rounded-full">{assignment.status.replace('_', ' ')}</span>
+                          
+                          {/* Missed Checkout Badge */}
+                          {event.status === 'completed' && assignment.checkinTime && !assignment.checkoutTime && (
+                            <Badge variant="destructive" className="text-[9px] h-4 px-1.5 leading-none shadow-sm animate-pulse">
+                              MISSED CHECKOUT
+                            </Badge>
+                          )}
                         </div>
                       </div>
                     </div>

@@ -124,8 +124,9 @@ router.post("/my/assignments/:assignmentId/checkin", requireUsher, async (req, r
   if (event.startTime) {
     const eventStart = new Date(event.startTime);
     const earlyMinutes = (eventStart.getTime() - now.getTime()) / 60000;
-    if (earlyMinutes > 5) {
-      res.status(400).json({ error: `Check-in opens 5 minutes before the event starts. Please wait ${Math.ceil(earlyMinutes - 5)} more minutes.` });
+    const windowMinutes = (event as any).checkinWindowMinutes ?? 5; // using any since type might not be updated in DB schema yet if build hasn't run
+    if (earlyMinutes > windowMinutes) {
+      res.status(400).json({ error: `Check-in opens ${windowMinutes} minutes before the event starts. Please wait ${Math.ceil(earlyMinutes - windowMinutes)} more minutes.` });
       return;
     }
   }

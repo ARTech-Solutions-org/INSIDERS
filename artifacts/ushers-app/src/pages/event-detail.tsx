@@ -273,7 +273,18 @@ export default function EventDetail() {
   const hasCheckedIn = !!assignment?.checkinTime;
   const hasCheckedOut = !!assignment?.checkoutTime;
 
-  const isTooEarly = eventDetails?.startTime ? (new Date(eventDetails.startTime).getTime() - currentTime.getTime()) / 60000 > 5 : false;
+  const windowMinutes = (eventDetails as any)?.checkinWindowMinutes ?? 5;
+  const msRemaining = eventDetails?.startTime ? new Date(eventDetails.startTime).getTime() - (windowMinutes * 60000) - currentTime.getTime() : 0;
+  const isTooEarly = msRemaining > 0;
+
+  const formatCountdown = (ms: number) => {
+    const totalSeconds = Math.floor(ms / 1000);
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+    if (h > 0) return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
 
   return (
     <div className="pb-24">
@@ -359,24 +370,29 @@ export default function EventDetail() {
 
               {isAccepted && !hasCheckedIn && (
                 <div className="space-y-4">
-                  <Button 
-                    className="w-full h-14 text-sm tracking-widest bg-secondary text-secondary-foreground hover:bg-secondary/90 shadow-sm rounded-xl uppercase font-bold" 
-                    onClick={handleCheckin} 
-                    disabled={checkinMutation.isPending || gpsLoading || isTooEarly}
-                  >
-                    {(checkinMutation.isPending || gpsLoading) ? (
-                      <div className="w-5 h-5 border-2 border-secondary-foreground border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <>
-                        <Navigation className="w-5 h-5 mr-2" />
-                        {isTooEarly ? 'TOO EARLY FOR CHECK-IN' : 'GPS CHECK-IN'}
-                      </>
-                    )}
-                  </Button>
-                  {isTooEarly && (
-                    <p className="text-xs text-center text-muted-foreground font-bold uppercase tracking-wider">
-                      Check-in opens 5 mins before start
-                    </p>
+                  {isTooEarly ? (
+                    <div className="w-full h-14 bg-card border-2 border-dashed border-primary/40 rounded-xl flex items-center justify-center gap-3">
+                      <Clock className="w-5 h-5 text-primary" />
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-muted-foreground font-bold tracking-widest uppercase">CHECK-IN OPENS IN</span>
+                        <span className="brand-display text-lg tracking-widest text-foreground">{formatCountdown(msRemaining)}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <Button 
+                      className="w-full h-14 text-sm tracking-widest bg-secondary text-secondary-foreground hover:bg-secondary/90 shadow-sm rounded-xl uppercase font-bold animate-in fade-in zoom-in duration-300" 
+                      onClick={handleCheckin} 
+                      disabled={checkinMutation.isPending || gpsLoading}
+                    >
+                      {(checkinMutation.isPending || gpsLoading) ? (
+                        <div className="w-5 h-5 border-2 border-secondary-foreground border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <>
+                          <Navigation className="w-5 h-5 mr-2" />
+                          GPS CHECK-IN
+                        </>
+                      )}
+                    </Button>
                   )}
                   <Button variant="ghost" className="w-full text-destructive rounded-xl text-xs tracking-wider" onClick={() => setShowCancelDialog(true)}>
                     CANCEL ASSIGNMENT

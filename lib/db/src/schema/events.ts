@@ -17,6 +17,7 @@ export const eventsTable = pgTable("events", {
   startTime: timestamp("start_time", { withTimezone: true }).notNull(),
   endTime: timestamp("end_time", { withTimezone: true }).notNull(),
   checkinRadiusM: integer("checkin_radius_m").default(100),
+  checkinWindowMinutes: integer("checkin_window_minutes").default(5),
   eventBudget: real("event_budget").default(0.0),
   contactName: varchar("contact_name", { length: 255 }),
   contactPhone: varchar("contact_phone", { length: 50 }),
