@@ -31,7 +31,11 @@ router.post("/auth/usher/register", async (req, res) => {
     const token = signToken({ type: "usher", id: usher.id });
     res.status(201).json({ token, usher });
   } catch (e: any) {
-    if (e?.code === "23505") {
+    const isDuplicateError = e?.code === "23505" || 
+                           e?.cause?.code === "23505" || 
+                           (e?.message && (e.message.includes("duplicate key") || e.message.includes("unique constraint") || e.message.includes("23505")));
+
+    if (isDuplicateError) {
       const [existing] = await db.select().from(ushersTable).where(
         or(
           eq(ushersTable.email, email),
