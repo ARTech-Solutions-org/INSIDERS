@@ -88,6 +88,12 @@ router.post("/auth/usher/login", async (req, res) => {
     res.status(401).json({ error: "Incorrect password. Please try again." });
     return;
   }
+  if (usher.status === "declined") {
+    console.log("[DEBUG USHER LOGIN] Usher is declined:", cleanEmail);
+    res.status(403).json({ error: "Your application has been declined by the administration." });
+    return;
+  }
+
   const token = signToken({ type: "usher", id: usher.id });
   res.json({ token, usher });
 });
