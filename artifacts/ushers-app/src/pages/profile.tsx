@@ -88,10 +88,16 @@ export default function Profile() {
 
   const handleAddSkill = () => {
     if (!newSkillValue) return;
+
+    if (skills?.some((s: any) => s.skillType === newSkillType && s.value === newSkillValue)) {
+      toast.error('You have already added this skill.');
+      return;
+    }
+
     addSkillMutation.mutate({ data: { skillType: newSkillType, value: newSkillValue } }, {
       onSuccess: () => {
         toast.success('Skill added');
-        setNewSkillValue('');
+        setNewSkillValue(SKILL_OPTIONS[newSkillType][0]);
         setShowSkillDialog(false);
         queryClient.invalidateQueries({ queryKey: getListMySkillsQueryKey() });
       }
