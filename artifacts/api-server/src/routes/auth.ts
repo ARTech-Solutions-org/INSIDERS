@@ -1,7 +1,7 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
 import { db, ushersTable, adminsTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import { signToken, verifyToken } from "../lib/auth.js";
 import { requireAuth } from "../middleware/auth.js";
 import {
@@ -32,6 +32,25 @@ router.post("/auth/usher/register", async (req, res) => {
     res.status(201).json({ token, usher });
   } catch (e: any) {
     if (e?.code === "23505") {
+      const [existing] = await db.select().from(ushersTable).where(
+        or(
+          eq(ushersTable.email, email),
+          eq(ushersTable.phone, phone),
+          eq(ushersTable.nationalIdNumber, nationalIdNumber)
+        )
+      );
+
+      if (existing) {
+        if (existing.status === "pending") {
+          res.status(400).json({ error: "An account with these details is already registered and is currently under review." });
+        } else if (existing.status === "active") {
+          res.status(400).json({ error: "An account with these details is already active. Please log in." });
+        } else {
+          res.status(400).json({ error: "An account with these details already exists." });
+        }
+        return;
+      }
+
       res.status(400).json({ error: "Email, phone, or national ID already registered" });
       return;
     }
@@ -62,7 +81,7 @@ router.post("/auth/usher/login", async (req, res) => {
   console.log("[DEBUG USHER LOGIN] Bcrypt match for password:", isMatch);
   if (!isMatch) {
     console.log("[DEBUG USHER LOGIN] Password mismatch for:", cleanEmail);
-    res.status(401).json({ error: "Invalid credentials" });
+    res.status(401).json({ error: "Incorrect password. Please try again." });
     return;
   }
   const token = signToken({ type: "usher", id: usher.id });
@@ -91,7 +110,7 @@ router.post("/auth/admin/login", async (req, res) => {
   const isMatch = await bcrypt.compare(password, admin.passwordHash);
   console.log("[DEBUG LOGIN] Bcrypt match result for password:", isMatch);
   if (!isMatch) {
-    res.status(401).json({ error: "Invalid credentials" });
+    res.status(401).json({ error: "Incorrect password. Please try again." });
     return;
   }
   const { passwordHash: _ph, ...adminSafe } = admin;
