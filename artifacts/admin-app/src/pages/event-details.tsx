@@ -571,6 +571,7 @@ export default function EventDetails() {
                       </Button>
                     </div>
                   </div>
+                </div>
               ))}
               {(!event.assignments || event.assignments.length === 0) && (
                 <div className="p-6 text-center text-sm text-muted-foreground">No ushers assigned yet.</div>
