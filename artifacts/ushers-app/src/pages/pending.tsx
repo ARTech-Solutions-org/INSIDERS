@@ -21,6 +21,13 @@ export default function Pending() {
       }
     });
   };
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
+    }, 5000); // Check every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [queryClient]);
 
   return (
     <div className="min-h-[100dvh] flex flex-col items-center justify-center p-5 relative overflow-hidden">
