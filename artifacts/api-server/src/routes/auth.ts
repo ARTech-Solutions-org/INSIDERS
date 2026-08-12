@@ -71,13 +71,13 @@ router.post("/auth/usher/login", async (req, res) => {
   const cleanEmail = email.trim().toLowerCase();
   const ushers = await db.select().from(ushersTable);
   console.log("[DEBUG USHER LOGIN] Total ushers in DB:", ushers.length, "| Emails:", ushers.map(u => u.email));
-  const usher = ushers.find(u => u.email.trim().toLowerCase() === cleanEmail);
+  const usher = ushers.find(u => u.email?.trim().toLowerCase() === cleanEmail);
   if (!usher) {
     console.log("[DEBUG USHER LOGIN] No usher matched email:", cleanEmail);
     res.status(404).json({ error: "This account does not exist" });
     return;
   }
-  const isMatch = await bcrypt.compare(password, usher.passwordHash);
+  const isMatch = await bcrypt.compare(password, usher.passwordHash || "");
   console.log("[DEBUG USHER LOGIN] Bcrypt match for password:", isMatch);
   if (!isMatch) {
     console.log("[DEBUG USHER LOGIN] Password mismatch for:", cleanEmail);
@@ -101,13 +101,13 @@ router.post("/auth/admin/login", async (req, res) => {
   const cleanEmail = email.trim().toLowerCase();
   const admins = await db.select().from(adminsTable);
   console.log("[DEBUG LOGIN] Found admins in DB:", admins.map(a => ({ id: a.id, email: a.email, role: a.role })));
-  const admin = admins.find(a => a.email.trim().toLowerCase() === cleanEmail);
+  const admin = admins.find(a => a.email?.trim().toLowerCase() === cleanEmail);
   if (!admin) {
     console.log("[DEBUG LOGIN] No admin matched email:", cleanEmail);
     res.status(404).json({ error: "This account does not exist" });
     return;
   }
-  const isMatch = await bcrypt.compare(password, admin.passwordHash);
+  const isMatch = await bcrypt.compare(password, admin.passwordHash || "");
   console.log("[DEBUG LOGIN] Bcrypt match result for password:", isMatch);
   if (!isMatch) {
     res.status(401).json({ error: "Incorrect password. Please try again." });
