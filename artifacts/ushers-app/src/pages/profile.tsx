@@ -39,9 +39,15 @@ export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({ fullName: '', phone: '' });
 
+  const SKILL_OPTIONS: Record<string, string[]> = {
+    language: ['Arabic', 'English', 'French', 'German', 'Spanish', 'Italian'],
+    experience: ['Registration', 'Ushering', 'VIP Handling', 'Supervising', 'Customer Service', 'Scanning', 'Ticketing'],
+    trait: ['Veiled', 'Non-Veiled', 'Height: 150-160cm', 'Height: 160-170cm', 'Height: 170-180cm', 'Height: 180cm+']
+  };
+
   // Skill state
   const [newSkillType, setNewSkillType] = useState('language');
-  const [newSkillValue, setNewSkillValue] = useState('');
+  const [newSkillValue, setNewSkillValue] = useState(SKILL_OPTIONS['language'][0]);
   const [showSkillDialog, setShowSkillDialog] = useState(false);
 
   // Availability state
@@ -209,13 +215,25 @@ export default function Profile() {
                   <select
                     className="w-full h-11 px-3 rounded-xl border border-border bg-background text-sm font-medium focus:ring-1 focus:ring-primary outline-none"
                     value={newSkillType}
-                    onChange={e => setNewSkillType(e.target.value)}
+                    onChange={e => {
+                      const type = e.target.value;
+                      setNewSkillType(type);
+                      setNewSkillValue(SKILL_OPTIONS[type][0]);
+                    }}
                   >
                     <option value="language">LANGUAGE</option>
                     <option value="experience">EXPERIENCE</option>
                     <option value="trait">PHYSICAL TRAIT</option>
                   </select>
-                  <Input placeholder="e.g. English, 180cm, VIP Handling" value={newSkillValue} onChange={e => setNewSkillValue(e.target.value)} className="rounded-xl border-border h-11" />
+                  <select
+                    className="w-full h-11 px-3 rounded-xl border border-border bg-background text-sm font-medium focus:ring-1 focus:ring-primary outline-none"
+                    value={newSkillValue}
+                    onChange={e => setNewSkillValue(e.target.value)}
+                  >
+                    {SKILL_OPTIONS[newSkillType].map(opt => (
+                      <option key={opt} value={opt}>{opt.toUpperCase()}</option>
+                    ))}
+                  </select>
                   <Button className="w-full rounded-xl h-11 text-xs font-bold tracking-widest uppercase" onClick={handleAddSkill} disabled={addSkillMutation.isPending}>ADD</Button>
                 </div>
               </DialogContent>
