@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useLogout } from '@workspace/api-client-react';
 import { clearAuthToken } from '@/lib/auth';
 import { useQueryClient } from '@tanstack/react-query';
-import { getGetMeQueryKey } from '@workspace/api-client-react';
+import { getGetMeQueryKey, useGetMe } from '@workspace/api-client-react';
 import { Clock, LogOut } from 'lucide-react';
 
 export default function Pending() {
@@ -21,6 +21,19 @@ export default function Pending() {
       }
     });
   };
+
+  const { data: user } = useGetMe();
+
+  React.useEffect(() => {
+    if (user && user.status === 'active') {
+      setLocation('/');
+    } else if (user && user.status === 'declined') {
+      clearAuthToken();
+      import('sonner').then(({ toast }) => toast.error('Your application has been declined.'));
+      setLocation('/login');
+    }
+  }, [user, setLocation]);
+
   React.useEffect(() => {
     const interval = setInterval(() => {
       queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
