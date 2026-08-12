@@ -65,6 +65,17 @@ router.get("/events/:id", requireAuth, async (req, res) => {
   const eventId = parseInt(req.params.id as string, 10);
   const [event] = await db.select().from(eventsTable).where(eq(eventsTable.id, eventId));
   if (!event) { res.status(404).json({ error: "Not found" }); return; }
+
+  if (req.user!.type === "usher") {
+    const [isAssigned] = await db.select().from(eventAssignmentsTable).where(
+      and(eq(eventAssignmentsTable.eventId, event.id), eq(eventAssignmentsTable.usherId, req.user!.id))
+    );
+    if (!isAssigned) {
+      res.status(403).json({ error: "You are not assigned to this event." });
+      return;
+    }
+  }
+
   const assignments = await db.select({ id: eventAssignmentsTable.id, eventId: eventAssignmentsTable.eventId, usherId: eventAssignmentsTable.usherId, status: eventAssignmentsTable.status, isTeamLead: eventAssignmentsTable.isTeamLead, checkinTime: eventAssignmentsTable.checkinTime, checkinLat: eventAssignmentsTable.checkinLat, checkinLng: eventAssignmentsTable.checkinLng, checkinMethod: eventAssignmentsTable.checkinMethod, checkoutTime: eventAssignmentsTable.checkoutTime, checkoutLat: eventAssignmentsTable.checkoutLat, checkoutLng: eventAssignmentsTable.checkoutLng, usher: { id: ushersTable.id, fullName: ushersTable.fullName, email: ushersTable.email, phone: ushersTable.phone, status: ushersTable.status, avgRating: ushersTable.avgRating, balance: ushersTable.balance, nationalIdNumber: ushersTable.nationalIdNumber, nationalIdDocUrl: ushersTable.nationalIdDocUrl, profilePhotoUrl: ushersTable.profilePhotoUrl, createdAt: ushersTable.createdAt } }).from(eventAssignmentsTable).leftJoin(ushersTable, eq(eventAssignmentsTable.usherId, ushersTable.id)).where(eq(eventAssignmentsTable.eventId, event.id));
   const deductionRules = await db.select().from(deductionRulesTable).where(eq(deductionRulesTable.eventId, event.id));
   res.json(buildEventDetail(event, assignments, deductionRules));
@@ -176,8 +187,8 @@ router.post("/events/:id/assignments", requireAdmin, async (req, res) => {
 
   const [existing] = await db.select().from(eventsTable).where(eq(eventsTable.id, eventId));
   if (!existing) { res.status(404).json({ error: "Not found" }); return; }
-  if (existing.status === "completed" || new Date(existing.endTime) < new Date()) {
-    res.status(400).json({ error: "Cannot assign ushers to a completed event." });
+  if (existing.status === "completed" || new Date(existing.endTime) <= new Date() || new Date(existing.startTime) <= new Date()) {
+    res.status(400).json({ error: "Cannot assign ushers after the event has started." });
     return;
   }
 
@@ -189,6 +200,21 @@ router.post("/events/:id/assignments", requireAdmin, async (req, res) => {
 // DELETE /events/:id/assignments/:assignmentId
 router.delete("/events/:id/assignments/:assignmentId", requireAdmin, async (req, res) => {
   const assignmentId = parseInt(req.params.assignmentId as string, 10);
+  const eventId = parseInt(req.params.id as string, 10);
+
+  const [existingEvent] = await db.select().from(eventsTable).where(eq(eventsTable.id, eventId));
+  if (!existingEvent) { res.status(404).json({ error: "Not found" }); return; }
+  if (existingEvent.status === "completed" || new Date(existingEvent.endTime) <= new Date() || new Date(existingEvent.startTime) <= new Date()) {
+    res.status(400).json({ error: "Cannot remove assignments after the event has started." });
+    return;
+  }
+
+  const [assignment] = await db.select().from(eventAssignmentsTable).where(eq(eventAssignmentsTable.id, assignmentId));
+  if (assignment && assignment.status !== "assigned" && assignment.status !== "accepted") {
+    res.status(400).json({ error: "Cannot remove an usher who has already checked in or cancelled." });
+    return;
+  }
+
   await db.delete(eventAssignmentsTable).where(eq(eventAssignmentsTable.id, assignmentId));
   await audit(req.user!.id, "REMOVE_ASSIGNMENT", "event_assignments", assignmentId);
   res.status(204).send();

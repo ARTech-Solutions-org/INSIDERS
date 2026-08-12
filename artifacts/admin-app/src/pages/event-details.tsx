@@ -241,6 +241,7 @@ export default function EventDetails() {
   }
 
   const isCompleted = event.status === "completed" || new Date(event.endTime) < new Date();
+  const hasStarted = isCompleted || new Date(event.startTime) <= new Date();
 
   return (
     <div className="space-y-6 flex flex-col h-[calc(100vh-8rem)]">
@@ -559,7 +560,7 @@ export default function EventDetails() {
                         size="sm"
                         variant="ghost"
                         className="h-8 text-xs gap-1 text-destructive hover:bg-destructive/10"
-                        disabled={isCompleted}
+                        disabled={hasStarted || (assignment.status !== 'assigned' && assignment.status !== 'accepted')}
                         onClick={() => {
                           if (confirm("Are you sure you want to unassign this usher?")) {
                             removeUsher({ id: eventId, assignmentId: assignment.id });
@@ -616,7 +617,7 @@ export default function EventDetails() {
                         size="sm" 
                         variant="secondary" 
                         className="h-7 text-xs"
-                        disabled={isCompleted}
+                        disabled={hasStarted}
                         onClick={() => assignUsher({ id: eventId, data: { usherId: candidate.id, isTeamLead: false } })}
                       >
                         <UserPlus className="w-3 h-3 mr-1" />
