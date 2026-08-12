@@ -280,6 +280,14 @@ export default function EventDetail() {
   const msRemaining = eventDetails?.startTime ? new Date(eventDetails.startTime).getTime() - (windowMinutes * 60000) - currentTime.getTime() : 0;
   const isTooEarly = msRemaining > 0;
 
+  const allowedRadius = eventDetails?.checkinRadiusM || 100;
+  let isOutOfRange = false;
+  let distToVenue = -1;
+  if (userLocation && eventDetails?.venueLat && eventDetails?.venueLng) {
+    distToVenue = Math.round(haversineMeters(userLocation.lat, userLocation.lng, eventDetails.venueLat, eventDetails.venueLng));
+    isOutOfRange = distToVenue > allowedRadius;
+  }
+
   const formatCountdown = (ms: number) => {
     const totalSeconds = Math.floor(ms / 1000);
     const h = Math.floor(totalSeconds / 3600);
@@ -379,6 +387,14 @@ export default function EventDetail() {
                       <div className="flex flex-col">
                         <span className="text-[10px] text-muted-foreground font-bold tracking-widest uppercase">CHECK-IN OPENS IN</span>
                         <span className="brand-display text-lg tracking-widest text-foreground">{formatCountdown(msRemaining)}</span>
+                      </div>
+                    </div>
+                  ) : isOutOfRange ? (
+                    <div className="w-full h-14 bg-destructive/5 border-2 border-dashed border-destructive/30 rounded-xl flex items-center justify-center gap-3">
+                      <AlertTriangle className="w-5 h-5 text-destructive" />
+                      <div className="flex flex-col text-center">
+                        <span className="text-[10px] text-destructive font-bold tracking-widest uppercase">OUT OF RANGE</span>
+                        <span className="text-[10px] text-destructive/80 font-bold uppercase">{distToVenue}M AWAY (MAX {allowedRadius}M)</span>
                       </div>
                     </div>
                   ) : (
