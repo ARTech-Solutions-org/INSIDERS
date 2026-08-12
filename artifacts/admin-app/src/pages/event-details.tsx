@@ -4,6 +4,7 @@ import {
   useGetEvent, 
   useGetSmartCandidates, 
   useAssignUsherToEvent,
+  useRemoveAssignment,
   useUpdateEvent,
   getGetEventQueryKey,
   getListEventsQueryKey
@@ -40,6 +41,7 @@ import {
   CheckCircle,
   XCircle,
   UserPlus,
+  UserMinus,
   Edit,
   Globe,
   Loader2,
@@ -125,6 +127,18 @@ export default function EventDetails() {
       },
       onError: (err: any) => {
         toast({ variant: "destructive", title: "Error assigning usher", description: err.response?.data?.error || err.message });
+      },
+    },
+  });
+
+  const { mutate: removeUsher } = useRemoveAssignment({
+    mutation: {
+      onSuccess: () => {
+        toast({ title: "Usher removed successfully!" });
+        refetch();
+      },
+      onError: (err: any) => {
+        toast({ variant: "destructive", title: "Error removing usher", description: err.response?.data?.error || err.message });
       },
     },
   });
@@ -531,17 +545,32 @@ export default function EventDetails() {
                       </div>
                     </div>
 
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
-                      className="h-8 text-xs gap-1 text-amber-600 hover:bg-amber-50"
-                      onClick={() => handleOpenRating(assignment)}
-                    >
-                      <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-                      Rate
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="h-8 text-xs gap-1 text-amber-600 hover:bg-amber-50"
+                        onClick={() => handleOpenRating(assignment)}
+                      >
+                        <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                        Rate
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 text-xs gap-1 text-destructive hover:bg-destructive/10"
+                        disabled={isCompleted}
+                        onClick={() => {
+                          if (confirm("Are you sure you want to unassign this usher?")) {
+                            removeUsher({ id: eventId, assignmentId: assignment.id });
+                          }
+                        }}
+                      >
+                        <UserMinus className="w-3.5 h-3.5" />
+                        Remove
+                      </Button>
+                    </div>
                   </div>
-                </div>
               ))}
               {(!event.assignments || event.assignments.length === 0) && (
                 <div className="p-6 text-center text-sm text-muted-foreground">No ushers assigned yet.</div>
