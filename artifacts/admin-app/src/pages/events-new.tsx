@@ -59,6 +59,15 @@ export default function EventsNew() {
     const startDateTime = new Date(`${formData.startDate}T${formData.startTime || '00:00'}`);
     const endDateTime = new Date(`${formData.endDate}T${formData.endTime || '00:00'}`);
     
+    if (endDateTime <= startDateTime) {
+      toast({
+        variant: "destructive",
+        title: "Invalid Schedule",
+        description: "Event end time must be after the start time.",
+      });
+      return;
+    }
+
     createEvent({
       data: {
         title: formData.title,

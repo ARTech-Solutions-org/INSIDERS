@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { randomBytes } from "crypto";
-import { db, eventsTable, eventAssignmentsTable, deductionRulesTable, eventHolderLinksTable, waitlistTable, ushersTable } from "@workspace/db";
-import { eq, and, gte, sql, desc, lt, ne } from "drizzle-orm";
+import { db, eventsTable, eventAssignmentsTable, deductionRulesTable, eventHolderLinksTable, waitlistTable, ushersTable, usherAvailabilityTable } from "@workspace/db";
+import { eq, and, gte, sql, desc, lt, ne, inArray, lte } from "drizzle-orm";
 import { requireAdmin, requireAuth } from "../middleware/auth.js";
 import { audit } from "../lib/audit.js";
 import {
@@ -241,8 +241,51 @@ router.get("/events/:id/smart-candidates", requireAdmin, async (req, res) => {
   const eventId = parseInt(req.params.id as string, 10);
   const event = await db.select().from(eventsTable).where(eq(eventsTable.id, eventId));
   if (!event.length) { res.status(404).json({ error: "Not found" }); return; }
+  
   const ushers = await db.select().from(ushersTable).where(eq(ushersTable.status, "active")).orderBy(desc(ushersTable.avgRating)).limit(20);
-  const candidates = ushers.map(u => ({ id: u.id, fullName: u.fullName, avgRating: u.avgRating ?? 0, profilePhotoUrl: u.profilePhotoUrl, phone: u.phone, status: u.status ?? "active", isAvailable: true, matchScore: (u.avgRating ?? 0) / 5 }));
+  
+  if (ushers.length === 0) {
+    res.json([]);
+    return;
+  }
+
+  const eventStart = new Date(event[0].startTime);
+  const eventEnd = new Date(event[0].endTime);
+  const eventStartStr = eventStart.toISOString().split("T")[0];
+  const eventEndStr = eventEnd.toISOString().split("T")[0];
+
+  const unavailabilities = await db.select().from(usherAvailabilityTable)
+    .where(
+      and(
+        inArray(usherAvailabilityTable.usherId, ushers.map(u => u.id)),
+        gte(usherAvailabilityTable.date, eventStartStr),
+        lte(usherAvailabilityTable.date, eventEndStr)
+      )
+    );
+
+  const candidates = ushers.map(u => {
+    let isAvailable = true;
+    const usherUnavail = unavailabilities.filter(av => av.usherId === u.id);
+    for (const av of usherUnavail) {
+      const busyStart = new Date(`${av.date}T${av.startTime}`);
+      const busyEnd = new Date(`${av.date}T${av.endTime}`);
+      if (busyStart < eventEnd && busyEnd > eventStart) {
+        isAvailable = false;
+        break;
+      }
+    }
+
+    return { 
+      id: u.id, 
+      fullName: u.fullName, 
+      avgRating: u.avgRating ?? 0, 
+      profilePhotoUrl: u.profilePhotoUrl, 
+      phone: u.phone, 
+      status: u.status ?? "active", 
+      isAvailable, 
+      matchScore: (u.avgRating ?? 0) / 5 
+    };
+  });
   res.json(candidates);
 });
 

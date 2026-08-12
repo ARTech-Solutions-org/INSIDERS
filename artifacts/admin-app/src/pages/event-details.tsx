@@ -205,6 +205,15 @@ export default function EventDetails() {
     const startDateTime = new Date(`${formData.startDate}T${formData.startTime || '00:00'}`);
     const endDateTime = new Date(`${formData.endDate}T${formData.endTime || '00:00'}`);
 
+    if (endDateTime <= startDateTime) {
+      toast({
+        variant: "destructive",
+        title: "Invalid Schedule",
+        description: "Event end time must be after the start time.",
+      });
+      return;
+    }
+
     updateEvent({
       id: eventId,
       data: {
@@ -613,7 +622,14 @@ export default function EventDetails() {
                           <AvatarFallback className="text-xs">{candidate.fullName.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="text-sm font-medium leading-none">{candidate.fullName}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-medium leading-none">{candidate.fullName}</p>
+                            {!candidate.isAvailable && (
+                              <Badge variant="destructive" className="text-[10px] h-4 px-1.5 leading-none">
+                                مشغول (Busy)
+                              </Badge>
+                            )}
+                          </div>
                           <p className="text-xs text-muted-foreground mt-1 flex items-center">
                              <Star className="w-3 h-3 text-secondary mr-1 fill-current" />
                              {candidate.avgRating?.toFixed(1)} match
@@ -624,7 +640,7 @@ export default function EventDetails() {
                         size="sm" 
                         variant="secondary" 
                         className="h-7 text-xs"
-                        disabled={hasStarted}
+                        disabled={hasStarted || !candidate.isAvailable}
                         onClick={() => assignUsher({ id: eventId, data: { usherId: candidate.id, isTeamLead: false } })}
                       >
                         <UserPlus className="w-3 h-3 mr-1" />
