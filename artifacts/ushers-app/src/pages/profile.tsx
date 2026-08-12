@@ -8,6 +8,7 @@ import {
   useDeleteMySkill,
   useListMyAvailability,
   useSetMyAvailability,
+  useDeleteMyAvailability,
   getGetMyUsherProfileQueryKey,
   getListMySkillsQueryKey,
   getListMyAvailabilityQueryKey
@@ -15,7 +16,7 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import { clearAuthToken } from '@/lib/auth';
 import { useLocation, Link } from 'wouter';
-import { User, Phone, Mail, CreditCard, ChevronRight, LogOut, Star, CheckCircle2, Shield, Settings, Plus, X, Calendar as CalendarIcon, Pencil } from 'lucide-react';
+import { User, Phone, Mail, CreditCard, ChevronRight, LogOut, Star, CheckCircle2, Shield, Settings, Plus, X, Calendar as CalendarIcon, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -35,6 +36,7 @@ export default function Profile() {
   const addSkillMutation = useAddMySkill();
   const deleteSkillMutation = useDeleteMySkill();
   const setAvailMutation = useSetMyAvailability();
+  const deleteAvailMutation = useDeleteMyAvailability();
 
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({ fullName: '', phone: '' });
@@ -53,7 +55,8 @@ export default function Profile() {
   // Availability state
   const [showAvailDialog, setShowAvailDialog] = useState(false);
   const [availDate, setAvailDate] = useState('');
-  const [isAvail, setIsAvail] = useState(true);
+  const [startTime, setStartTime] = useState('09:00');
+  const [endTime, setEndTime] = useState('17:00');
 
   useEffect(() => {
     if (profile) {
@@ -114,27 +117,42 @@ export default function Profile() {
   };
 
   const handleSetAvail = () => {
-    if (!availDate) return;
-    setAvailMutation.mutate({ data: { date: availDate, isAvailable: isAvail } }, {
+    if (!availDate || !startTime || !endTime) return;
+    setAvailMutation.mutate({ data: { date: availDate, startTime, endTime } }, {
       onSuccess: () => {
         toast.success('Availability updated');
         setShowAvailDialog(false);
         setAvailDate('');
         queryClient.invalidateQueries({ queryKey: getListMyAvailabilityQueryKey() });
+      },
+      onError: (err: any) => {
+        toast.error(err.response?.data?.error?.formErrors?.[0] || 'Failed to update availability');
       }
     });
   };
 
   const handleEditAvail = (av: any) => {
     setAvailDate(format(new Date(av.date), 'yyyy-MM-dd'));
-    setIsAvail(av.isAvailable);
+    setStartTime(av.startTime);
+    setEndTime(av.endTime);
     setShowAvailDialog(true);
   };
 
   const handleOpenAddAvail = () => {
     setAvailDate('');
-    setIsAvail(true);
+    setStartTime('09:00');
+    setEndTime('17:00');
     setShowAvailDialog(true);
+  };
+
+  const handleDeleteAvail = (e: React.MouseEvent, id: number) => {
+    e.stopPropagation(); // prevent opening the edit dialog
+    deleteAvailMutation.mutate({ id }, {
+      onSuccess: () => {
+        toast.success('Availability removed');
+        queryClient.invalidateQueries({ queryKey: getListMyAvailabilityQueryKey() });
+      }
+    });
   };
 
   if (isLoading) {
@@ -277,7 +295,7 @@ export default function Profile() {
         <div className="bg-card border border-border rounded-2xl p-5 shadow-sm">
           <div className="flex justify-between items-center mb-4 border-b border-border/50 pb-3">
             <h3 className="brand-display text-lg flex items-center gap-2 uppercase tracking-wide">
-              <CalendarIcon className="w-5 h-5 text-secondary" /> MY AVAILABILITY
+              <CalendarIcon className="w-5 h-5 text-secondary" /> UNAVAILABLE TIMES
             </h3>
             <Dialog open={showAvailDialog} onOpenChange={setShowAvailDialog}>
               <DialogTrigger asChild>
@@ -286,17 +304,22 @@ export default function Profile() {
                 </Button>
               </DialogTrigger>
               <DialogContent className="w-[90vw] max-w-[400px] rounded-2xl border border-border p-6 bg-card">
-                <DialogHeader><DialogTitle className="brand-display text-2xl uppercase tracking-wide">SET AVAILABILITY</DialogTitle></DialogHeader>
+                <DialogHeader><DialogTitle className="brand-display text-2xl uppercase tracking-wide">SET UNAVAILABLE TIME</DialogTitle></DialogHeader>
                 <div className="space-y-4 pt-4">
-                  <Input type="date" value={availDate} onChange={e => setAvailDate(e.target.value)} className="rounded-xl border-border h-11" />
-                  <select
-                    className="w-full h-11 px-3 rounded-xl border border-border bg-background text-sm font-medium focus:ring-1 focus:ring-primary outline-none"
-                    value={isAvail ? 'true' : 'false'}
-                    onChange={e => setIsAvail(e.target.value === 'true')}
-                  >
-                    <option value="true">AVAILABLE</option>
-                    <option value="false">NOT AVAILABLE</option>
-                  </select>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold tracking-wider text-muted-foreground uppercase">Date</label>
+                    <Input type="date" value={availDate} onChange={e => setAvailDate(e.target.value)} className="rounded-xl border-border h-11" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold tracking-wider text-muted-foreground uppercase">From</label>
+                      <Input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} className="rounded-xl border-border h-11" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold tracking-wider text-muted-foreground uppercase">To</label>
+                      <Input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} className="rounded-xl border-border h-11" />
+                    </div>
+                  </div>
                   <Button className="w-full rounded-xl h-11 text-xs font-bold tracking-widest uppercase" onClick={handleSetAvail} disabled={setAvailMutation.isPending}>SAVE</Button>
                 </div>
               </DialogContent>
@@ -306,18 +329,21 @@ export default function Profile() {
           <div className="space-y-2">
             {Array.isArray(availabilities) && availabilities.length ? availabilities.map(av => (
               <div key={av.id} className="flex justify-between items-center bg-background border border-border rounded-xl p-3 cursor-pointer hover:bg-accent/50 transition-colors" onClick={() => handleEditAvail(av)}>
-                <span className="text-sm font-bold tracking-wide uppercase flex items-center gap-2">
-                  {format(new Date(av.date), 'MMM d, yyyy')}
-                </span>
+                <div className="flex flex-col">
+                  <span className="text-sm font-bold tracking-wide uppercase">{format(new Date(av.date), 'MMM d, yyyy')}</span>
+                  <span className="text-xs text-muted-foreground font-medium">{av.startTime} - {av.endTime}</span>
+                </div>
                 <div className="flex items-center gap-3">
-                  <span className={`brand-meta px-2 py-1 border rounded-md ${av.isAvailable ? 'bg-green-500/10 text-green-600 border-green-500/20' : 'bg-destructive/10 text-destructive border-destructive/20'}`}>
-                    {av.isAvailable ? 'AVAILABLE' : 'BUSY'}
+                  <span className="brand-meta px-2 py-1 border rounded-md bg-destructive/10 text-destructive border-destructive/20">
+                    BUSY
                   </span>
-                  <Pencil className="w-4 h-4 text-muted-foreground" />
+                  <button onClick={(e) => handleDeleteAvail(e, av.id)} className="text-muted-foreground hover:text-destructive p-1 rounded-md transition-colors" disabled={deleteAvailMutation.isPending}>
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
             )) : (
-              <p className="text-xs font-medium text-muted-foreground p-3 border border-dashed border-border text-center w-full">NO UPCOMING AVAILABILITY DECLARED.</p>
+              <p className="text-xs font-medium text-muted-foreground p-3 border border-dashed border-border text-center w-full">NO UPCOMING BUSY TIMES DECLARED.</p>
             )}
           </div>
         </div>

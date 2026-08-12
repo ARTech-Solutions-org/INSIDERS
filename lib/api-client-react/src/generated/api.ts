@@ -38,6 +38,7 @@ import type {
   DeclineInput,
   DeductionRule,
   DeductionRuleInput,
+  DeleteMyAvailability200,
   Event,
   EventAssignment,
   EventDetail,
@@ -1531,6 +1532,77 @@ export const useSetMyAvailability = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getSetMyAvailabilityMutationOptions(options));
+    }
+
+export const getDeleteMyAvailabilityUrl = (id: number,) => {
+
+
+
+
+  return `/api/ushers/me/availability/${id}`
+}
+
+/**
+ * @summary Delete availability slot for authenticated usher
+ */
+export const deleteMyAvailability = async (id: number, options?: Parameters<typeof customFetch>[1]): Promise<DeleteMyAvailability200> => {
+
+  return customFetch<DeleteMyAvailability200>(getDeleteMyAvailabilityUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteMyAvailabilityMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteMyAvailability>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteMyAvailability>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteMyAvailability'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteMyAvailability>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteMyAvailability(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteMyAvailabilityMutationResult = NonNullable<Awaited<ReturnType<typeof deleteMyAvailability>>>
+
+    export type DeleteMyAvailabilityMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete availability slot for authenticated usher
+ */
+export const useDeleteMyAvailability = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteMyAvailability>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteMyAvailability>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteMyAvailabilityMutationOptions(options));
     }
 
 export const getListEventsUrl = (params?: ListEventsParams,) => {

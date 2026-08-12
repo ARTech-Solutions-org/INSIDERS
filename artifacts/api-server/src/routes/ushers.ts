@@ -122,14 +122,40 @@ router.post("/ushers/me/availability", requireUsher, async (req, res) => {
   const parsed = SetMyAvailabilityBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.flatten() }); return; }
   const dateStr = typeof parsed.data.date === "string" ? parsed.data.date : new Date(parsed.data.date).toISOString().split("T")[0];
-  const existing = await db.select().from(usherAvailabilityTable).where(and(eq(usherAvailabilityTable.usherId, req.user!.id), eq(usherAvailabilityTable.date, dateStr)));
-  if (existing.length) {
-    const [av] = await db.update(usherAvailabilityTable).set({ isAvailable: parsed.data.isAvailable }).where(eq(usherAvailabilityTable.id, existing[0].id)).returning();
-    res.json(av);
-  } else {
-    const [av] = await db.insert(usherAvailabilityTable).values({ usherId: req.user!.id, date: dateStr, isAvailable: parsed.data.isAvailable }).returning();
-    res.json(av);
+  
+  const existing = await db.select().from(usherAvailabilityTable).where(
+    and(
+      eq(usherAvailabilityTable.usherId, req.user!.id),
+      eq(usherAvailabilityTable.date, dateStr)
+    )
+  );
+
+  const overlaps = existing.some(av => 
+    parsed.data.startTime < av.endTime && av.startTime < parsed.data.endTime
+  );
+
+  if (overlaps) {
+    res.status(400).json({ error: { formErrors: ["Time slot overlaps with existing unavailability"], fieldErrors: {} } });
+    return;
   }
+
+  const [av] = await db.insert(usherAvailabilityTable).values({ 
+    usherId: req.user!.id, 
+    date: dateStr, 
+    startTime: parsed.data.startTime, 
+    endTime: parsed.data.endTime 
+  }).returning();
+  res.json(av);
+});
+
+// DELETE /ushers/me/availability/:id
+router.delete("/ushers/me/availability/:id", requireUsher, async (req, res) => {
+  const id = parseInt(req.params.id);
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid ID" }); return; }
+  const existing = await db.select().from(usherAvailabilityTable).where(and(eq(usherAvailabilityTable.id, id), eq(usherAvailabilityTable.usherId, req.user!.id)));
+  if (!existing.length) { res.status(404).json({ error: "Not found" }); return; }
+  await db.delete(usherAvailabilityTable).where(eq(usherAvailabilityTable.id, id));
+  res.json({ success: true });
 });
 
 export default router;

@@ -9,5 +9,6 @@ export interface UsherAvailability {
   id: number;
   usherId: number;
   date: Date;
-  isAvailable: boolean;
+  startTime: string;
+  endTime: string;
 }

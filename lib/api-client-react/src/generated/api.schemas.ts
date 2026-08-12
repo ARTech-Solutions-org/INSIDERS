@@ -126,12 +126,14 @@ export interface UsherAvailability {
   id: number;
   usherId: number;
   date: string;
-  isAvailable: boolean;
+  startTime: string;
+  endTime: string;
 }
 
 export interface UsherAvailabilityInput {
   date: string;
-  isAvailable: boolean;
+  startTime: string;
+  endTime: string;
 }
 
 export interface UsherCandidate {
@@ -595,6 +597,10 @@ limit?: number;
 export type ListMyAvailabilityParams = {
 from?: string;
 to?: string;
+};
+
+export type DeleteMyAvailability200 = {
+  success?: boolean;
 };
 
 export type ListEventsParams = {

@@ -340,7 +340,26 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/UsherAvailability"
-
+  /ushers/me/availability/{id}:
+    delete:
+      operationId: deleteMyAvailability
+      summary: Delete availability slot for authenticated usher
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
   # ─── EVENTS ──────────────────────────────────────────────────────────────
   /events:
     get:
@@ -1535,7 +1554,7 @@ components:
 
     UsherAvailability:
       type: object
-      required: [id, usherId, date, isAvailable]
+      required: [id, usherId, date, startTime, endTime]
       properties:
         id:
           type: integer
@@ -1544,18 +1563,22 @@ components:
         date:
           type: string
           format: date
-        isAvailable:
-          type: boolean
+        startTime:
+          type: string
+        endTime:
+          type: string
 
     UsherAvailabilityInput:
       type: object
-      required: [date, isAvailable]
+      required: [date, startTime, endTime]
       properties:
         date:
           type: string
           format: date
-        isAvailable:
-          type: boolean
+        startTime:
+          type: string
+        endTime:
+          type: string
 
     UsherCandidate:
       type: object

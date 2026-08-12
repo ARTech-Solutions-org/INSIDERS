@@ -5,8 +5,6 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export interface UsherAvailabilityInput {
-  date: Date;
-  startTime: string;
-  endTime: string;
-}
+export type DeleteMyAvailability200 = {
+  success?: boolean;
+};

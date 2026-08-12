@@ -20,7 +20,7 @@ export const GetHealthResponse = zod.object({
  */
 export const RegisterUsherBody = zod.object({
   "fullName": zod.string(),
-  "phone": zod.string().regex(/^01[0125][0-9]{8}$/, 'Must be a valid Egyptian phone number'),
+  "phone": zod.string(),
   "email": zod.email(),
   "nationalIdNumber": zod.string(),
   "password": zod.string(),
@@ -337,7 +337,8 @@ export const ListMyAvailabilityResponseItem = zod.object({
   "id": zod.int(),
   "usherId": zod.int(),
   "date": zod.coerce.date(),
-  "isAvailable": zod.boolean()
+  "startTime": zod.string(),
+  "endTime": zod.string()
 })
 export const ListMyAvailabilityResponse = zod.array(ListMyAvailabilityResponseItem)
 
@@ -347,14 +348,28 @@ export const ListMyAvailabilityResponse = zod.array(ListMyAvailabilityResponseIt
  */
 export const SetMyAvailabilityBody = zod.object({
   "date": zod.coerce.date(),
-  "isAvailable": zod.boolean()
+  "startTime": zod.string(),
+  "endTime": zod.string()
 })
 
 export const SetMyAvailabilityResponse = zod.object({
   "id": zod.int(),
   "usherId": zod.int(),
   "date": zod.coerce.date(),
-  "isAvailable": zod.boolean()
+  "startTime": zod.string(),
+  "endTime": zod.string()
+})
+
+
+/**
+ * @summary Delete availability slot for authenticated usher
+ */
+export const DeleteMyAvailabilityParams = zod.object({
+  "id": zod.coerce.number().int()
+})
+
+export const DeleteMyAvailabilityResponse = zod.object({
+  "success": zod.boolean().optional()
 })
 
 
@@ -409,7 +424,6 @@ export const CreateEventBody = zod.object({
   "startTime": zod.coerce.date(),
   "endTime": zod.coerce.date(),
   "checkinRadiusM": zod.int().optional(),
-  "checkinWindowMinutes": zod.number().optional(),
   "eventBudget": zod.number().optional(),
   "contactName": zod.string().nullish(),
   "contactPhone": zod.string().nullish(),
@@ -520,7 +534,6 @@ export const UpdateEventBody = zod.object({
   "startTime": zod.coerce.date().optional(),
   "endTime": zod.coerce.date().optional(),
   "checkinRadiusM": zod.int().optional(),
-  "checkinWindowMinutes": zod.number().optional(),
   "eventBudget": zod.number().optional(),
   "contactName": zod.string().nullish(),
   "contactPhone": zod.string().nullish(),
