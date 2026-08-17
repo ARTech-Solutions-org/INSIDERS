@@ -5,11 +5,14 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { EventDetail } from './eventDetail';
+import type { EventTeam } from './eventTeam';
 import type { TeamMember } from './teamMember';
 
 export interface MyAssignment {
   id: number;
   eventId: number;
+  /** @nullable */
+  eventTeamId?: number | null;
   status: string;
   isTeamLead?: boolean;
   /** @nullable */
@@ -20,4 +23,5 @@ export interface MyAssignment {
   checkinMethod?: string | null;
   event: EventDetail;
   teamMembers?: TeamMember[];
+  team?: EventTeam;
 }

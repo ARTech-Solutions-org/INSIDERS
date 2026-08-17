@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { db, eventAssignmentsTable, eventsTable, ushersTable, deductionRulesTable, cancellationsTable, balanceTransactionsTable } from "@workspace/db";
+import { db, eventAssignmentsTable, eventsTable, ushersTable, deductionRulesTable, cancellationsTable, balanceTransactionsTable, eventTeamsTable, waitlistTable } from "@workspace/db";
 import { eq, and, ne, sql, inArray, lt } from "drizzle-orm";
 import { requireUsher } from "../middleware/auth.js";
 import {
@@ -15,9 +15,33 @@ const router = Router();
 async function buildMyAssignment(assignment: any) {
   const [event] = await db.select().from(eventsTable).where(eq(eventsTable.id, assignment.eventId));
   const deductionRules = await db.select().from(deductionRulesTable).where(eq(deductionRulesTable.eventId, assignment.eventId));
-  const teamRows = await db.select({ id: ushersTable.id, fullName: ushersTable.fullName, profilePhotoUrl: ushersTable.profilePhotoUrl, isTeamLead: eventAssignmentsTable.isTeamLead }).from(eventAssignmentsTable).innerJoin(ushersTable, eq(eventAssignmentsTable.usherId, ushersTable.id)).where(and(eq(eventAssignmentsTable.eventId, assignment.eventId), ne(eventAssignmentsTable.usherId, assignment.usherId)));
+  
+  let teamRows: any[] = [];
+  let team = null;
+  
+  if (assignment.eventTeamId) {
+    const [t] = await db.select().from(eventTeamsTable).where(eq(eventTeamsTable.id, assignment.eventTeamId));
+    team = t || null;
+    
+    teamRows = await db.select({ 
+      id: ushersTable.id, 
+      fullName: ushersTable.fullName, 
+      profilePhotoUrl: ushersTable.profilePhotoUrl, 
+      isTeamLead: eventAssignmentsTable.isTeamLead,
+      phone: ushersTable.phone,
+      status: eventAssignmentsTable.status
+    }).from(eventAssignmentsTable)
+      .innerJoin(ushersTable, eq(eventAssignmentsTable.usherId, ushersTable.id))
+      .where(and(
+        eq(eventAssignmentsTable.eventId, assignment.eventId), 
+        eq(eventAssignmentsTable.eventTeamId, assignment.eventTeamId),
+        ne(eventAssignmentsTable.usherId, assignment.usherId),
+        inArray(eventAssignmentsTable.status, ["accepted", "checked_in", "checked_out"])
+      ));
+  }
+
   const eventDetail = { ...event, assignments: [], deductionRules };
-  return { id: assignment.id, eventId: assignment.eventId, status: assignment.status, isTeamLead: assignment.isTeamLead, checkinTime: assignment.checkinTime, checkoutTime: assignment.checkoutTime, checkinMethod: assignment.checkinMethod, event: eventDetail, teamMembers: teamRows };
+  return { id: assignment.id, eventId: assignment.eventId, status: assignment.status, isTeamLead: assignment.isTeamLead, checkinTime: assignment.checkinTime, checkoutTime: assignment.checkoutTime, checkinMethod: assignment.checkinMethod, event: eventDetail, teamMembers: teamRows, team };
 }
 
 function haversineMeters(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -138,6 +162,68 @@ router.post("/my/assignments/:assignmentId/checkin", requireUsher, async (req, r
   res.json(await buildMyAssignment(updated));
 });
 
+// POST /my/assignments/:assignmentId/team-checkin/:usherId
+router.post("/my/assignments/:assignmentId/team-checkin/:usherId", requireUsher, async (req, res) => {
+  const assignmentId = parseInt(req.params.assignmentId as string, 10);
+  const usherId = parseInt(req.params.usherId as string, 10);
+
+  // 1. Fetch the team leader's assignment to ensure they are the leader for this event/team
+  const [leaderAssignment] = await db
+    .select()
+    .from(eventAssignmentsTable)
+    .where(
+      and(
+        eq(eventAssignmentsTable.id, assignmentId),
+        eq(eventAssignmentsTable.usherId, req.user!.id)
+      )
+    );
+
+  if (!leaderAssignment || !leaderAssignment.isTeamLead) {
+    res.status(403).json({ error: "Only team leaders can perform team check-ins." });
+    return;
+  }
+
+  // 2. Fetch the target team member's assignment
+  const [memberAssignment] = await db
+    .select()
+    .from(eventAssignmentsTable)
+    .where(
+      and(
+        eq(eventAssignmentsTable.eventId, leaderAssignment.eventId),
+        eq(eventAssignmentsTable.eventTeamId, leaderAssignment.eventTeamId!),
+        eq(eventAssignmentsTable.usherId, usherId)
+      )
+    );
+
+  if (!memberAssignment) {
+    res.status(404).json({ error: "Team member not found in your team." });
+    return;
+  }
+
+  if (memberAssignment.status === "checked_in") {
+    res.status(400).json({ error: "Member is already checked in." });
+    return;
+  }
+
+  if (memberAssignment.status !== "accepted" && memberAssignment.status !== "assigned") {
+    res.status(400).json({ error: "Member cannot be checked in (status: " + memberAssignment.status + ")." });
+    return;
+  }
+
+  // 3. Update the member's status to checked_in
+  const [updatedAssignment] = await db
+    .update(eventAssignmentsTable)
+    .set({
+      status: "checked_in",
+      checkinTime: new Date(),
+      checkinMethod: "team_leader",
+    })
+    .where(eq(eventAssignmentsTable.id, memberAssignment.id))
+    .returning();
+
+  res.json(await buildMyAssignment(leaderAssignment));
+});
+
 // POST /my/assignments/:assignmentId/checkout
 router.post("/my/assignments/:assignmentId/checkout", requireUsher, async (req, res) => {
   const assignmentId = parseInt(req.params.assignmentId as string, 10);
@@ -195,6 +281,78 @@ router.post("/my/assignments/:assignmentId/cancel", requireUsher, async (req, re
   const [cancellation] = await db.insert(cancellationsTable).values({ eventAssignmentId: assignment.id, reason: parsed.data.reason ?? null, penaltyApplied: false }).returning();
   const ma = await buildMyAssignment(assignment);
   res.json({ assignment: ma, cancellation, penaltyApplied: false, penaltyAmount: null });
+});
+
+// GET /my/waitlists
+router.get("/my/waitlists", requireUsher, async (req, res) => {
+  const waitlists = await db.select({
+    id: waitlistTable.id,
+    eventId: waitlistTable.eventId,
+    usherId: waitlistTable.usherId,
+    priorityOrder: waitlistTable.priorityOrder,
+    status: waitlistTable.status,
+    event: eventsTable
+  }).from(waitlistTable)
+    .innerJoin(eventsTable, eq(waitlistTable.eventId, eventsTable.id))
+    .where(eq(waitlistTable.usherId, req.user!.id));
+
+  res.json(waitlists);
+});
+
+// POST /my/waitlists/:waitlistId/accept
+router.post("/my/waitlists/:waitlistId/accept", requireUsher, async (req, res) => {
+  const waitlistId = parseInt(req.params.waitlistId as string, 10);
+  const [existing] = await db.select({
+    waitlist: waitlistTable,
+    event: eventsTable
+  }).from(waitlistTable)
+    .innerJoin(eventsTable, eq(waitlistTable.eventId, eventsTable.id))
+    .where(and(eq(waitlistTable.id, waitlistId), eq(waitlistTable.usherId, req.user!.id)));
+  
+  if (!existing) {
+    res.status(404).json({ error: "Waitlist entry not found" });
+    return;
+  }
+
+  if (existing.event.status === "completed" || new Date(existing.event.endTime) < new Date()) {
+    res.status(400).json({ error: "Cannot accept a waitlist for a completed event." });
+    return;
+  }
+
+  const [updated] = await db.update(waitlistTable)
+    .set({ status: 'accepted' })
+    .where(eq(waitlistTable.id, existing.waitlist.id))
+    .returning();
+
+  res.json(updated);
+});
+
+// POST /my/waitlists/:waitlistId/reject
+router.post("/my/waitlists/:waitlistId/reject", requireUsher, async (req, res) => {
+  const waitlistId = parseInt(req.params.waitlistId as string, 10);
+  const [existing] = await db.select({
+    waitlist: waitlistTable,
+    event: eventsTable
+  }).from(waitlistTable)
+    .innerJoin(eventsTable, eq(waitlistTable.eventId, eventsTable.id))
+    .where(and(eq(waitlistTable.id, waitlistId), eq(waitlistTable.usherId, req.user!.id)));
+  
+  if (!existing) {
+    res.status(404).json({ error: "Waitlist entry not found" });
+    return;
+  }
+
+  if (existing.event.status === "completed" || new Date(existing.event.endTime) < new Date()) {
+    res.status(400).json({ error: "Cannot decline a waitlist for a completed event." });
+    return;
+  }
+
+  const [updated] = await db.update(waitlistTable)
+    .set({ status: 'rejected' })
+    .where(eq(waitlistTable.id, existing.waitlist.id))
+    .returning();
+
+  res.json(updated);
 });
 
 export default router;

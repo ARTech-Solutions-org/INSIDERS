@@ -11,5 +11,6 @@ export interface WaitlistEntry {
   eventId: number;
   usherId: number;
   priorityOrder: number;
+  status: string;
   usher?: UsherProfile;
 }

@@ -6,10 +6,23 @@ import {
   useAssignUsherToEvent,
   useRemoveAssignment,
   useUpdateEvent,
+  useListEventTeams,
+  useCreateEventTeam,
+  useDeleteEventTeam,
+  useGetTeamLeaderSuggestions,
+  useUpdateAssignment,
+  useSmartAssignBatch,
   getGetEventQueryKey,
-  getListEventsQueryKey
+  getListEventsQueryKey,
+  getGetTeamLeaderSuggestionsQueryKey,
+  useListWaitlist,
+  useAddToWaitlist,
+  useRemoveFromWaitlist,
+  usePromoteWaitlist,
+  getListEventAssignmentsQueryKey,
+  getListWaitlistQueryKey,
 } from "@workspace/api-client-react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQueries } from "@tanstack/react-query";
 import { 
   Card, 
   CardContent, 
@@ -22,6 +35,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Dialog,
@@ -45,7 +59,12 @@ import {
   Edit,
   Globe,
   Loader2,
-  ArrowLeft
+  ArrowLeft,
+  Shield,
+  Crown,
+  Trash2,
+  UserCog,
+  X
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -62,6 +81,51 @@ export default function EventDetails() {
   const [ratingValue, setRatingValue] = useState(5);
   const [ratingComment, setRatingComment] = useState("");
   const [isSubmittingRating, setIsSubmittingRating] = useState(false);
+
+  // ─── WAITLIST ────────────────────────────────────────────────────────────
+  const { data: waitlist } = useListWaitlist(eventId, {
+    query: {
+      enabled: !!eventId,
+    } as any
+  });
+
+  const { mutate: addToWaitlist, isPending: isAddingToWaitlist } = useAddToWaitlist({
+    mutation: {
+      onSuccess: () => {
+        toast({ title: "Waitlisted", description: "Usher added to waitlist." });
+        queryClient.invalidateQueries({ queryKey: getListWaitlistQueryKey(eventId) as any });
+      },
+      onError: (err: any) => {
+        toast({ title: "Error", description: err.message, variant: "destructive" });
+      }
+    }
+  });
+
+  const { mutate: removeFromWaitlist } = useRemoveFromWaitlist({
+    mutation: {
+      onSuccess: () => {
+        toast({ title: "Removed", description: "Usher removed from waitlist." });
+        queryClient.invalidateQueries({ queryKey: getListWaitlistQueryKey(eventId) as any });
+      },
+      onError: (err: any) => {
+        toast({ title: "Error", description: err.message, variant: "destructive" });
+      }
+    }
+  });
+
+  const { mutate: promoteWaitlist } = usePromoteWaitlist({
+    mutation: {
+      onSuccess: () => {
+        toast({ title: "Promoted", description: "Usher promoted to assigned." });
+        queryClient.invalidateQueries({ queryKey: getListWaitlistQueryKey(eventId) as any });
+        queryClient.invalidateQueries({ queryKey: getListEventAssignmentsQueryKey(eventId) as any });
+        refetch();
+      },
+      onError: (err: any) => {
+        toast({ title: "Error", description: err.message, variant: "destructive" });
+      }
+    }
+  });
 
   const handleOpenRating = (assignment: any) => {
     setRatingAssignment(assignment);
@@ -113,6 +177,48 @@ export default function EventDetails() {
     { query: { enabled: !!eventId, queryKey: getGetEventQueryKey(eventId) as any } as any }
   );
 
+  const [newTeamName, setNewTeamName] = useState("");
+  const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
+
+  const { data: teams, refetch: refetchTeams } = useListEventTeams(eventId, { query: { enabled: !!eventId } as any });
+  
+  const { mutate: createTeam, isPending: isCreatingTeam } = useCreateEventTeam({
+    mutation: {
+      onSuccess: () => {
+        toast({ title: "Team created!" });
+        setNewTeamName("");
+        refetchTeams();
+      }
+    }
+  });
+
+  const { mutate: deleteTeam } = useDeleteEventTeam({
+    mutation: {
+      onSuccess: () => {
+        toast({ title: "Team deleted!" });
+        if (selectedTeamId !== null) setSelectedTeamId(null);
+        refetchTeams();
+        refetch(); // to refresh assignments
+      }
+    }
+  });
+
+  const { data: leaderSuggestions } = useGetTeamLeaderSuggestions(eventId, selectedTeamId || 0, {
+    query: { enabled: !!eventId && !!selectedTeamId } as any
+  });
+
+  const { mutate: updateAssignment } = useUpdateAssignment({
+    mutation: {
+      onSuccess: () => {
+        toast({ title: "Assignment updated!" });
+        refetch();
+        if (selectedTeamId) {
+          queryClient.invalidateQueries({ queryKey: getGetTeamLeaderSuggestionsQueryKey(eventId, selectedTeamId) as any });
+        }
+      }
+    }
+  });
+
   const { data: candidates, isLoading: isCandidatesLoading } = useGetSmartCandidates(
     eventId,
     undefined,
@@ -141,6 +247,25 @@ export default function EventDetails() {
         toast({ variant: "destructive", title: "Error removing usher", description: err.response?.data?.error || err.message });
       },
     },
+  });
+
+  const [isAutoAssignOpen, setIsAutoAssignOpen] = useState(false);
+  const [autoAssignFilters, setAutoAssignFilters] = useState<any>({
+    count: 5,
+    gender: "",
+    minRating: 0,
+    minCompletedEvents: 0,
+    requiresLeadershipExp: false,
+    maxDistanceMeters: 0,
+  });
+
+  const { mutate: autoAssign, isPending: isAutoAssigning } = useSmartAssignBatch({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getGetEventQueryKey(eventId) as any });
+        setIsAutoAssignOpen(false);
+      }
+    }
   });
 
   const { mutate: updateEvent, isPending: isUpdating } = useUpdateEvent({
@@ -467,242 +592,525 @@ export default function EventDetails() {
         </div>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6 flex-1 min-h-0 overflow-auto pb-6">
-        {/* Left Col - Details */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Schedule & Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 text-sm">
-              <div className="flex justify-between border-b pb-2">
-                <span className="text-muted-foreground">Start Time</span>
-                <span className="font-medium">{format(new Date(event.startTime), 'h:mm a')}</span>
-              </div>
-              <div className="flex justify-between border-b pb-2">
-                <span className="text-muted-foreground">End Time</span>
-                <span className="font-medium">{format(new Date(event.endTime), 'h:mm a')}</span>
-              </div>
-              <div className="flex justify-between border-b pb-2">
-                <span className="text-muted-foreground">Budget</span>
-                <span className="font-medium">EGP {event.eventBudget?.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between border-b pb-2">
-                <span className="text-muted-foreground">Geofence Range</span>
-                <span className="font-semibold text-primary">{event.checkinRadiusM || 100} meters</span>
-              </div>
-              <div className="pt-2">
-                <h4 className="font-medium mb-1">Dress Code</h4>
-                <p className="text-muted-foreground">{event.dressCode || "None specified"}</p>
-              </div>
-              <div className="pt-2">
-                <h4 className="font-medium mb-1">Instructions</h4>
-                <p className="text-muted-foreground whitespace-pre-wrap">{event.instructions || "None specified"}</p>
-              </div>
-            </CardContent>
-          </Card>
+      <Tabs defaultValue="overview" className="flex-1 flex flex-col min-h-0 pb-6 mt-4">
+        <TabsList className="w-full justify-start rounded-none border-b bg-transparent h-auto p-0 space-x-6">
+          <TabsTrigger value="overview" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent py-3">Overview</TabsTrigger>
+          <TabsTrigger value="staffing" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent py-3">Staff & Teams</TabsTrigger>
+          <TabsTrigger value="waitlist" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent py-3">Waitlist</TabsTrigger>
+        </TabsList>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Deduction Rules</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {event.deductionRules?.map((rule: any) => (
-                <div key={rule.id} className="flex justify-between items-center text-sm border p-2 rounded bg-muted/20">
-                  <span>{rule.ruleType}</span>
-                  <span className="text-destructive font-medium">- EGP {rule.amount}</span>
+        <TabsContent value="overview" className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6 min-h-0 flex-1 overflow-auto">
+          {/* Details */}
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Schedule & Details</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4 text-sm">
+                <div className="flex justify-between border-b pb-2">
+                  <span className="text-muted-foreground">Start Time</span>
+                  <span className="font-medium">{format(new Date(event.startTime), 'h:mm a')}</span>
                 </div>
-              ))}
-              {(!event.deductionRules || event.deductionRules.length === 0) && (
-                <div className="text-sm text-muted-foreground">No rules defined.</div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+                <div className="flex justify-between border-b pb-2">
+                  <span className="text-muted-foreground">End Time</span>
+                  <span className="font-medium">{format(new Date(event.endTime), 'h:mm a')}</span>
+                </div>
+                <div className="flex justify-between border-b pb-2">
+                  <span className="text-muted-foreground">Budget</span>
+                  <span className="font-medium">EGP {event.eventBudget?.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between border-b pb-2">
+                  <span className="text-muted-foreground">Geofence Range</span>
+                  <span className="font-semibold text-primary">{event.checkinRadiusM || 100} meters</span>
+                </div>
+                <div className="pt-2">
+                  <h4 className="font-medium mb-1">Dress Code</h4>
+                  <p className="text-muted-foreground">{event.dressCode || "None specified"}</p>
+                </div>
+                <div className="pt-2">
+                  <h4 className="font-medium mb-1">Instructions</h4>
+                  <p className="text-muted-foreground whitespace-pre-wrap">{event.instructions || "None specified"}</p>
+                </div>
+              </CardContent>
+            </Card>
 
-        {/* Middle Col - Assigned Ushers */}
-        <Card className="flex flex-col">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="w-5 h-5 text-primary" />
-              Assigned Staff ({event.assignments?.length || 0})
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex-1 overflow-auto p-0">
-            <div className="divide-y">
-              {event.assignments?.map((assignment: any) => (
-                <div key={assignment.id} className="p-4 hover:bg-muted/10 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-9 w-9">
-                        <AvatarImage src={assignment.usher?.profilePhotoUrl || undefined} />
-                        <AvatarFallback className="bg-primary/10 text-primary">
-                          {assignment.usher?.fullName?.charAt(0) || '?'}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="font-medium text-sm flex items-center gap-2">
-                          {assignment.usher?.fullName}
-                          {assignment.isTeamLead && <Badge variant="secondary" className="text-[10px] h-4">Lead</Badge>}
-                        </div>
-                        <div className="text-xs text-muted-foreground flex items-center gap-2 mt-1">
-                          <span className="flex items-center">
-                            <Star className="w-3 h-3 text-secondary mr-1 fill-current" />
-                            {assignment.usher?.avgRating?.toFixed(1) || 'N/A'}
-                          </span>
-                          <span className="capitalize text-[10px] bg-muted px-1.5 py-0.5 rounded-full">{assignment.status.replace('_', ' ')}</span>
-                          
-                          {/* Missed Checkout Badge */}
-                          {event.status === 'completed' && assignment.checkinTime && !assignment.checkoutTime && (
-                            <Badge variant="destructive" className="text-[9px] h-4 px-1.5 leading-none shadow-sm animate-pulse">
-                              MISSED CHECKOUT
-                            </Badge>
-                          )}
-                        </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Deduction Rules</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {event.deductionRules?.map((rule: any) => (
+                  <div key={rule.id} className="flex justify-between items-center text-sm border p-2 rounded bg-muted/20">
+                    <span>{rule.ruleType}</span>
+                    <span className="text-destructive font-medium">- EGP {rule.amount}</span>
+                  </div>
+                ))}
+                {(!event.deductionRules || event.deductionRules.length === 0) && (
+                  <div className="text-sm text-muted-foreground">No rules defined.</div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
 
-                        {/* Check-in / Check-out Details */}
-                        {(assignment.checkinTime || assignment.checkoutTime) && (
-                          <div className="mt-2 space-y-1">
-                            {assignment.checkinTime && (() => {
-                              const checkinDate = new Date(assignment.checkinTime);
-                              const startDate = new Date(event.startTime);
-                              const diffMins = Math.round((checkinDate.getTime() - startDate.getTime()) / 60000);
-                              let label = "On time";
-                              let color = "text-green-600 bg-green-50";
-                              if (diffMins > 0) {
-                                label = `${diffMins}m late`;
-                                color = "text-destructive bg-destructive/10";
-                              } else if (diffMins < 0) {
-                                label = `${Math.abs(diffMins)}m early`;
-                                color = "text-green-600 bg-green-50";
-                              }
-                              return (
-                                <div className="text-[11px] flex items-center gap-1.5">
-                                  <span className="text-muted-foreground font-medium w-6">In:</span> 
-                                  <span>{format(checkinDate, 'h:mm a')}</span>
-                                  <span className={`px-1.5 py-0.5 rounded ${color} font-medium leading-none`}>{label}</span>
-                                </div>
-                              );
-                            })()}
-                            {assignment.checkoutTime && (() => {
-                              const checkoutDate = new Date(assignment.checkoutTime);
-                              const endDate = new Date(event.endTime);
-                              const diffMins = Math.round((endDate.getTime() - checkoutDate.getTime()) / 60000);
-                              let label = "On time";
-                              let color = "text-green-600 bg-green-50";
-                              if (diffMins > 0) {
-                                label = `${diffMins}m early`;
-                                color = "text-destructive bg-destructive/10";
-                              } else if (diffMins < 0) {
-                                label = `${Math.abs(diffMins)}m late`;
-                                color = "text-amber-600 bg-amber-50";
-                              }
-                              return (
-                                <div className="text-[11px] flex items-center gap-1.5">
-                                  <span className="text-muted-foreground font-medium w-6">Out:</span> 
-                                  <span>{format(checkoutDate, 'h:mm a')}</span>
-                                  <span className={`px-1.5 py-0.5 rounded ${color} font-medium leading-none`}>{label}</span>
-                                </div>
-                              );
-                            })()}
-                          </div>
-                        )}
+        <TabsContent value="staffing" className="grid md:grid-cols-3 gap-6 mt-6 min-h-0 flex-1 overflow-auto">
+          {/* Teams Col */}
+          <Card className="flex flex-col">
+            <CardHeader className="pb-3 border-b border-primary/10">
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="w-5 h-5 text-primary" />
+                Teams
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex-1 overflow-auto p-4 space-y-4">
+              <div className="flex gap-2">
+                <Input 
+                  placeholder="New Team Name" 
+                  value={newTeamName} 
+                  onChange={e => setNewTeamName(e.target.value)} 
+                />
+                <Button 
+                  disabled={!newTeamName.trim() || isCreatingTeam} 
+                  onClick={() => createTeam({ id: eventId, data: { name: newTeamName } })}
+                >
+                  Add
+                </Button>
+              </div>
+
+              <div className="space-y-2">
+                <div 
+                  className={`p-3 rounded border cursor-pointer transition-colors ${selectedTeamId === null ? 'border-primary bg-primary/5' : 'hover:bg-muted/50'}`}
+                  onClick={() => setSelectedTeamId(null)}
+                >
+                  <div className="font-medium text-sm">All Staff (Unassigned)</div>
+                </div>
+                {teams?.map((team: any) => (
+                  <div 
+                    key={team.id}
+                    className={`p-3 rounded border cursor-pointer transition-colors flex justify-between items-center ${selectedTeamId === team.id ? 'border-primary bg-primary/5' : 'hover:bg-muted/50'}`}
+                    onClick={() => setSelectedTeamId(team.id)}
+                  >
+                    <div className="font-medium text-sm">{team.name}</div>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-6 w-6 text-destructive hover:bg-destructive/10"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (confirm(`Delete team ${team.name}? Ushes will become unassigned.`)) {
+                          deleteTeam({ id: eventId, teamId: team.id });
+                        }
+                      }}
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+
+              {selectedTeamId && leaderSuggestions && leaderSuggestions.length > 0 && (
+                <div className="mt-6">
+                  <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                    <Crown className="w-4 h-4 text-amber-500" /> Leader Suggestions
+                  </h4>
+                  <div className="space-y-2">
+                    {leaderSuggestions.map((sug: any) => (
+                      <div key={sug.id} className="flex justify-between items-center border p-2 rounded text-xs bg-amber-50/50">
+                        <span>{sug.fullName} <span className="text-muted-foreground ml-1">({(sug.matchScore * 100).toFixed(0)}% match)</span></span>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="h-6 px-2 text-[10px]"
+                          onClick={() => {
+                            const assignment = event.assignments?.find((a: any) => a.usherId === sug.id);
+                            if (assignment) {
+                              updateAssignment({ id: eventId, assignmentId: assignment.id, data: { usherId: assignment.usherId, eventTeamId: selectedTeamId, isTeamLead: true } });
+                            }
+                          }}
+                        >
+                          Make Lead
+                        </Button>
                       </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        className="h-8 text-xs gap-1 text-amber-600 hover:bg-amber-50"
-                        onClick={() => handleOpenRating(assignment)}
-                      >
-                        <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-                        Rate
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-8 text-xs gap-1 text-destructive hover:bg-destructive/10"
-                        disabled={hasStarted || (assignment.status !== 'assigned' && assignment.status !== 'accepted')}
-                        onClick={() => {
-                          if (confirm("Are you sure you want to unassign this usher?")) {
-                            removeUsher({ id: eventId, assignmentId: assignment.id });
-                          }
-                        }}
-                      >
-                        <UserMinus className="w-3.5 h-3.5" />
-                        Remove
-                      </Button>
-                    </div>
+                    ))}
                   </div>
                 </div>
-              ))}
-              {(!event.assignments || event.assignments.length === 0) && (
-                <div className="p-6 text-center text-sm text-muted-foreground">No ushers assigned yet.</div>
               )}
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* Right Col - Smart Assignment */}
-        <Card className="flex flex-col border-primary/20 bg-primary/5">
-          <CardHeader className="pb-3 border-b border-primary/10">
-            <CardTitle className="flex items-center gap-2 text-primary">
-              <Star className="w-5 h-5" />
-              Smart Match
-            </CardTitle>
-            <CardDescription>Suggested ushers based on rating, skills, and availability.</CardDescription>
-          </CardHeader>
-          <CardContent className="flex-1 overflow-auto p-0 pt-2">
-            {isCandidatesLoading ? (
-              <div className="p-4 text-center text-sm text-muted-foreground">Loading candidates...</div>
-            ) : (
-              <div className="divide-y divide-primary/10">
-                {candidates?.map((candidate: any) => {
-                  const isAssigned = event.assignments?.some((a: any) => a.usherId === candidate.id);
-                  if (isAssigned) return null; // Don't show already assigned
-
-                  return (
-                    <div key={candidate.id} className="p-3 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Avatar className="h-8 w-8 border border-background">
-                          <AvatarFallback className="text-xs">{candidate.fullName.charAt(0)}</AvatarFallback>
+          {/* Middle Col - Assigned Ushers */}
+          <Card className="flex flex-col">
+            <CardHeader className="pb-3 border-b border-primary/10">
+              <CardTitle className="flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <Users className="w-5 h-5 text-primary" />
+                  Assigned Staff ({event.assignments?.filter((a: any) => selectedTeamId === null ? true : a.eventTeamId === selectedTeamId).length || 0})
+                </span>
+                {selectedTeamId !== null && (
+                  <Badge variant="outline" className="text-xs bg-primary/10">
+                    {teams?.find((t: any) => t.id === selectedTeamId)?.name}
+                  </Badge>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex-1 overflow-auto p-0">
+              <div className="divide-y">
+                {event.assignments?.filter((a: any) => selectedTeamId === null ? true : a.eventTeamId === selectedTeamId).map((assignment: any) => (
+                  <div key={assignment.id} className="p-4 hover:bg-muted/10 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-9 w-9">
+                          <AvatarImage src={assignment.usher?.profilePhotoUrl || undefined} />
+                          <AvatarFallback className="bg-primary/10 text-primary">
+                            {assignment.usher?.fullName?.charAt(0) || '?'}
+                          </AvatarFallback>
                         </Avatar>
                         <div>
-                          <div className="flex items-center gap-2">
-                            <p className="text-sm font-medium leading-none">{candidate.fullName}</p>
-                            {!candidate.isAvailable && (
-                              <Badge variant="destructive" className="text-[10px] h-4 px-1.5 leading-none">
-                                Busy
+                          <div className="font-medium text-sm flex items-center gap-2">
+                            {assignment.usher?.fullName}
+                            {assignment.isTeamLead && <Badge variant="secondary" className="text-[10px] h-4 bg-amber-100 text-amber-800 hover:bg-amber-100">Lead</Badge>}
+                          </div>
+                          <div className="text-xs text-muted-foreground flex items-center gap-2 mt-1">
+                            <span className="flex items-center">
+                              <Star className="w-3 h-3 text-secondary mr-1 fill-current" />
+                              {assignment.usher?.avgRating?.toFixed(1) || 'N/A'}
+                            </span>
+                            <span className="capitalize text-[10px] bg-muted px-1.5 py-0.5 rounded-full">{assignment.status.replace('_', ' ')}</span>
+                            {event.status === 'completed' && assignment.checkinTime && !assignment.checkoutTime && (
+                              <Badge variant="destructive" className="text-[9px] h-4 px-1.5 leading-none shadow-sm animate-pulse">
+                                MISSED CHECKOUT
                               </Badge>
                             )}
                           </div>
-                          <p className="text-xs text-muted-foreground mt-1 flex items-center">
-                             <Star className="w-3 h-3 text-secondary mr-1 fill-current" />
-                             {candidate.avgRating?.toFixed(1)} match
-                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col items-end gap-1">
+                        <div className="flex items-center gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            className="h-8 text-xs gap-1 text-amber-600 hover:bg-amber-50"
+                            onClick={() => handleOpenRating(assignment)}
+                          >
+                            <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                            Rate
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-8 text-xs gap-1 text-destructive hover:bg-destructive/10"
+                            disabled={hasStarted || (assignment.status !== 'assigned' && assignment.status !== 'accepted')}
+                            onClick={() => {
+                              if (confirm("Are you sure you want to unassign this usher?")) {
+                                removeUsher({ id: eventId, assignmentId: assignment.id });
+                              }
+                            }}
+                          >
+                            <UserMinus className="w-3.5 h-3.5" />
+                            Remove
+                          </Button>
+                        </div>
+                        {selectedTeamId === null && teams && teams.length > 0 && !hasStarted && (
+                          <select 
+                            className="text-[10px] border rounded px-1 py-0.5 mt-1 bg-muted/20"
+                            value={assignment.eventTeamId || ""}
+                            onChange={(e) => {
+                              const tid = e.target.value ? parseInt(e.target.value, 10) : null;
+                              updateAssignment({ id: eventId, assignmentId: assignment.id, data: { usherId: assignment.usherId, eventTeamId: tid, isTeamLead: false } });
+                            }}
+                          >
+                            <option value="">Assign to team...</option>
+                            {teams.map((t: any) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                          </select>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {(!event.assignments || event.assignments.filter((a: any) => selectedTeamId === null ? true : a.eventTeamId === selectedTeamId).length === 0) && (
+                  <div className="p-6 text-center text-sm text-muted-foreground">No ushers assigned.</div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Right Col - Smart Match */}
+          <Card className="flex flex-col border-primary/20 bg-primary/5">
+            <CardHeader className="pb-3 border-b border-primary/10">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2 text-primary">
+                    <Star className="w-5 h-5" />
+                    Smart Match
+                  </CardTitle>
+                  <CardDescription>Suggested ushers based on rating, skills, and availability.</CardDescription>
+                </div>
+                <Dialog open={isAutoAssignOpen} onOpenChange={setIsAutoAssignOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="secondary" size="sm" className="gap-2" disabled={hasStarted}>
+                      🪄 Auto Assign
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                      <DialogTitle>Smart Auto Assign</DialogTitle>
+                      <DialogDescription>
+                        Automatically assign the best available ushers based on specific criteria.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="count" className="text-right">Count</Label>
+                        <Input
+                          id="count"
+                          type="number"
+                          className="col-span-3"
+                          value={autoAssignFilters.count}
+                          onChange={(e) => setAutoAssignFilters({ ...autoAssignFilters, count: parseInt(e.target.value) || 1 })}
+                          min={1}
+                        />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="gender" className="text-right">Gender</Label>
+                        <select
+                          id="gender"
+                          className="col-span-3 flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          value={autoAssignFilters.gender}
+                          onChange={(e) => setAutoAssignFilters({ ...autoAssignFilters, gender: e.target.value })}
+                        >
+                          <option value="">Any</option>
+                          <option value="male">Male</option>
+                          <option value="female">Female</option>
+                        </select>
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="minRating" className="text-right">Min Rating</Label>
+                        <Input
+                          id="minRating"
+                          type="number"
+                          step="0.1"
+                          className="col-span-3"
+                          value={autoAssignFilters.minRating}
+                          onChange={(e) => setAutoAssignFilters({ ...autoAssignFilters, minRating: parseFloat(e.target.value) || 0 })}
+                        />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="minEvents" className="text-right">Min Events</Label>
+                        <Input
+                          id="minEvents"
+                          type="number"
+                          className="col-span-3"
+                          value={autoAssignFilters.minCompletedEvents}
+                          onChange={(e) => setAutoAssignFilters({ ...autoAssignFilters, minCompletedEvents: parseInt(e.target.value) || 0 })}
+                        />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="maxDist" className="text-right">Max Dist (m)</Label>
+                        <Input
+                          id="maxDist"
+                          type="number"
+                          className="col-span-3"
+                          placeholder="e.g. 5000"
+                          value={autoAssignFilters.maxDistanceMeters || ""}
+                          onChange={(e) => setAutoAssignFilters({ ...autoAssignFilters, maxDistanceMeters: parseInt(e.target.value) || 0 })}
+                        />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <div className="col-start-2 col-span-3 flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id="leadership"
+                            className="rounded border-input text-primary focus:ring-primary h-4 w-4"
+                            checked={autoAssignFilters.requiresLeadershipExp}
+                            onChange={(e) => setAutoAssignFilters({ ...autoAssignFilters, requiresLeadershipExp: e.target.checked })}
+                          />
+                          <Label htmlFor="leadership" className="font-normal cursor-pointer">
+                            Requires Leadership Experience
+                          </Label>
+                        </div>
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setIsAutoAssignOpen(false)}>Cancel</Button>
+                      <Button 
+                        disabled={isAutoAssigning}
+                        onClick={() => {
+                          const payload: any = { count: autoAssignFilters.count };
+                          if (selectedTeamId) payload.eventTeamId = selectedTeamId;
+                          if (autoAssignFilters.gender) payload.gender = autoAssignFilters.gender;
+                          if (autoAssignFilters.minRating) payload.minRating = autoAssignFilters.minRating;
+                          if (autoAssignFilters.minCompletedEvents) payload.minCompletedEvents = autoAssignFilters.minCompletedEvents;
+                          if (autoAssignFilters.requiresLeadershipExp) payload.requiresLeadershipExp = true;
+                          if (autoAssignFilters.maxDistanceMeters) payload.maxDistanceMeters = autoAssignFilters.maxDistanceMeters;
+                          autoAssign({ id: eventId, data: payload });
+                        }}
+                      >
+                        {isAutoAssigning ? "Assigning..." : "Assign"}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </CardHeader>
+            <CardContent className="flex-1 overflow-auto p-0 pt-2">
+              {isCandidatesLoading ? (
+                <div className="p-4 text-center text-sm text-muted-foreground">Loading candidates...</div>
+              ) : (
+                <div className="divide-y divide-primary/10">
+                  {candidates?.map((candidate: any) => {
+                    const isAssigned = event.assignments?.some((a: any) => a.usherId === candidate.id);
+                    if (isAssigned) return null;
+
+                    return (
+                      <div key={candidate.id} className="p-3 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-8 w-8 border border-background">
+                            <AvatarFallback className="text-xs">{candidate.fullName.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-medium leading-none">{candidate.fullName}</p>
+                              {!candidate.isAvailable && (
+                                <Badge variant="destructive" className="text-[10px] h-4 px-1.5 leading-none">
+                                  Busy
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1 flex items-center">
+                               <Star className="w-3 h-3 text-secondary mr-1 fill-current" />
+                               {candidate.avgRating?.toFixed(1)} match
+                            </p>
+                          </div>
+                        </div>
+                        <Button 
+                          size="sm" 
+                          variant="secondary" 
+                          className="h-7 text-xs"
+                          disabled={hasStarted || !candidate.isAvailable}
+                          onClick={() => assignUsher({ id: eventId, data: { usherId: candidate.id, eventTeamId: selectedTeamId || undefined, isTeamLead: false } })}
+                        >
+                          <UserPlus className="w-3 h-3 mr-1" />
+                          Assign {selectedTeamId !== null ? 'to Team' : ''}
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="waitlist" className="grid md:grid-cols-2 gap-6 mt-6 min-h-0 flex-1 overflow-auto">
+          {/* Candidates for Waitlist */}
+          <Card className="flex flex-col">
+            <CardHeader className="pb-3 border-b border-primary/10">
+              <CardTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-primary" />
+                Available Candidates
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex-1 overflow-auto p-4 space-y-4">
+              <div className="space-y-4">
+                {candidates?.map((data: any) => {
+                  const isAssigned = event?.assignments?.some((a: any) => a.usherId === data.id);
+                  const isWaitlisted = waitlist?.some((w: any) => w.usherId === data.id);
+                  
+                  if (isAssigned || isWaitlisted) return null;
+
+                  return (
+                    <div key={data.id} className="flex justify-between items-center p-3 rounded-xl border hover:border-primary/50 hover:bg-muted/30 transition-all">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10 border border-primary/10">
+                          <AvatarImage src={data.profilePhotoUrl || undefined} />
+                          <AvatarFallback className="bg-primary/5 text-primary">{data.fullName?.substring(0,2)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="font-semibold text-sm">{data.fullName}</div>
+                          <div className="text-xs text-muted-foreground">{data.email}</div>
                         </div>
                       </div>
                       <Button 
                         size="sm" 
-                        variant="secondary" 
-                        className="h-7 text-xs"
-                        disabled={hasStarted || !candidate.isAvailable}
-                        onClick={() => assignUsher({ id: eventId, data: { usherId: candidate.id, isTeamLead: false } })}
+                        variant="secondary"
+                        disabled={hasStarted || isAddingToWaitlist}
+                        onClick={() => addToWaitlist({ id: eventId, data: { usherId: data.id, priorityOrder: (waitlist?.length || 0) + 1 } })}
                       >
-                        <UserPlus className="w-3 h-3 mr-1" />
-                        Assign
+                        Waitlist
                       </Button>
                     </div>
                   );
                 })}
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-      </div>
+          {/* Current Waitlist */}
+          <Card className="flex flex-col">
+            <CardHeader className="pb-3 border-b border-primary/10">
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="w-5 h-5 text-primary" />
+                Waitlisted Ushers
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex-1 overflow-auto p-4 space-y-4">
+              {(!waitlist || waitlist.length === 0) ? (
+                <div className="text-center p-8 text-muted-foreground border-2 border-dashed rounded-xl">
+                  <Clock className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                  <p>No ushers on the waitlist yet.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {waitlist.map((w: any, index: number) => (
+                    <div key={w.id} className="flex justify-between items-center p-3 rounded-xl border border-primary/10 bg-muted/20">
+                      <div className="flex items-center gap-3">
+                        <div className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0">
+                          {index + 1}
+                        </div>
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={w.usher?.profilePhotoUrl || undefined} />
+                          <AvatarFallback>{w.usher?.fullName?.substring(0,2)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="font-semibold text-sm flex items-center gap-2">
+                            {w.usher?.fullName}
+                            {w.status === 'accepted' && <Badge className="h-5 px-1.5 text-[10px] bg-emerald-500/10 text-emerald-600 border-emerald-500/20" variant="outline">Accepted</Badge>}
+                            {w.status === 'rejected' && <Badge className="h-5 px-1.5 text-[10px] bg-destructive/10 text-destructive border-destructive/20" variant="outline">Declined</Badge>}
+                            {w.status === 'pending' && <Badge className="h-5 px-1.5 text-[10px] bg-amber-500/10 text-amber-600 border-amber-500/20" variant="outline">Pending</Badge>}
+                          </div>
+                          <div className="text-xs text-muted-foreground">{w.usher?.phone}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          size="sm"
+                          variant="outline"
+                          disabled={hasStarted}
+                          className="h-8 border-emerald-500/20 text-emerald-600 hover:bg-emerald-50"
+                          onClick={() => promoteWaitlist({ id: eventId, waitlistId: w.id, data: { isTeamLead: false } })}
+                        >
+                          Promote
+                        </Button>
+                        <Button 
+                          size="sm"
+                          variant="ghost"
+                          disabled={hasStarted}
+                          className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => removeFromWaitlist({ id: eventId, waitlistId: w.id })}
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
 
       {/* Rate Usher Dialog */}
       <Dialog open={!!ratingAssignment} onOpenChange={(open) => !open && setRatingAssignment(null)}>

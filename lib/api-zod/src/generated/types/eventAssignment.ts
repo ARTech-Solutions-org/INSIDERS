@@ -9,6 +9,8 @@ import type { UsherProfile } from './usherProfile';
 export interface EventAssignment {
   id: number;
   eventId: number;
+  /** @nullable */
+  eventTeamId?: number | null;
   usherId: number;
   status: string;
   isTeamLead?: boolean;

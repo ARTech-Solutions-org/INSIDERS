@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { randomBytes } from "crypto";
-import { db, eventsTable, eventAssignmentsTable, deductionRulesTable, eventHolderLinksTable, waitlistTable, ushersTable, usherAvailabilityTable } from "@workspace/db";
+import { db, eventsTable, eventAssignmentsTable, deductionRulesTable, eventHolderLinksTable, waitlistTable, ushersTable, usherAvailabilityTable, eventTeamsTable } from "@workspace/db";
 import { eq, and, gte, sql, desc, lt, ne, inArray, lte } from "drizzle-orm";
 import { requireAdmin, requireAuth } from "../middleware/auth.js";
 import { audit } from "../lib/audit.js";
@@ -10,7 +10,22 @@ import {
   CreateDeductionRuleBody,
   AssignUsherToEventBody,
   WaitlistInput,
+  CreateEventTeamBody,
 } from "@workspace/api-zod";
+import { z } from "zod";
+
+function getDistanceMeters(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const R = 6371e3; // metres
+  const p1 = lat1 * Math.PI/180;
+  const p2 = lat2 * Math.PI/180;
+  const dp = (lat2-lat1) * Math.PI/180;
+  const dl = (lon2-lon1) * Math.PI/180;
+  const a = Math.sin(dp/2) * Math.sin(dp/2) +
+          Math.cos(p1) * Math.cos(p2) *
+          Math.sin(dl/2) * Math.sin(dl/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
 
 const router = Router();
 
@@ -70,13 +85,16 @@ router.get("/events/:id", requireAuth, async (req, res) => {
     const [isAssigned] = await db.select().from(eventAssignmentsTable).where(
       and(eq(eventAssignmentsTable.eventId, event.id), eq(eventAssignmentsTable.usherId, req.user!.id))
     );
-    if (!isAssigned) {
-      res.status(403).json({ error: "You are not assigned to this event." });
+    const [isWaitlisted] = await db.select().from(waitlistTable).where(
+      and(eq(waitlistTable.eventId, event.id), eq(waitlistTable.usherId, req.user!.id))
+    );
+    if (!isAssigned && !isWaitlisted) {
+      res.status(403).json({ error: "You are not assigned or waitlisted to this event." });
       return;
     }
   }
 
-  const assignments = await db.select({ id: eventAssignmentsTable.id, eventId: eventAssignmentsTable.eventId, usherId: eventAssignmentsTable.usherId, status: eventAssignmentsTable.status, isTeamLead: eventAssignmentsTable.isTeamLead, checkinTime: eventAssignmentsTable.checkinTime, checkinLat: eventAssignmentsTable.checkinLat, checkinLng: eventAssignmentsTable.checkinLng, checkinMethod: eventAssignmentsTable.checkinMethod, checkoutTime: eventAssignmentsTable.checkoutTime, checkoutLat: eventAssignmentsTable.checkoutLat, checkoutLng: eventAssignmentsTable.checkoutLng, usher: { id: ushersTable.id, fullName: ushersTable.fullName, email: ushersTable.email, phone: ushersTable.phone, status: ushersTable.status, avgRating: ushersTable.avgRating, balance: ushersTable.balance, nationalIdNumber: ushersTable.nationalIdNumber, nationalIdDocUrl: ushersTable.nationalIdDocUrl, profilePhotoUrl: ushersTable.profilePhotoUrl, createdAt: ushersTable.createdAt } }).from(eventAssignmentsTable).leftJoin(ushersTable, eq(eventAssignmentsTable.usherId, ushersTable.id)).where(eq(eventAssignmentsTable.eventId, event.id));
+  const assignments = await db.select({ id: eventAssignmentsTable.id, eventId: eventAssignmentsTable.eventId, eventTeamId: eventAssignmentsTable.eventTeamId, usherId: eventAssignmentsTable.usherId, status: eventAssignmentsTable.status, isTeamLead: eventAssignmentsTable.isTeamLead, checkinTime: eventAssignmentsTable.checkinTime, checkinLat: eventAssignmentsTable.checkinLat, checkinLng: eventAssignmentsTable.checkinLng, checkinMethod: eventAssignmentsTable.checkinMethod, checkoutTime: eventAssignmentsTable.checkoutTime, checkoutLat: eventAssignmentsTable.checkoutLat, checkoutLng: eventAssignmentsTable.checkoutLng, usher: { id: ushersTable.id, fullName: ushersTable.fullName, email: ushersTable.email, phone: ushersTable.phone, status: ushersTable.status, avgRating: ushersTable.avgRating, balance: ushersTable.balance, nationalIdNumber: ushersTable.nationalIdNumber, nationalIdDocUrl: ushersTable.nationalIdDocUrl, profilePhotoUrl: ushersTable.profilePhotoUrl, createdAt: ushersTable.createdAt } }).from(eventAssignmentsTable).leftJoin(ushersTable, eq(eventAssignmentsTable.usherId, ushersTable.id)).where(eq(eventAssignmentsTable.eventId, event.id));
   const deductionRules = await db.select().from(deductionRulesTable).where(eq(deductionRulesTable.eventId, event.id));
   res.json(buildEventDetail(event, assignments, deductionRules));
 });
@@ -172,10 +190,99 @@ router.get("/events/holder/:token", async (req, res) => {
   res.json({ event: { title: event.title, startTime: event.startTime, endTime: event.endTime }, ushers: assignments });
 });
 
+// GET /events/:id/teams
+router.get("/events/:id/teams", requireAdmin, async (req, res) => {
+  const eventId = parseInt(req.params.id as string, 10);
+  const teams = await db.select().from(eventTeamsTable).where(eq(eventTeamsTable.eventId, eventId));
+  res.json(teams);
+});
+
+// POST /events/:id/teams
+router.post("/events/:id/teams", requireAdmin, async (req, res) => {
+  const eventId = parseInt(req.params.id as string, 10);
+  const parsed = CreateEventTeamBody.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.flatten() }); return; }
+  const [team] = await db.insert(eventTeamsTable).values({ eventId, name: parsed.data.name }).returning();
+  await audit(req.user!.id, "CREATE_TEAM", "event_teams", team.id);
+  res.status(201).json(team);
+});
+
+// DELETE /events/:id/teams/:teamId
+router.delete("/events/:id/teams/:teamId", requireAdmin, async (req, res) => {
+  const eventId = parseInt(req.params.id as string, 10);
+  const teamId = parseInt(req.params.teamId as string, 10);
+  await db.delete(eventTeamsTable).where(and(eq(eventTeamsTable.id, teamId), eq(eventTeamsTable.eventId, eventId)));
+  await audit(req.user!.id, "DELETE_TEAM", "event_teams", teamId);
+  res.status(204).send();
+});
+
+// GET /events/:id/teams/:teamId/leader-suggestions
+router.get("/events/:id/teams/:teamId/leader-suggestions", requireAdmin, async (req, res) => {
+  const eventId = parseInt(req.params.id as string, 10);
+  const teamId = parseInt(req.params.teamId as string, 10);
+  
+  // Get all ushers assigned to this team
+  const assignments = await db.select({
+    usher: ushersTable
+  }).from(eventAssignmentsTable)
+    .innerJoin(ushersTable, eq(eventAssignmentsTable.usherId, ushersTable.id))
+    .where(eq(eventAssignmentsTable.eventTeamId, teamId));
+
+  if (!assignments.length) {
+    res.json([]);
+    return;
+  }
+
+  const usherIds = assignments.map(a => a.usher.id);
+
+  // Get historical data for these ushers to compute score
+  // We want to count completed events and average late arrival minutes
+  const history = await db.select({
+    usherId: eventAssignmentsTable.usherId,
+    completedEvents: sql<number>`count(id)::int`,
+    avgLateMins: sql<number>`avg(late_arrival_minutes)::float`
+  }).from(eventAssignmentsTable)
+    .where(and(
+      inArray(eventAssignmentsTable.usherId, usherIds),
+      eq(eventAssignmentsTable.status, "completed")
+    ))
+    .groupBy(eventAssignmentsTable.usherId);
+
+  const historyMap = new Map(history.map(h => [h.usherId, h]));
+
+  const candidates = assignments.map(a => {
+    const u = a.usher;
+    const h = historyMap.get(u.id) || { completedEvents: 0, avgLateMins: 0 };
+    
+    // Normalize metrics
+    // Let's say max rating is 5, max completed events expected is 20 (cap at 1), max late minutes is 60 (invert)
+    const ratingScore = (u.avgRating || 0) / 5;
+    const experienceScore = Math.min(h.completedEvents, 20) / 20;
+    const punctualityScore = Math.max(0, 60 - h.avgLateMins) / 60;
+
+    // Weight: 50% rating, 30% experience, 20% punctuality
+    const matchScore = (ratingScore * 0.5) + (experienceScore * 0.3) + (punctualityScore * 0.2);
+
+    return {
+      id: u.id,
+      fullName: u.fullName,
+      avgRating: u.avgRating || 0,
+      profilePhotoUrl: u.profilePhotoUrl,
+      phone: u.phone,
+      status: u.status || "active",
+      isAvailable: true, // They are already assigned to the event
+      matchScore
+    };
+  });
+
+  candidates.sort((a, b) => b.matchScore - a.matchScore);
+  res.json(candidates);
+});
+
 // GET /events/:id/assignments
 router.get("/events/:id/assignments", requireAdmin, async (req, res) => {
   const eventId = parseInt(req.params.id as string, 10);
-  const assignments = await db.select({ id: eventAssignmentsTable.id, eventId: eventAssignmentsTable.eventId, usherId: eventAssignmentsTable.usherId, status: eventAssignmentsTable.status, isTeamLead: eventAssignmentsTable.isTeamLead, checkinTime: eventAssignmentsTable.checkinTime, checkinLat: eventAssignmentsTable.checkinLat, checkinLng: eventAssignmentsTable.checkinLng, checkinMethod: eventAssignmentsTable.checkinMethod, checkoutTime: eventAssignmentsTable.checkoutTime, checkoutLat: eventAssignmentsTable.checkoutLat, checkoutLng: eventAssignmentsTable.checkoutLng, usher: { id: ushersTable.id, fullName: ushersTable.fullName, email: ushersTable.email, phone: ushersTable.phone, status: ushersTable.status, avgRating: ushersTable.avgRating, balance: ushersTable.balance, nationalIdNumber: ushersTable.nationalIdNumber, nationalIdDocUrl: ushersTable.nationalIdDocUrl, profilePhotoUrl: ushersTable.profilePhotoUrl, createdAt: ushersTable.createdAt } }).from(eventAssignmentsTable).leftJoin(ushersTable, eq(eventAssignmentsTable.usherId, ushersTable.id)).where(eq(eventAssignmentsTable.eventId, eventId));
+  const assignments = await db.select({ id: eventAssignmentsTable.id, eventId: eventAssignmentsTable.eventId, eventTeamId: eventAssignmentsTable.eventTeamId, usherId: eventAssignmentsTable.usherId, status: eventAssignmentsTable.status, isTeamLead: eventAssignmentsTable.isTeamLead, checkinTime: eventAssignmentsTable.checkinTime, checkinLat: eventAssignmentsTable.checkinLat, checkinLng: eventAssignmentsTable.checkinLng, checkinMethod: eventAssignmentsTable.checkinMethod, checkoutTime: eventAssignmentsTable.checkoutTime, checkoutLat: eventAssignmentsTable.checkoutLat, checkoutLng: eventAssignmentsTable.checkoutLng, usher: { id: ushersTable.id, fullName: ushersTable.fullName, email: ushersTable.email, phone: ushersTable.phone, status: ushersTable.status, avgRating: ushersTable.avgRating, balance: ushersTable.balance, nationalIdNumber: ushersTable.nationalIdNumber, nationalIdDocUrl: ushersTable.nationalIdDocUrl, profilePhotoUrl: ushersTable.profilePhotoUrl, createdAt: ushersTable.createdAt } }).from(eventAssignmentsTable).leftJoin(ushersTable, eq(eventAssignmentsTable.usherId, ushersTable.id)).where(eq(eventAssignmentsTable.eventId, eventId));
   res.json(assignments);
 });
 
@@ -192,9 +299,40 @@ router.post("/events/:id/assignments", requireAdmin, async (req, res) => {
     return;
   }
 
-  const [assignment] = await db.insert(eventAssignmentsTable).values({ eventId, usherId: parsed.data.usherId, isTeamLead: parsed.data.isTeamLead ?? false, status: "assigned" }).returning();
+  const [assignment] = await db.insert(eventAssignmentsTable).values({ eventId, usherId: parsed.data.usherId, eventTeamId: parsed.data.eventTeamId, isTeamLead: parsed.data.isTeamLead ?? false, status: "assigned" }).returning();
   await audit(req.user!.id, "ASSIGN_USHER", "event_assignments", assignment.id);
   res.status(201).json(assignment);
+});
+
+// PATCH /events/:id/assignments/:assignmentId
+router.patch("/events/:id/assignments/:assignmentId", requireAdmin, async (req, res) => {
+  const assignmentId = parseInt(req.params.assignmentId as string, 10);
+  const eventId = parseInt(req.params.id as string, 10);
+
+  const [existingEvent] = await db.select().from(eventsTable).where(eq(eventsTable.id, eventId));
+  if (!existingEvent) { res.status(404).json({ error: "Not found" }); return; }
+
+  const parsed = AssignUsherToEventBody.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.flatten() }); return; }
+
+  // If making someone a team lead, optionally demote others in the same team
+  if (parsed.data.isTeamLead && parsed.data.eventTeamId) {
+    await db.update(eventAssignmentsTable)
+      .set({ isTeamLead: false })
+      .where(eq(eventAssignmentsTable.eventTeamId, parsed.data.eventTeamId));
+  }
+
+  const [assignment] = await db.update(eventAssignmentsTable)
+    .set({
+      eventTeamId: parsed.data.eventTeamId,
+      isTeamLead: parsed.data.isTeamLead ?? false
+    })
+    .where(eq(eventAssignmentsTable.id, assignmentId))
+    .returning();
+
+  if (!assignment) { res.status(404).json({ error: "Assignment not found" }); return; }
+  await audit(req.user!.id, "UPDATE_ASSIGNMENT", "event_assignments", assignmentId);
+  res.json(assignment);
 });
 
 // DELETE /events/:id/assignments/:assignmentId
@@ -234,6 +372,120 @@ router.post("/events/:id/assignments/:assignmentId/checkout", requireAdmin, asyn
   const [assignment] = await db.update(eventAssignmentsTable).set({ checkoutTime: new Date(), status: "completed" }).where(eq(eventAssignmentsTable.id, assignmentId)).returning();
   await audit(req.user!.id, "ADMIN_CHECKOUT", "event_assignments", assignment.id);
   res.json(assignment);
+});
+
+const smartAssignSchema = z.object({
+  count: z.number().int().positive(),
+  eventTeamId: z.number().int().optional(),
+  gender: z.enum(["male", "female"]).optional(),
+  minRating: z.number().optional(),
+  minCompletedEvents: z.number().int().optional(),
+  requiresLeadershipExp: z.boolean().optional(),
+  maxDistanceMeters: z.number().optional(),
+});
+
+// POST /events/:id/smart-assign-batch
+router.post("/events/:id/smart-assign-batch", requireAdmin, async (req, res) => {
+  const eventId = parseInt(req.params.id as string, 10);
+  const parsed = smartAssignSchema.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.flatten() }); return; }
+  
+  const filters = parsed.data;
+
+  const [event] = await db.select().from(eventsTable).where(eq(eventsTable.id, eventId));
+  if (!event) { res.status(404).json({ error: "Not found" }); return; }
+  if (event.status === "completed" || new Date(event.endTime) <= new Date() || new Date(event.startTime) <= new Date()) {
+    res.status(400).json({ error: "Cannot assign ushers after the event has started." });
+    return;
+  }
+
+  // Find assigned ushers
+  const assignments = await db.select().from(eventAssignmentsTable).where(eq(eventAssignmentsTable.eventId, eventId));
+  const assignedUsherIds = new Set(assignments.map(a => a.usherId));
+
+  // Find busy ushers
+  const eventStart = new Date(event.startTime);
+  const eventEnd = new Date(event.endTime);
+  const eventStartStr = eventStart.toISOString().split("T")[0];
+  const eventEndStr = eventEnd.toISOString().split("T")[0];
+  const unavailabilities = await db.select().from(usherAvailabilityTable)
+    .where(and(gte(usherAvailabilityTable.date, eventStartStr), lte(usherAvailabilityTable.date, eventEndStr)));
+  const busyUsherIds = new Set<number>();
+  for (const av of unavailabilities) {
+    const busyStart = new Date(`${av.date}T${av.startTime}`);
+    const busyEnd = new Date(`${av.date}T${av.endTime}`);
+    if (busyStart < eventEnd && busyEnd > eventStart) {
+      busyUsherIds.add(av.usherId);
+    }
+  }
+
+  // Get all active ushers
+  let ushers = await db.select().from(ushersTable).where(eq(ushersTable.status, "active"));
+
+  // Apply simple filters
+  ushers = ushers.filter(u => {
+    if (assignedUsherIds.has(u.id)) return false;
+    if (busyUsherIds.has(u.id)) return false;
+    if (filters.gender && u.gender !== filters.gender) return false;
+    if (filters.minRating && (u.avgRating || 0) < filters.minRating) return false;
+    
+    if (filters.maxDistanceMeters) {
+      if (!u.homeLat || !u.homeLng || !event.venueLat || !event.venueLng) return false;
+      const dist = getDistanceMeters(u.homeLat, u.homeLng, event.venueLat, event.venueLng);
+      if (dist > filters.maxDistanceMeters) return false;
+    }
+    return true;
+  });
+
+  // If requires experience filters
+  if ((filters.minCompletedEvents && filters.minCompletedEvents > 0) || filters.requiresLeadershipExp) {
+    if (ushers.length > 0) {
+      const history = await db.select({
+        usherId: eventAssignmentsTable.usherId,
+        completedEvents: sql<number>`count(id)::int`,
+        leadEvents: sql<number>`sum(case when is_team_lead then 1 else 0 end)::int`
+      }).from(eventAssignmentsTable)
+        .where(and(
+          inArray(eventAssignmentsTable.usherId, ushers.map(u => u.id)),
+          eq(eventAssignmentsTable.status, "completed")
+        ))
+        .groupBy(eventAssignmentsTable.usherId);
+      
+      const historyMap = new Map(history.map(h => [h.usherId, h]));
+
+      ushers = ushers.filter(u => {
+        const h = historyMap.get(u.id) || { completedEvents: 0, leadEvents: 0 };
+        if (filters.minCompletedEvents && h.completedEvents < filters.minCompletedEvents) return false;
+        if (filters.requiresLeadershipExp && h.leadEvents === 0) return false;
+        return true;
+      });
+    }
+  }
+
+  // Rank remaining
+  ushers.sort((a, b) => (b.avgRating || 0) - (a.avgRating || 0));
+
+  const selected = ushers.slice(0, filters.count);
+
+  if (selected.length === 0) {
+    res.status(201).json([]);
+    return;
+  }
+
+  const inserts = selected.map(u => ({
+    eventId,
+    usherId: u.id,
+    eventTeamId: filters.eventTeamId,
+    status: "assigned" as const
+  }));
+
+  const created = await db.insert(eventAssignmentsTable).values(inserts).returning();
+  
+  for (const c of created) {
+    await audit(req.user!.id, "ASSIGN_USHER", "event_assignments", c.id);
+  }
+
+  res.status(201).json(created);
 });
 
 // GET /events/:id/smart-candidates
@@ -292,7 +544,7 @@ router.get("/events/:id/smart-candidates", requireAdmin, async (req, res) => {
 // GET /events/:id/waitlist
 router.get("/events/:id/waitlist", requireAdmin, async (req, res) => {
   const eventId = parseInt(req.params.id as string, 10);
-  const entries = await db.select({ id: waitlistTable.id, eventId: waitlistTable.eventId, usherId: waitlistTable.usherId, priorityOrder: waitlistTable.priorityOrder, usher: { id: ushersTable.id, fullName: ushersTable.fullName, email: ushersTable.email, phone: ushersTable.phone, status: ushersTable.status, avgRating: ushersTable.avgRating, balance: ushersTable.balance, nationalIdNumber: ushersTable.nationalIdNumber, nationalIdDocUrl: ushersTable.nationalIdDocUrl, profilePhotoUrl: ushersTable.profilePhotoUrl, createdAt: ushersTable.createdAt } }).from(waitlistTable).leftJoin(ushersTable, eq(waitlistTable.usherId, ushersTable.id)).where(eq(waitlistTable.eventId, eventId));
+  const entries = await db.select({ id: waitlistTable.id, eventId: waitlistTable.eventId, usherId: waitlistTable.usherId, priorityOrder: waitlistTable.priorityOrder, status: waitlistTable.status, usher: { id: ushersTable.id, fullName: ushersTable.fullName, email: ushersTable.email, phone: ushersTable.phone, status: ushersTable.status, avgRating: ushersTable.avgRating, balance: ushersTable.balance, nationalIdNumber: ushersTable.nationalIdNumber, nationalIdDocUrl: ushersTable.nationalIdDocUrl, profilePhotoUrl: ushersTable.profilePhotoUrl, createdAt: ushersTable.createdAt } }).from(waitlistTable).leftJoin(ushersTable, eq(waitlistTable.usherId, ushersTable.id)).where(eq(waitlistTable.eventId, eventId));
   res.json(entries);
 });
 
@@ -310,6 +562,44 @@ router.post("/events/:id/waitlist", requireAdmin, async (req, res) => {
 
   const [entry] = await db.insert(waitlistTable).values({ eventId, usherId, priorityOrder }).returning();
   res.status(201).json(entry);
+});
+
+// DELETE /events/:id/waitlist/:waitlistId
+router.delete("/events/:id/waitlist/:waitlistId", requireAdmin, async (req, res) => {
+  const eventId = parseInt(req.params.id as string, 10);
+  const waitlistId = parseInt(req.params.waitlistId as string, 10);
+
+  const [existing] = await db.select().from(waitlistTable).where(and(eq(waitlistTable.id, waitlistId), eq(waitlistTable.eventId, eventId)));
+  if (!existing) { res.status(404).json({ error: "Not found" }); return; }
+
+  await db.delete(waitlistTable).where(eq(waitlistTable.id, waitlistId));
+  res.json({ success: true });
+});
+
+// POST /events/:id/waitlist/:waitlistId/promote
+router.post("/events/:id/waitlist/:waitlistId/promote", requireAdmin, async (req, res) => {
+  const eventId = parseInt(req.params.id as string, 10);
+  const waitlistId = parseInt(req.params.waitlistId as string, 10);
+  const { eventTeamId, isTeamLead } = req.body;
+
+  const [existing] = await db.select().from(waitlistTable).where(and(eq(waitlistTable.id, waitlistId), eq(waitlistTable.eventId, eventId)));
+  if (!existing) { res.status(404).json({ error: "Waitlist entry not found" }); return; }
+
+  const [usher] = await db.select().from(ushersTable).where(eq(ushersTable.id, existing.usherId));
+
+  // Remove from waitlist
+  await db.delete(waitlistTable).where(eq(waitlistTable.id, waitlistId));
+
+  // Add to assignments
+  const [assignment] = await db.insert(eventAssignmentsTable).values({
+    eventId,
+    usherId: existing.usherId,
+    eventTeamId: eventTeamId || null,
+    isTeamLead: isTeamLead || false,
+    status: existing.status === "accepted" ? "accepted" : "assigned"
+  }).returning();
+
+  res.json({ ...assignment, usher });
 });
 
 export default router;

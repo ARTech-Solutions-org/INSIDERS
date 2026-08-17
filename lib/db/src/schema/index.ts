@@ -4,6 +4,7 @@ export * from "./usher-documents";
 export * from "./usher-skills";
 export * from "./usher-availability";
 export * from "./events";
+export * from "./event-teams";
 export * from "./event-assignments";
 export * from "./waitlist";
 export * from "./cancellations";

@@ -7,5 +7,7 @@
 
 export interface AssignmentInput {
   usherId: number;
+  /** @nullable */
+  eventTeamId?: number | null;
   isTeamLead?: boolean;
 }

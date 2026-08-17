@@ -101,7 +101,49 @@ paths:
         "200":
           description: OK
 
-  # ─── USHERS ──────────────────────────────────────────────────────────────
+  /my/waitlists/{waitlistId}/accept:
+    post:
+      tags: [Waitlist]
+      security:
+        - bearerAuth: []
+      operationId: acceptWaitlist
+      summary: Accept a waitlist offer
+      parameters:
+        - name: waitlistId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MyWaitlistEntry"
+
+  /my/waitlists/{waitlistId}/reject:
+    post:
+      tags: [Waitlist]
+      security:
+        - bearerAuth: []
+      operationId: rejectWaitlist
+      summary: Reject a waitlist offer
+      parameters:
+        - name: waitlistId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MyWaitlistEntry"
+
+  # ─── ADMIN USHERS ──────────────────────────────────────────────────────────────
   /ushers:
     get:
       operationId: listUshers
@@ -575,7 +617,160 @@ paths:
         "404":
           description: Not found
 
+  # ─── EVENT TEAMS ─────────────────────────────────────────────────────────
+  /events/{id}/teams:
+    get:
+      operationId: listEventTeams
+      summary: List teams for an event
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EventTeam"
+    post:
+      operationId: createEventTeam
+      summary: Create team for an event
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EventTeamInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EventTeam"
+
+  /events/{id}/teams/{teamId}:
+    delete:
+      operationId: deleteEventTeam
+      summary: Delete an event team
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: teamId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /events/{id}/teams/{teamId}/leader-suggestions:
+    get:
+      operationId: getTeamLeaderSuggestions
+      summary: Get ranked leader candidates from a team
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: teamId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UsherCandidate"
+
   # ─── EVENT ASSIGNMENTS ───────────────────────────────────────────────────
+  /events/{id}/waitlist/{waitlistId}:
+    delete:
+      tags: [Events]
+      security:
+        - bearerAuth: []
+      operationId: removeFromWaitlist
+      summary: Remove usher from waitlist (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: waitlistId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+
+  /events/{id}/waitlist/{waitlistId}/promote:
+    post:
+      tags: [Events]
+      security:
+        - bearerAuth: []
+      operationId: promoteWaitlist
+      summary: Promote usher from waitlist to assigned (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: waitlistId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                eventTeamId:
+                  type: integer
+                  nullable: true
+                isTeamLead:
+                  type: boolean
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssignmentWithUsher"
+
   /events/{id}/assignments:
     get:
       operationId: listEventAssignments
@@ -619,6 +814,33 @@ paths:
                 $ref: "#/components/schemas/EventAssignment"
 
   /events/{id}/assignments/{assignmentId}:
+    patch:
+      operationId: updateAssignment
+      summary: Update assignment (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: assignmentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssignmentInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EventAssignment"
     delete:
       operationId: removeAssignment
       summary: Remove assignment (admin)
@@ -707,6 +929,32 @@ paths:
                 items:
                   $ref: "#/components/schemas/UsherCandidate"
 
+  /events/{id}/smart-assign-batch:
+    post:
+      operationId: smartAssignBatch
+      summary: Auto-assign multiple ushers based on criteria
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SmartAssignFilters"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EventAssignment"
+
   # ─── WAITLIST ─────────────────────────────────────────────────────────────
   /events/{id}/waitlist:
     get:
@@ -769,6 +1017,22 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/MyAssignment"
+
+  /my/waitlists:
+    get:
+      tags:
+        - Usher Actions
+      summary: List events the usher is waitlisted for
+      operationId: listMyWaitlists
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MyWaitlistEntry"
 
   /my/assignments/{assignmentId}/accept:
     post:
@@ -885,6 +1149,29 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CancellationResult"
+
+  /my/assignments/{assignmentId}/team-checkin/{usherId}:
+    post:
+      operationId: teamCheckinMember
+      summary: Team Leader checks in a team member
+      parameters:
+        - name: assignmentId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: usherId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MyAssignment"
 
   # ─── BALANCE & PAYOUTS (USHER) ────────────────────────────────────────────
   /my/balance:
@@ -1815,6 +2102,31 @@ components:
           type: integer
 
     # ─── ASSIGNMENTS ──────────────────────────────────────────────────────
+    AssignmentWithUsher:
+      type: object
+      required: [id, eventId, usherId, status, isTeamLead, usher]
+      properties:
+        id:
+          type: integer
+        eventId:
+          type: integer
+        usherId:
+          type: integer
+        eventTeamId:
+          type: ["integer", "null"]
+        status:
+          type: string
+        isTeamLead:
+          type: boolean
+        checkinTime:
+          type: ["string", "null"]
+        checkoutTime:
+          type: ["string", "null"]
+        checkinMethod:
+          type: ["string", "null"]
+        usher:
+          $ref: "#/components/schemas/UsherProfile"
+
     EventAssignment:
       type: object
       required: [id, eventId, usherId, status]
@@ -1823,6 +2135,8 @@ components:
           type: integer
         eventId:
           type: integer
+        eventTeamId:
+          type: ["integer", "null"]
         usherId:
           type: integer
         status:
@@ -1852,8 +2166,27 @@ components:
       properties:
         usherId:
           type: integer
+        eventTeamId:
+          type: ["integer", "null"]
         isTeamLead:
           type: boolean
+
+    MyWaitlistEntry:
+      type: object
+      required: [id, eventId, usherId, priorityOrder, status, event]
+      properties:
+        id:
+          type: integer
+        eventId:
+          type: integer
+        usherId:
+          type: integer
+        priorityOrder:
+          type: integer
+        status:
+          type: string
+        event:
+          $ref: "#/components/schemas/Event"
 
     MyAssignment:
       type: object
@@ -1863,6 +2196,8 @@ components:
           type: integer
         eventId:
           type: integer
+        eventTeamId:
+          type: ["integer", "null"]
         status:
           type: string
         isTeamLead:
@@ -1879,6 +2214,8 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/TeamMember"
+        team:
+          $ref: "#/components/schemas/EventTeam"
 
     TeamMember:
       type: object
@@ -1892,6 +2229,52 @@ components:
           type: ["string", "null"]
         isTeamLead:
           type: boolean
+        phone:
+          type: ["string", "null"]
+        status:
+          type: string
+
+    EventTeam:
+      type: object
+      required: [id, eventId, name, createdAt]
+      properties:
+        id:
+          type: integer
+        eventId:
+          type: integer
+        name:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    EventTeamInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+
+    SmartAssignFilters:
+      type: object
+      required: [count]
+      properties:
+        count:
+          type: integer
+          description: "Number of ushers to assign"
+        eventTeamId:
+          type: integer
+        gender:
+          type: string
+          enum: [male, female]
+        minRating:
+          type: number
+        minCompletedEvents:
+          type: integer
+        requiresLeadershipExp:
+          type: boolean
+        maxDistanceMeters:
+          type: integer
 
     DeclineInput:
       type: object
@@ -2010,7 +2393,7 @@ components:
     # ─── WAITLIST ─────────────────────────────────────────────────────────
     WaitlistEntry:
       type: object
-      required: [id, eventId, usherId, priorityOrder]
+      required: [id, eventId, usherId, priorityOrder, status]
       properties:
         id:
           type: integer
@@ -2020,6 +2403,8 @@ components:
           type: integer
         priorityOrder:
           type: integer
+        status:
+          type: string
         usher:
           $ref: "#/components/schemas/UsherProfile"
 

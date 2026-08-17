@@ -11,4 +11,7 @@ export interface TeamMember {
   /** @nullable */
   profilePhotoUrl?: string | null;
   isTeamLead: boolean;
+  /** @nullable */
+  phone?: string | null;
+  status?: string;
 }

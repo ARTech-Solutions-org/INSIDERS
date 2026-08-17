@@ -9,6 +9,7 @@ import {
   useUsherCheckin,
   useUsherCheckout,
   useCancelAssignment,
+  useTeamCheckinMember,
   getListMyAssignmentsQueryKey,
   MyAssignment
 } from '@workspace/api-client-react';
@@ -44,8 +45,9 @@ export default function EventDetail() {
   const acceptMutation = useAcceptAssignment();
   const declineMutation = useDeclineAssignment();
   const cancelMutation = useCancelAssignment();
-  const checkinMutation = useUsherCheckin();
+  const { mutateAsync: teamCheckinMember } = useTeamCheckinMember();
   const checkoutMutation = useUsherCheckout();
+  const checkinMutation = useUsherCheckin();
 
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [gpsLoading, setGpsLoading] = useState(false);
@@ -207,7 +209,7 @@ export default function EventDetail() {
       const userLng = pos.coords.longitude;
       const allowedRadius = eventDetails?.checkinRadiusM || 100;
 
-      if (eventDetails?.venueLat && eventDetails?.venueLng) {
+      if (eventDetails?.venueLat != null && eventDetails?.venueLng != null) {
         const dist = Math.round(haversineMeters(userLat, userLng, eventDetails.venueLat, eventDetails.venueLng));
         if (dist > allowedRadius) {
           toast.error(`Out of range! You are ${dist}m away from the venue. Admin requires you to be within ${allowedRadius}m to check in.`);
@@ -243,7 +245,7 @@ export default function EventDetail() {
       const userLng = pos.coords.longitude;
       const allowedRadius = eventDetails?.checkinRadiusM || 100;
 
-      if (eventDetails?.venueLat && eventDetails?.venueLng) {
+      if (eventDetails?.venueLat != null && eventDetails?.venueLng != null) {
         const dist = Math.round(haversineMeters(userLat, userLng, eventDetails.venueLat, eventDetails.venueLng));
         if (dist > allowedRadius) {
           toast.error(`Out of range! You are ${dist}m away from the venue. Admin requires you to be within ${allowedRadius}m to check out.`);
@@ -283,7 +285,7 @@ export default function EventDetail() {
   const allowedRadius = eventDetails?.checkinRadiusM || 100;
   let isOutOfRange = false;
   let distToVenue = -1;
-  if (userLocation && eventDetails?.venueLat && eventDetails?.venueLng) {
+  if (userLocation && eventDetails?.venueLat != null && eventDetails?.venueLng != null) {
     distToVenue = Math.round(haversineMeters(userLocation.lat, userLocation.lng, eventDetails.venueLat, eventDetails.venueLng));
     isOutOfRange = distToVenue > allowedRadius;
   }
@@ -515,7 +517,7 @@ export default function EventDetail() {
             <div className="space-y-4">
               <div>
                 <p className="font-bold text-sm tracking-wide uppercase text-foreground">{eventDetails.eventLocName || 'Location TBA'}</p>
-                {eventDetails.venueLat && eventDetails.venueLng && (
+                {eventDetails.venueLat != null && eventDetails.venueLng != null && (
                   <p className="text-xs text-muted-foreground mt-1 font-mono">
                     {eventDetails.venueLat.toFixed(4)}, {eventDetails.venueLng.toFixed(4)}
                   </p>
@@ -534,7 +536,7 @@ export default function EventDetail() {
               </div>
 
               {/* Interactive Map with Geofence Range Circle */}
-              {eventDetails.venueLat && eventDetails.venueLng && (
+              {eventDetails.venueLat != null && eventDetails.venueLng != null && (
                 <div className="border border-border rounded-xl p-1 bg-background overflow-hidden">
                   <GeofenceMap
                     lat={eventDetails.venueLat}
@@ -553,7 +555,7 @@ export default function EventDetail() {
                 <a
                   href={
                     eventDetails.eventLocUrl ||
-                    (eventDetails.venueLat && eventDetails.venueLng
+                    (eventDetails.venueLat != null && eventDetails.venueLng != null
                       ? `https://www.google.com/maps/search/?api=1&query=${eventDetails.venueLat},${eventDetails.venueLng}`
                       : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((eventDetails.eventLocName || '') + ', Egypt')}`)
                   }
@@ -567,7 +569,7 @@ export default function EventDetail() {
                   </Button>
                 </a>
 
-                {eventDetails.venueLat && eventDetails.venueLng && (
+                {eventDetails.venueLat != null && eventDetails.venueLng != null && (
                   <a
                     href={`https://www.google.com/maps/dir/?api=1&destination=${eventDetails.venueLat},${eventDetails.venueLng}`}
                     target="_blank"
@@ -581,7 +583,7 @@ export default function EventDetail() {
               </div>
             </div>
 
-            {(eventDetails.meetingPointLat && eventDetails.meetingPointLng) && (
+            {(eventDetails.meetingPointLat != null && eventDetails.meetingPointLng != null) && (
               <div className="flex items-start gap-4 pt-4 border-t border-border/50">
                 <div className="mt-1 p-2 bg-secondary/10 border border-secondary/20">
                   <Navigation className="w-5 h-5 text-secondary" />
@@ -642,9 +644,11 @@ export default function EventDetail() {
           {/* Team Members */}
           {assignment?.teamMembers && assignment.teamMembers.length > 0 && (
             <div className="bg-card border border-border rounded-2xl p-5 shadow-sm">
-              <h2 className="brand-display text-xl uppercase tracking-wide border-b border-border/50 pb-3 mb-4">TEAM</h2>
+              <h2 className="brand-display text-xl uppercase tracking-wide border-b border-border/50 pb-3 mb-4">
+                TEAM {assignment.team?.name ? `- ${assignment.team.name}` : ''}
+              </h2>
               <div className="space-y-4">
-                {assignment.teamMembers.map(member => (
+                {assignment.teamMembers.map((member: any) => (
                   <div key={member.id} className="flex items-center gap-4">
                     <div className="w-10 h-10 bg-muted rounded-full overflow-hidden flex items-center justify-center border border-border">
                       {member.profilePhotoUrl ? (
@@ -653,12 +657,38 @@ export default function EventDetail() {
                         <span className="brand-display text-sm text-muted-foreground">{member.fullName.charAt(0)}</span>
                       )}
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <p className="font-bold text-sm tracking-wide uppercase">
                         {member.fullName}
                       </p>
                       {member.isTeamLead && <span className="brand-meta text-secondary mt-0.5 block">TEAM LEAD</span>}
+                      {member.status === 'checked_in' && !member.isTeamLead && (
+                        <span className="brand-meta text-emerald-500 mt-0.5 block">CHECKED IN</span>
+                      )}
                     </div>
+                    {assignment?.isTeamLead && !member.isTeamLead && (member.status === 'accepted' || member.status === 'assigned') && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 rounded-lg shrink-0 border-primary/20 text-primary hover:bg-primary/10"
+                        onClick={async () => {
+                          try {
+                            await teamCheckinMember({ assignmentId: assignment.id, usherId: member.id });
+                            queryClient.invalidateQueries({ queryKey: getListMyAssignmentsQueryKey() });
+                            toast.success(`Checked in ${member.fullName}`);
+                          } catch (err: any) {
+                            toast.error(err.response?.data?.error || `Failed to check in ${member.fullName}`);
+                          }
+                        }}
+                      >
+                        Check In
+                      </Button>
+                    )}
+                    {assignment?.isTeamLead && member.phone && (
+                      <a href={`tel:${member.phone}`} className="p-2 bg-primary/10 rounded-xl text-primary border border-primary/20 hover:bg-primary/20 transition-colors shrink-0">
+                        <Phone className="w-4 h-4" />
+                      </a>
+                    )}
                   </div>
                 ))}
               </div>

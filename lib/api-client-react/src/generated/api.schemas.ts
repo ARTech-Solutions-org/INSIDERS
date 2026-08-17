@@ -191,6 +191,8 @@ export interface Event {
 export interface EventAssignment {
   id: number;
   eventId: number;
+  /** @nullable */
+  eventTeamId?: number | null;
   usherId: number;
   status: string;
   isTeamLead?: boolean;
@@ -323,9 +325,37 @@ export interface EventStats {
   totalAssigned?: number;
 }
 
+export interface AssignmentWithUsher {
+  id: number;
+  eventId: number;
+  usherId: number;
+  /** @nullable */
+  eventTeamId?: number | null;
+  status: string;
+  isTeamLead: boolean;
+  /** @nullable */
+  checkinTime?: string | null;
+  /** @nullable */
+  checkoutTime?: string | null;
+  /** @nullable */
+  checkinMethod?: string | null;
+  usher: UsherProfile;
+}
+
 export interface AssignmentInput {
   usherId: number;
+  /** @nullable */
+  eventTeamId?: number | null;
   isTeamLead?: boolean;
+}
+
+export interface MyWaitlistEntry {
+  id: number;
+  eventId: number;
+  usherId: number;
+  priorityOrder: number;
+  status: string;
+  event: Event;
 }
 
 export interface TeamMember {
@@ -334,11 +364,23 @@ export interface TeamMember {
   /** @nullable */
   profilePhotoUrl?: string | null;
   isTeamLead: boolean;
+  /** @nullable */
+  phone?: string | null;
+  status?: string;
+}
+
+export interface EventTeam {
+  id: number;
+  eventId: number;
+  name: string;
+  createdAt: string;
 }
 
 export interface MyAssignment {
   id: number;
   eventId: number;
+  /** @nullable */
+  eventTeamId?: number | null;
   status: string;
   isTeamLead?: boolean;
   /** @nullable */
@@ -349,6 +391,30 @@ export interface MyAssignment {
   checkinMethod?: string | null;
   event: EventDetail;
   teamMembers?: TeamMember[];
+  team?: EventTeam;
+}
+
+export interface EventTeamInput {
+  name: string;
+}
+
+export type SmartAssignFiltersGender = typeof SmartAssignFiltersGender[keyof typeof SmartAssignFiltersGender];
+
+
+export const SmartAssignFiltersGender = {
+  male: 'male',
+  female: 'female',
+} as const;
+
+export interface SmartAssignFilters {
+  /** Number of ushers to assign */
+  count: number;
+  eventTeamId?: number;
+  gender?: SmartAssignFiltersGender;
+  minRating?: number;
+  minCompletedEvents?: number;
+  requiresLeadershipExp?: boolean;
+  maxDistanceMeters?: number;
 }
 
 export interface DeclineInput {
@@ -417,6 +483,7 @@ export interface WaitlistEntry {
   eventId: number;
   usherId: number;
   priorityOrder: number;
+  status: string;
   usher?: UsherProfile;
 }
 
@@ -608,6 +675,15 @@ status?: string;
 upcoming?: boolean;
 page?: number;
 limit?: number;
+};
+
+export type RemoveFromWaitlist200 = {
+  success?: boolean;
+};
+
+export type PromoteWaitlistBody = {
+  eventTeamId?: number | null;
+  isTeamLead?: boolean;
 };
 
 export type GetSmartCandidatesParams = {
