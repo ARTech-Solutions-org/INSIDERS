@@ -164,6 +164,16 @@ router.post("/my/assignments/:assignmentId/checkout", requireUsher, async (req, 
   }
 
   const checkoutNow = new Date();
+
+  if (event.endTime) {
+    const end = new Date(event.endTime);
+    const minutesPastEnd = (checkoutNow.getTime() - end.getTime()) / 60000;
+    if (minutesPastEnd > 15) {
+      res.status(400).json({ error: "You cannot check out. The check-out window closed 15 minutes after the event ended. Please contact the admin." });
+      return;
+    }
+  }
+
   // Calculate early leave: how many minutes before event end the usher left
   const earlyLeaveMinutes = event.endTime
     ? Math.max(0, Math.round((new Date(event.endTime).getTime() - checkoutNow.getTime()) / 60000))

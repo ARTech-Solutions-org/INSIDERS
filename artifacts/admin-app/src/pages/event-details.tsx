@@ -559,6 +559,54 @@ export default function EventDetails() {
                             </Badge>
                           )}
                         </div>
+
+                        {/* Check-in / Check-out Details */}
+                        {(assignment.checkinTime || assignment.checkoutTime) && (
+                          <div className="mt-2 space-y-1">
+                            {assignment.checkinTime && (() => {
+                              const checkinDate = new Date(assignment.checkinTime);
+                              const startDate = new Date(event.startTime);
+                              const diffMins = Math.round((checkinDate.getTime() - startDate.getTime()) / 60000);
+                              let label = "On time";
+                              let color = "text-green-600 bg-green-50";
+                              if (diffMins > 0) {
+                                label = `${diffMins}m late`;
+                                color = "text-destructive bg-destructive/10";
+                              } else if (diffMins < 0) {
+                                label = `${Math.abs(diffMins)}m early`;
+                                color = "text-green-600 bg-green-50";
+                              }
+                              return (
+                                <div className="text-[11px] flex items-center gap-1.5">
+                                  <span className="text-muted-foreground font-medium w-6">In:</span> 
+                                  <span>{format(checkinDate, 'h:mm a')}</span>
+                                  <span className={`px-1.5 py-0.5 rounded ${color} font-medium leading-none`}>{label}</span>
+                                </div>
+                              );
+                            })()}
+                            {assignment.checkoutTime && (() => {
+                              const checkoutDate = new Date(assignment.checkoutTime);
+                              const endDate = new Date(event.endTime);
+                              const diffMins = Math.round((endDate.getTime() - checkoutDate.getTime()) / 60000);
+                              let label = "On time";
+                              let color = "text-green-600 bg-green-50";
+                              if (diffMins > 0) {
+                                label = `${diffMins}m early`;
+                                color = "text-destructive bg-destructive/10";
+                              } else if (diffMins < 0) {
+                                label = `${Math.abs(diffMins)}m late`;
+                                color = "text-amber-600 bg-amber-50";
+                              }
+                              return (
+                                <div className="text-[11px] flex items-center gap-1.5">
+                                  <span className="text-muted-foreground font-medium w-6">Out:</span> 
+                                  <span>{format(checkoutDate, 'h:mm a')}</span>
+                                  <span className={`px-1.5 py-0.5 rounded ${color} font-medium leading-none`}>{label}</span>
+                                </div>
+                              );
+                            })()}
+                          </div>
+                        )}
                       </div>
                     </div>
 

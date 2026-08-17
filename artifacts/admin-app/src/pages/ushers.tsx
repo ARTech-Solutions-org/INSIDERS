@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Search, MoreVertical, Eye, CheckCircle, XCircle } from "lucide-react";
+import { Search, MoreVertical, Eye, CheckCircle, XCircle, Download } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,6 +43,43 @@ export default function Ushers() {
       },
     },
   });
+
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExport = async () => {
+    try {
+      setIsExporting(true);
+      const queryParams = new URLSearchParams();
+      if (search) queryParams.append("search", search);
+      if (status) queryParams.append("status", status);
+      
+      const baseUrl = import.meta.env.VITE_API_URL || '';
+      const url = `${baseUrl}/api/ushers/export?${queryParams.toString()}`;
+      
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('artech_admin_token')}`
+        }
+      });
+      
+      if (!response.ok) throw new Error("Failed to export");
+      
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = `ushers_${format(new Date(), 'yyyy-MM-dd')}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(blobUrl);
+      document.body.removeChild(a);
+      toast({ title: "Export completed" });
+    } catch (error) {
+      toast({ title: "Export failed", variant: "destructive" });
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const getStatusBadge = (status?: string) => {
     switch (status) {
@@ -87,6 +124,10 @@ export default function Ushers() {
              <option value="pending">Pending</option>
              <option value="declined">Declined</option>
            </select>
+           <Button variant="outline" size="sm" className="h-10 ml-2" onClick={handleExport} disabled={isExporting}>
+             <Download className="w-4 h-4 mr-2" />
+             Export Excel
+           </Button>
         </div>
       </div>
 

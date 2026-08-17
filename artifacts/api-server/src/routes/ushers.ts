@@ -28,6 +28,39 @@ router.get("/ushers", requireAdmin, async (req, res) => {
   res.json({ data: data.map(({ passwordHash: _ph, ...u }) => u), total: count });
 });
 
+// GET /ushers/export - admin export to CSV
+router.get("/ushers/export", requireAdmin, async (req, res) => {
+  const { status, search } = req.query as Record<string, string>;
+  let query = db.select().from(ushersTable).$dynamic();
+  
+  const conditions = [];
+  if (status) conditions.push(eq(ushersTable.status, status));
+  if (search) conditions.push(or(ilike(ushersTable.fullName, `%${search}%`), ilike(ushersTable.email, `%${search}%`), ilike(ushersTable.phone, `%${search}%`))!);
+  
+  if (conditions.length) query = query.where(and(...conditions));
+  
+  const data = await query;
+  
+  const header = ["ID", "Name", "Email", "Phone", "National ID", "Status", "Joined"];
+  const rows = data.map(u => {
+    return [
+      u.id,
+      `"${(u.fullName || '').replace(/"/g, '""')}"`,
+      `"${(u.email || '').replace(/"/g, '""')}"`,
+      `"${(u.phone || '').replace(/"/g, '""')}"`,
+      `"${(u.nationalIdNumber || '').replace(/"/g, '""')}"`,
+      u.status || 'pending',
+      new Date(u.createdAt).toISOString().split('T')[0]
+    ].join(",");
+  });
+
+  const csv = [header.join(","), ...rows].join("\n");
+  
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', 'attachment; filename="ushers.csv"');
+  res.send('\uFEFF' + csv); // Add BOM for Excel UTF-8 support
+});
+
 // GET /ushers/me
 router.get("/ushers/me", requireUsher, async (req, res) => {
   const [usher] = await db.select().from(ushersTable).where(eq(ushersTable.id, req.user!.id));
@@ -150,7 +183,7 @@ router.post("/ushers/me/availability", requireUsher, async (req, res) => {
 
 // DELETE /ushers/me/availability/:id
 router.delete("/ushers/me/availability/:id", requireUsher, async (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(req.params.id as string, 10);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid ID" }); return; }
   const existing = await db.select().from(usherAvailabilityTable).where(and(eq(usherAvailabilityTable.id, id), eq(usherAvailabilityTable.usherId, req.user!.id)));
   if (!existing.length) { res.status(404).json({ error: "Not found" }); return; }

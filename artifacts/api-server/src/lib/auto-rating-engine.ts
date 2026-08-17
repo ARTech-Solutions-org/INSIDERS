@@ -80,9 +80,12 @@ export async function calculateAndApplyAutoRating(assignmentId: number) {
     const end = new Date(event.endTime).getTime();
     const earlyMinutes = Math.floor((end - checkout) / 60000);
 
-    if (earlyMinutes > 15) {
+    if (earlyMinutes > 0 && earlyMinutes <= 15) {
       baseScore -= 1;
       penalties.push(`Checked out ${earlyMinutes} mins early (-1 star)`);
+    } else if (earlyMinutes > 15) {
+      baseScore -= 2;
+      penalties.push(`Checked out ${earlyMinutes} mins early (-2 stars)`);
     }
   }
 
