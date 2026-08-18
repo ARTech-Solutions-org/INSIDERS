@@ -27,6 +27,12 @@ export function getFirebaseMessaging(): Messaging | null {
 
   try {
     const credential = JSON.parse(raw);
+    
+    // Vercel environment variables often escape \n as literal string "\\n"
+    if (credential.private_key && credential.private_key.includes('\\n')) {
+      credential.private_key = credential.private_key.replace(/\\n/g, '\n');
+    }
+
     if (!_app) {
       _app = getApps().length === 0
         ? initializeApp({ credential: cert(credential) })
