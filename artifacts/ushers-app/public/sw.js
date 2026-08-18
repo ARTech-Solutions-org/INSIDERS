@@ -5,7 +5,7 @@
  */
 
 // 1. PWA App Shell Caching
-const CACHE_NAME = "insiders-shell-v4";
+const CACHE_NAME = "insiders-shell-v5";
 const SHELL_ASSETS = ["/", "/insiders-logo.png", "/favicon.svg"];
 
 self.addEventListener("install", (event) => {
@@ -51,18 +51,9 @@ if (params.get('apiKey')) {
 
   const messaging = firebase.messaging();
 
-  messaging.onBackgroundMessage((payload) => {
-    console.log("[sw.js] Background message received:", payload);
-    const title = payload.notification?.title ?? payload.data?.title ?? "INSIDERS";
-    const body  = payload.notification?.body  ?? payload.data?.body  ?? "";
-
-    self.registration.showNotification(title, {
-      body,
-      icon: "/insiders-logo.png",
-      badge: "/insiders-logo.png",
-      data: payload.data,
-    });
-  });
+  // We DO NOT manually showNotification here.
+  // The Firebase SDK will automatically display the notification because the payload includes `notification`.
+  // We only listen for notificationclick to handle navigation.
 
   self.addEventListener("notificationclick", (event) => {
     event.notification.close();
