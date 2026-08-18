@@ -74,7 +74,7 @@ router.post("/broadcasts", requireAdmin, async (req, res) => {
 
     // Also send as push notifications to all active ushers
     await sendPushToUshers(ushers.map(u => u.id), {
-      title: "رسالة من الإدارة 📣",
+      title: "Admin Broadcast 📣",
       body: parsed.data.message,
       data: { type: "broadcast" },
     });

@@ -5,7 +5,7 @@
  */
 
 // 1. PWA App Shell Caching
-const CACHE_NAME = "insiders-shell-v3";
+const CACHE_NAME = "insiders-shell-v4";
 const SHELL_ASSETS = ["/", "/insiders-logo.png", "/favicon.svg"];
 
 self.addEventListener("install", (event) => {
@@ -62,5 +62,37 @@ if (params.get('apiKey')) {
       badge: "/insiders-logo.png",
       data: payload.data,
     });
+  });
+
+  self.addEventListener("notificationclick", (event) => {
+    event.notification.close();
+    
+    // Determine the URL to open
+    let targetUrl = "/";
+    if (event.notification.data?.type === "broadcast") {
+      targetUrl = "/notifications";
+    } else if (event.notification.data?.type === "event_reminder" && event.notification.data?.eventId) {
+      targetUrl = `/event/${event.notification.data.eventId}`;
+    }
+
+    const urlToOpen = new URL(targetUrl, self.location.origin).href;
+
+    event.waitUntil(
+      self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+        // If a window is already open, focus it and navigate
+        for (let i = 0; i < clientList.length; i++) {
+          const client = clientList[i];
+          if (client.url && "focus" in client) {
+            client.navigate(urlToOpen);
+            return client.focus();
+          }
+        }
+        
+        // If no window is open, open a new one
+        if (self.clients.openWindow) {
+          return self.clients.openWindow(urlToOpen);
+        }
+      })
+    );
   });
 }

@@ -97,8 +97,8 @@ router.post("/send-event-reminders", async (req, res) => {
     await Promise.all(
       assignments.map((a) =>
         sendPushToUsher(a.usherId, {
-          title: "تذكير بالفعالية 🔔",
-          body: `فعاليتك "${event.title}" تبدأ غداً الساعة ${startLabel}. كن مستعداً!`,
+          title: "Event Reminder 🔔",
+          body: `Your event "${event.title}" starts tomorrow at ${startLabel}. Be ready!`,
           data: { eventId: String(event.id), type: "event_reminder" },
         })
       )
