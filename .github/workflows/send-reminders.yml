@@ -1,0 +1,42 @@
+name: Send Event Reminders
+
+# Runs every 10 minutes to check for events starting in ~24 hours and send push reminders.
+#
+# Required GitHub Secrets:
+#   APP_URL        — The production URL of your usher app backend (api-server)
+#                    e.g. https://your-api.vercel.app
+#   REMINDER_SECRET — The same secret set in REMINDER_SECRET on your Vercel deployment
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'   # Every 10 minutes
+  workflow_dispatch:          # Allow manual trigger from GitHub Actions UI
+
+jobs:
+  send-reminders:
+    name: Trigger /api/send-event-reminders
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+
+    steps:
+      - name: Call reminder endpoint
+        run: |
+          HTTP_STATUS=$(curl \
+            --silent \
+            --location \
+            --output /dev/null \
+            --write-out "%{http_code}" \
+            --max-time 30 \
+            --request POST \
+            --header "Authorization: Bearer ${{ secrets.REMINDER_SECRET }}" \
+            --header "Content-Type: application/json" \
+            "${{ secrets.APP_URL }}/api/send-event-reminders")
+
+          echo "HTTP status: $HTTP_STATUS"
+
+          if [ "$HTTP_STATUS" -ne 200 ] && [ "$HTTP_STATUS" -ne 201 ]; then
+            echo "::error::Reminder endpoint returned unexpected status $HTTP_STATUS"
+            exit 1
+          fi
+
+          echo "Reminders dispatched successfully."
