@@ -10,6 +10,7 @@
 
 import { initializeApp, getApps, type FirebaseApp } from "firebase/app";
 import { getMessaging, getToken, onMessage, type Messaging } from "firebase/messaging";
+import { toast } from "sonner";
 
 const firebaseConfig = {
   apiKey:            import.meta.env.VITE_FIREBASE_API_KEY            ?? "YOUR_API_KEY",
@@ -75,8 +76,9 @@ export async function getMessagingToken(): Promise<string | null> {
     });
 
     return token || null;
-  } catch (err) {
+  } catch (err: any) {
     console.warn("[FCM] Failed to get token:", err);
+    toast.error("فشل في الحصول على التوكن: " + (err.message || String(err)));
     return null;
   }
 }

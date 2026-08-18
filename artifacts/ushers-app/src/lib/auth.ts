@@ -1,5 +1,6 @@
 import { setAuthTokenGetter } from '@workspace/api-client-react';
 import { getMessagingToken } from './firebase';
+import { toast } from 'sonner';
 
 export const TOKEN_KEY = 'artech_token';
 
@@ -33,7 +34,7 @@ export async function registerPushToken(): Promise<void> {
     if (!authToken) return;
 
     const apiUrl = import.meta.env.VITE_API_URL ?? '';
-    await fetch(`${apiUrl}/api/my/push-token`, {
+    const res = await fetch(`${apiUrl}/api/my/push-token`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -41,9 +42,14 @@ export async function registerPushToken(): Promise<void> {
       },
       body: JSON.stringify({ token: fcmToken }),
     });
-  } catch (err) {
+    
+    if (!res.ok) {
+      toast.error('فشل في حفظ Token في السيرفر: ' + await res.text());
+    }
+  } catch (err: any) {
     // Non-fatal — the app works fine without push notifications
     console.warn('[FCM] Could not register push token:', err);
+    toast.error('فشل في تفعيل الإشعارات: ' + (err.message || String(err)));
   }
 }
 
