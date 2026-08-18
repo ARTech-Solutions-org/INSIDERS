@@ -56,7 +56,7 @@ export async function getMessagingToken(): Promise<string | null> {
 
   try {
     // Pass config as query params so we don't hardcode the API key in the public JS file
-    const swUrl = new URL("/firebase-messaging-sw.js", window.location.origin);
+    const swUrl = new URL("/sw.js", window.location.origin);
     swUrl.searchParams.set("apiKey", firebaseConfig.apiKey);
     swUrl.searchParams.set("authDomain", firebaseConfig.authDomain);
     swUrl.searchParams.set("projectId", firebaseConfig.projectId);
