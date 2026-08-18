@@ -542,7 +542,7 @@ router.get("/events/:id/smart-candidates", requireAdmin, async (req, res) => {
     const ushers = activeUshers.filter(u => !assignedUsherIds.has(u.id)).slice(0, 20);
     
     if (ushers.length === 0) {
-      res.json([]);
+      res.json([{ id: 9998, fullName: `DEBUG: Ushers array is empty (active: ${activeUshers.length}, assigned: ${assignedUsherIds.size})`, isAvailable: true, avgRating: 0 }]);
       return;
     }
 
@@ -603,7 +603,7 @@ router.get("/events/:id/smart-candidates", requireAdmin, async (req, res) => {
   res.json(candidates);
   } catch (error: any) {
     console.error("Error in smart-candidates:", error);
-    res.status(500).json({ error: error.message || "Internal Server Error" });
+    res.json([{ id: 9999, fullName: `ERROR: ${error.message}`, isAvailable: true, avgRating: 0 }]);
   }
 });
 
