@@ -5,6 +5,7 @@ import NotFound from '@/pages/not-found';
 import { Route, Switch, Router as WouterRouter } from 'wouter';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Watermark } from '@/components/ui/watermark';
+import { PWAInstallPrompt } from '@/components/pwa-install-prompt';
 
 // Pages
 import Login from '@/pages/login';
@@ -67,6 +68,7 @@ function App() {
           <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
             <Router />
           </WouterRouter>
+          <PWAInstallPrompt />
         </div>
         <Toaster position="top-center" richColors />
       </TooltipProvider>

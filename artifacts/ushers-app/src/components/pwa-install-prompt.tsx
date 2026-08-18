@@ -70,8 +70,11 @@ export function PWAInstallPrompt() {
 
   const needsPermission = 'Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied';
   
-  // Force show if (not standalone and we have a prompt or on iOS) OR (is standalone but needs notification permission)
-  const shouldShow = (!isStandalone && showPrompt) || (isStandalone && needsPermission);
+  // Check if user is on a mobile device
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+  // Force show if (on mobile and not installed) OR (needs notification permission)
+  const shouldShow = (isMobile && !isStandalone) || needsPermission;
 
   if (!shouldShow) return null;
 

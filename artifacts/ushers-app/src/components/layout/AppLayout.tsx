@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { Header } from './Header';
 import { BottomNav } from './BottomNav';
-import { PWAInstallPrompt } from '../pwa-install-prompt';
 import { useGetMe } from '@workspace/api-client-react';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
@@ -34,7 +33,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         {children}
       </main>
       <BottomNav />
-      <PWAInstallPrompt />
     </div>
   );
 }
