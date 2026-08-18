@@ -54,16 +54,7 @@ function haversineMeters(lat1: number, lng1: number, lat2: number, lng2: number)
 
 // GET /my/assignments
 router.get("/my/assignments", requireUsher, async (req, res) => {
-  // Automatically mark events as completed if their end time has passed
-  await db
-    .update(eventsTable)
-    .set({ status: "completed" })
-    .where(
-      and(
-        lt(eventsTable.endTime, new Date()),
-        ne(eventsTable.status, "completed")
-      )
-    );
+  // Auto-completion logic moved to the background cron job to prevent slow page loads
 
   const { status } = req.query as Record<string, string>;
   let query = db.select().from(eventAssignmentsTable).where(eq(eventAssignmentsTable.usherId, req.user!.id)).$dynamic();
