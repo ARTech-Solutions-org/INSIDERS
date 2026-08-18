@@ -71,13 +71,19 @@ router.get("/my/assignments", requireUsher, async (req, res) => {
 
   // Automatically mark missed assignments as no_show
   const now = new Date();
+  const expiredIds: number[] = [];
+  
   for (const item of result) {
     if (new Date(item.event.endTime) < now && (item.status === "assigned" || item.status === "accepted")) {
       item.status = "no_show";
-      await db.update(eventAssignmentsTable)
-        .set({ status: "no_show" })
-        .where(eq(eventAssignmentsTable.id, item.id));
+      expiredIds.push(item.id);
     }
+  }
+  
+  if (expiredIds.length > 0) {
+    await db.update(eventAssignmentsTable)
+      .set({ status: "no_show" })
+      .where(inArray(eventAssignmentsTable.id, expiredIds));
   }
 
   // Filter out items that no longer match the requested status
