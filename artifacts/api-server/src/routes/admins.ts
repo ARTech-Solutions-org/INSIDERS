@@ -82,7 +82,7 @@ router.post("/broadcasts", requireAdmin, async (req, res) => {
 });
 
 // GET /fcm-debug
-router.get("/fcm-debug", requireAdmin, async (req, res) => {
+router.get("/fcm-debug", async (req, res) => {
   try {
     const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
     if (!raw) {
