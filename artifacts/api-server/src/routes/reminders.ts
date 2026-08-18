@@ -87,7 +87,7 @@ router.post("/send-event-reminders", async (req, res) => {
     if (assignments.length === 0) continue;
 
     // Format event start time nicely
-    const startLabel = new Date(event.startTime).toLocaleString("ar-EG", {
+    const startLabel = new Date(event.startTime).toLocaleString("en-US", {
       dateStyle: "short",
       timeStyle: "short",
     });
