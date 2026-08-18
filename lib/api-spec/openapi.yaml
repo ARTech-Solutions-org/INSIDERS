@@ -1688,6 +1688,11 @@ components:
           type: ["string", "null"]
         profilePhotoUrl:
           type: ["string", "null"]
+        paymentMethod:
+          type: string
+          enum: [instapay, ewallet]
+        paymentMethodDetails:
+          type: string
 
     AuthResult:
       type: object
@@ -1752,6 +1757,10 @@ components:
         createdAt:
           type: string
           format: date-time
+        paymentMethod:
+          type: ["string", "null"]
+        paymentMethodDetails:
+          type: ["string", "null"]
 
     UsherUpdate:
       type: object

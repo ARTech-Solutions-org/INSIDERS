@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db, ushersTable, balanceTransactionsTable, payoutsTable } from "@workspace/db";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, sql } from "drizzle-orm";
 import { requireUsher, requireAdmin } from "../middleware/auth.js";
 import { audit } from "../lib/audit.js";
 import { CreateTransactionBody, CreatePayoutBody, UpdatePayoutStatusBody } from "@workspace/api-zod";
@@ -44,7 +44,9 @@ router.post("/admin/transactions", requireAdmin, async (req, res) => {
   const { usherId, amount, type, reason, eventAssignmentId } = parsed.data;
   const [txn] = await db.insert(balanceTransactionsTable).values({ usherId, amount, type, reason: reason ?? null, eventAssignmentId: eventAssignmentId ?? null }).returning();
   // Update usher balance
-  await db.update(ushersTable).set({ balance: type === "debit" ? (0 - amount) : amount }).where(eq(ushersTable.id, usherId));
+  await db.update(ushersTable).set({ 
+    balance: sql`${ushersTable.balance} + ${type === "debit" ? (0 - amount) : amount}` 
+  }).where(eq(ushersTable.id, usherId));
   await audit(req.user!.id, "CREATE_TRANSACTION", "balance_transactions", txn.id);
   res.status(201).json(txn);
 });
@@ -63,6 +65,19 @@ router.post("/admin/payouts", requireAdmin, async (req, res) => {
   const parsed = CreatePayoutBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.flatten() }); return; }
   const [payout] = await db.insert(payoutsTable).values({ ...parsed.data, status: "pending" }).returning();
+  
+  // Deduct balance and create transaction
+  await db.update(ushersTable).set({ 
+    balance: sql`${ushersTable.balance} - ${parsed.data.amount}` 
+  }).where(eq(ushersTable.id, parsed.data.usherId));
+
+  await db.insert(balanceTransactionsTable).values({
+    usherId: parsed.data.usherId,
+    amount: parsed.data.amount,
+    type: "debit",
+    reason: `Payout via ${parsed.data.method}`,
+  });
+
   await audit(req.user!.id, "CREATE_PAYOUT", "payouts", payout.id);
   res.status(201).json(payout);
 });

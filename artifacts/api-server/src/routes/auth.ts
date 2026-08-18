@@ -19,13 +19,15 @@ router.post("/auth/usher/register", async (req, res) => {
     res.status(400).json({ error: parsed.error.flatten() });
     return;
   }
-  const { fullName, phone, email, nationalIdNumber, password, nationalIdDocUrl, profilePhotoUrl } = parsed.data;
+  const { fullName, phone, email, nationalIdNumber, password, nationalIdDocUrl, profilePhotoUrl, paymentMethod, paymentMethodDetails } = parsed.data;
   const passwordHash = await bcrypt.hash(password, 10);
   try {
     const [usher] = await db.insert(ushersTable).values({
       fullName, phone, email, nationalIdNumber, passwordHash,
       nationalIdDocUrl: nationalIdDocUrl ?? null,
       profilePhotoUrl: profilePhotoUrl ?? null,
+      paymentMethod,
+      paymentMethodDetails,
       status: "pending",
     }).returning();
     const token = signToken({ type: "usher", id: usher.id });

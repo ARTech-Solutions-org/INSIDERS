@@ -19,6 +19,8 @@ export const ushersTable = pgTable("ushers", {
   homeLng: real("home_lng"),
   avgRating: real("avg_rating").default(0.0),
   balance: real("balance").default(0.0),
+  paymentMethod: varchar("payment_method", { length: 50 }),
+  paymentMethodDetails: varchar("payment_method_details", { length: 255 }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
