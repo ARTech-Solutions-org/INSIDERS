@@ -53,6 +53,8 @@ router.delete("/admins/:id", requireAdmin, async (req, res) => {
 });
 
 import { getFirebaseMessaging } from "../lib/fcm.js";
+import { initializeApp, getApps, cert } from "firebase-admin/app";
+import { getMessaging } from "firebase-admin/messaging";
 
 // GET /broadcasts
 router.get("/broadcasts", requireAdmin, async (req, res) => {
@@ -99,14 +101,24 @@ router.get("/fcm-debug", async (req, res) => {
       return;
     }
 
-    // Try to init messaging
-    const messaging = getFirebaseMessaging();
-    if (!messaging) {
-      res.json({ error: "getFirebaseMessaging() returned null for an unknown reason." });
+    // Try to init messaging MANUALLY so we can catch the exact error
+    let app;
+    try {
+      app = getApps().length === 0 ? initializeApp({ credential: cert(credential) }) : getApps()[0];
+    } catch (firebaseErr: any) {
+      res.json({ error: "Firebase Admin initializeApp failed.", details: firebaseErr.message, stack: firebaseErr.stack });
       return;
     }
 
-    res.json({ success: true, message: "Firebase Admin initialized correctly." });
+    let messaging;
+    try {
+      messaging = getMessaging(app);
+    } catch (msgErr: any) {
+      res.json({ error: "Firebase getMessaging failed.", details: msgErr.message, stack: msgErr.stack });
+      return;
+    }
+
+    res.json({ success: true, message: "Firebase Admin initialized correctly!" });
   } catch (err: any) {
     res.json({ error: "Caught an exception.", details: err.message, stack: err.stack });
   }
