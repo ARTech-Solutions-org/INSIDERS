@@ -23,7 +23,6 @@ export function PWAInstallPrompt() {
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      setShowPrompt(true);
     };
 
     window.addEventListener('beforeinstallprompt', handler);
@@ -31,11 +30,6 @@ export function PWAInstallPrompt() {
     // Check if iOS
     const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
     setIsIOS(ios);
-    
-    if (ios) {
-      // iOS doesn't support beforeinstallprompt, so we just show the modal if not standalone
-      setShowPrompt(true);
-    }
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handler);
@@ -43,40 +37,43 @@ export function PWAInstallPrompt() {
     };
   }, []);
 
+  useEffect(() => {
+    // Only show if:
+    // 1. User hasn't dismissed before
+    // 2. Notifications are not yet granted
+    const dismissed = localStorage.getItem('pwa_prompt_dismissed');
+    const notifPermission = 'Notification' in window ? Notification.permission : 'denied';
+    
+    if (!dismissed && notifPermission === 'default') {
+      setShowPrompt(true);
+    }
+  }, []);
+
   const handleInstallAndNotify = async () => {
-    // Request notification permissions
+    // Always dismiss the prompt first
+    localStorage.setItem('pwa_prompt_dismissed', '1');
+    setShowPrompt(false);
+
+    // Request notification permission and register token
     try {
-      if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
-        await registerPushToken();
-      }
+      await registerPushToken();
     } catch (e) {
-      console.error('Failed to get notification permission', e);
+      console.error('Failed to register push token', e);
     }
 
+    // Try native install prompt if available (Android Chrome)
     if (deferredPrompt) {
       deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') {
-        setDeferredPrompt(null);
-        setShowPrompt(false);
-      }
-    } else {
-      // For iOS, they have to manually add to home screen, so we just close the prompt for notifications
-      if (isStandalone) {
-        setShowPrompt(false);
-      }
+      deferredPrompt.userChoice.then(() => setDeferredPrompt(null));
     }
   };
 
-  const needsPermission = 'Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied';
-  
-  // Check if user is on a mobile device
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  const handleSkip = () => {
+    localStorage.setItem('pwa_prompt_dismissed', '1');
+    setShowPrompt(false);
+  };
 
-  // Force show if (on mobile and not installed) OR (needs notification permission)
-  const shouldShow = (isMobile && !isStandalone) || needsPermission;
-
-  if (!shouldShow) return null;
+  if (!showPrompt) return null;
 
   return (
     <AlertDialog open={true}>
@@ -88,13 +85,13 @@ export function PWAInstallPrompt() {
           <AlertDialogTitle className="text-center text-xl font-bold">Install App & Notifications</AlertDialogTitle>
           <AlertDialogDescription className="text-center text-base space-y-4 pt-2">
             <p className="text-foreground">
-              For the best experience and to never miss an event, please add the app to your home screen.
+              For the best experience and to never miss an event, please enable notifications.
             </p>
             
             <div className="bg-primary/5 border border-primary/20 p-4 rounded-xl flex flex-col items-center gap-2">
               <BellRing className="w-6 h-6 text-primary animate-pulse" />
               <p className="font-bold text-primary">
-                You must allow notifications to receive updates
+                Allow notifications to receive event updates
               </p>
             </div>
 
@@ -105,9 +102,12 @@ export function PWAInstallPrompt() {
             )}
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter className="sm:justify-center mt-6">
+        <AlertDialogFooter className="sm:justify-center mt-6 flex flex-col gap-2">
           <Button onClick={handleInstallAndNotify} size="lg" className="w-full text-lg h-14 rounded-xl font-bold shadow-lg shadow-primary/20">
-            {isIOS && !isStandalone ? 'Enable Notifications' : 'Accept & Install'}
+            Enable Notifications
+          </Button>
+          <Button onClick={handleSkip} variant="ghost" size="sm" className="w-full text-muted-foreground">
+            Skip for now
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
