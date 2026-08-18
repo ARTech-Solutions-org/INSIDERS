@@ -23,6 +23,7 @@ jobs:
         run: |
           HTTP_STATUS=$(curl \
             --silent \
+            --location \
             --output /dev/null \
             --write-out "%{http_code}" \
             --max-time 30 \
