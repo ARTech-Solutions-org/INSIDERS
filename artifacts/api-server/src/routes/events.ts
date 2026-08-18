@@ -305,8 +305,8 @@ router.post("/events/:id/assignments", requireAdmin, async (req, res) => {
 
   // Send push notification to the assigned usher
   await sendPushToUsher(parsed.data.usherId, {
-    title: "تم تعيينك في فعالية 🎉",
-    body: `تم تعيينك في فعالية "${existing.title}". تحقق من تفاصيل الفعالية.`,
+    title: "You are Assigned 🎉",
+    body: `You have been assigned to the event "${existing.title}". Check event details.`,
     data: { eventId: String(eventId), type: "assignment" },
   });
 
@@ -428,6 +428,23 @@ router.post("/events/:id/smart-assign-batch", requireAdmin, async (req, res) => 
     }
   }
 
+  // Also find ushers busy with other overlapping events
+  const overlappingAssignments = await db.select({ usherId: eventAssignmentsTable.usherId })
+    .from(eventAssignmentsTable)
+    .innerJoin(eventsTable, eq(eventAssignmentsTable.eventId, eventsTable.id))
+    .where(
+      and(
+        inArray(eventAssignmentsTable.status, ["assigned", "accepted", "checked_in"]),
+        lt(eventsTable.startTime, eventEnd),
+        gt(eventsTable.endTime, eventStart),
+        neq(eventsTable.id, eventId)
+      )
+    );
+    
+  for (const oa of overlappingAssignments) {
+    busyUsherIds.add(oa.usherId);
+  }
+
   // Get all active ushers
   let ushers = await db.select().from(ushersTable).where(eq(ushersTable.status, "active"));
 
@@ -534,6 +551,18 @@ router.get("/events/:id/smart-candidates", requireAdmin, async (req, res) => {
       )
     );
 
+  const overlappingAssignments = await db.select({ usherId: eventAssignmentsTable.usherId })
+    .from(eventAssignmentsTable)
+    .innerJoin(eventsTable, eq(eventAssignmentsTable.eventId, eventsTable.id))
+    .where(
+      and(
+        inArray(eventAssignmentsTable.status, ["assigned", "accepted", "checked_in"]),
+        lt(eventsTable.startTime, event[0].endTime),
+        gt(eventsTable.endTime, event[0].startTime),
+        neq(eventsTable.id, eventId) // Exclude current event
+      )
+    );
+
   const candidates = ushers.map(u => {
     let isAvailable = true;
     const usherUnavail = unavailabilities.filter(av => av.usherId === u.id);
@@ -544,6 +573,10 @@ router.get("/events/:id/smart-candidates", requireAdmin, async (req, res) => {
         isAvailable = false;
         break;
       }
+    }
+
+    if (isAvailable && overlappingAssignments.some(oa => oa.usherId === u.id)) {
+      isAvailable = false;
     }
 
     return { 
@@ -643,8 +676,8 @@ router.post("/events/:id/waitlist/:waitlistId/promote", requireAdmin, async (req
   const [promotedEvent] = await db.select({ title: eventsTable.title }).from(eventsTable).where(eq(eventsTable.id, eventId));
   if (promotedEvent) {
     await sendPushToUsher(existing.usherId, {
-      title: "تمت ترقيتك من قائمة الانتظار 🎉",
-      body: `تم ترقيتك لفعالية "${promotedEvent.title}". تحقق من تفاصيل الفعالية.`,
+      title: "Waitlist Promoted 🎉",
+      body: `You have been promoted for the event "${promotedEvent.title}". Check event details.`,
       data: { eventId: String(eventId), type: "assignment" },
     });
   }
