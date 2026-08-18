@@ -72,12 +72,18 @@ export async function sendPushToUsher(usherId: number, payload: PushPayload): Pr
   const tokens = rows.map((r) => r.token);
 
   try {
+    const baseUrl = process.env.FRONTEND_URL || "https://insider-mu.vercel.app";
+    let link = baseUrl;
+    if (payload.data?.type === "broadcast") link = `${baseUrl}/notifications`;
+    if (payload.data?.type === "event_reminder" && payload.data?.eventId) link = `${baseUrl}/event/${payload.data.eventId}`;
+
     const response = await messaging.sendEachForMulticast({
       tokens,
       notification: { title: payload.title, body: payload.body },
       data: payload.data,
       webpush: {
         notification: { title: payload.title, body: payload.body, icon: "/insiders-logo.png" },
+        fcmOptions: { link },
       },
     });
 
