@@ -32,7 +32,7 @@ export async function registerPushToken(): Promise<void> {
     const authToken = getAuthToken();
     if (!authToken) return;
 
-    const apiUrl = (window as any).__VITE_API_URL__ ?? '';
+    const apiUrl = import.meta.env.VITE_API_URL ?? '';
     await fetch(`${apiUrl}/api/my/push-token`, {
       method: 'POST',
       headers: {
@@ -56,7 +56,7 @@ export async function unregisterPushToken(fcmToken: string): Promise<void> {
     const authToken = getAuthToken();
     if (!authToken) return;
 
-    const apiUrl = (window as any).__VITE_API_URL__ ?? '';
+    const apiUrl = import.meta.env.VITE_API_URL ?? '';
     await fetch(`${apiUrl}/api/my/push-token`, {
       method: 'DELETE',
       headers: {
