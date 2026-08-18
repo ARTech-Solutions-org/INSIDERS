@@ -526,62 +526,63 @@ router.post("/events/:id/smart-assign-batch", requireAdmin, async (req, res) => 
 
 // GET /events/:id/smart-candidates
 router.get("/events/:id/smart-candidates", requireAdmin, async (req, res) => {
-  const eventId = parseInt(req.params.id as string, 10);
-  const [event] = await db.select().from(eventsTable).where(eq(eventsTable.id, eventId));
-  if (!event) { res.status(404).json({ error: "Not found" }); return; }
-  
-  // Fetch up to 100 active ushers
-  const activeUshers = await db.select().from(ushersTable).where(eq(ushersTable.status, "active")).orderBy(desc(ushersTable.avgRating)).limit(100);
-  
-  // Fetch currently assigned ushers to exclude them
-  const currentAssignments = await db.select({ usherId: eventAssignmentsTable.usherId }).from(eventAssignmentsTable).where(eq(eventAssignmentsTable.eventId, eventId));
-  const assignedUsherIds = new Set(currentAssignments.map(a => a.usherId));
-  
-  // Get up to 20 unassigned ushers
-  const ushers = activeUshers.filter(u => !assignedUsherIds.has(u.id)).slice(0, 20);
-  
-  if (ushers.length === 0) {
-    res.json([]);
-    return;
-  }
-
-  const eventStart = new Date(event.startTime);
-  const eventEnd = new Date(event.endTime);
-  const eventStartStr = eventStart.toISOString().split("T")[0];
-  const eventEndStr = eventEnd.toISOString().split("T")[0];
-
-  const unavailabilities = await db.select().from(usherAvailabilityTable)
-    .where(
-      and(
-        inArray(usherAvailabilityTable.usherId, ushers.map(u => u.id)),
-        gte(usherAvailabilityTable.date, eventStartStr),
-        lte(usherAvailabilityTable.date, eventEndStr)
-      )
-    );
-
-  const overlappingAssignments = await db.select({ usherId: eventAssignmentsTable.usherId })
-    .from(eventAssignmentsTable)
-    .innerJoin(eventsTable, eq(eventAssignmentsTable.eventId, eventsTable.id))
-    .where(
-      and(
-        inArray(eventAssignmentsTable.status, ["assigned", "accepted", "checked_in"]),
-        lt(eventsTable.startTime, eventEnd),
-        gt(eventsTable.endTime, eventStart),
-        neq(eventsTable.id, eventId) // Exclude current event
-      )
-    );
-
-  const candidates = ushers.map(u => {
-    let isAvailable = true;
-    const usherUnavail = unavailabilities.filter(av => av.usherId === u.id);
-    for (const av of usherUnavail) {
-      const busyStart = new Date(`${av.date}T${av.startTime}`);
-      const busyEnd = new Date(`${av.date}T${av.endTime}`);
-      if (busyStart < eventEnd && busyEnd > eventStart) {
-        isAvailable = false;
-        break;
-      }
+  try {
+    const eventId = parseInt(req.params.id as string, 10);
+    const [event] = await db.select().from(eventsTable).where(eq(eventsTable.id, eventId));
+    if (!event) { res.status(404).json({ error: "Not found" }); return; }
+    
+    // Fetch up to 100 active ushers
+    const activeUshers = await db.select().from(ushersTable).where(eq(ushersTable.status, "active")).orderBy(desc(ushersTable.avgRating)).limit(100);
+    
+    // Fetch currently assigned ushers to exclude them
+    const currentAssignments = await db.select({ usherId: eventAssignmentsTable.usherId }).from(eventAssignmentsTable).where(eq(eventAssignmentsTable.eventId, eventId));
+    const assignedUsherIds = new Set(currentAssignments.map(a => a.usherId));
+    
+    // Get up to 20 unassigned ushers
+    const ushers = activeUshers.filter(u => !assignedUsherIds.has(u.id)).slice(0, 20);
+    
+    if (ushers.length === 0) {
+      res.json([]);
+      return;
     }
+
+    const eventStart = new Date(event.startTime);
+    const eventEnd = new Date(event.endTime);
+    const eventStartStr = eventStart.toISOString().split("T")[0];
+    const eventEndStr = eventEnd.toISOString().split("T")[0];
+
+    const unavailabilities = await db.select().from(usherAvailabilityTable)
+      .where(
+        and(
+          inArray(usherAvailabilityTable.usherId, ushers.map(u => u.id)),
+          gte(usherAvailabilityTable.date, eventStartStr),
+          lte(usherAvailabilityTable.date, eventEndStr)
+        )
+      );
+
+    const overlappingAssignments = await db.select({ usherId: eventAssignmentsTable.usherId })
+      .from(eventAssignmentsTable)
+      .innerJoin(eventsTable, eq(eventAssignmentsTable.eventId, eventsTable.id))
+      .where(
+        and(
+          inArray(eventAssignmentsTable.status, ["assigned", "accepted", "checked_in"]),
+          lt(eventsTable.startTime, event.endTime),
+          gt(eventsTable.endTime, event.startTime),
+          neq(eventsTable.id, eventId) // Exclude current event
+        )
+      );
+
+    const candidates = ushers.map(u => {
+      let isAvailable = true;
+      const usherUnavail = unavailabilities.filter(av => av.usherId === u.id);
+      for (const av of usherUnavail) {
+        const busyStart = new Date(`${av.date}T${av.startTime}`);
+        const busyEnd = new Date(`${av.date}T${av.endTime}`);
+        if (busyStart < eventEnd && busyEnd > eventStart) {
+          isAvailable = false;
+          break;
+        }
+      }
 
     if (isAvailable && overlappingAssignments.some(oa => oa.usherId === u.id)) {
       isAvailable = false;
@@ -598,7 +599,12 @@ router.get("/events/:id/smart-candidates", requireAdmin, async (req, res) => {
       matchScore: (u.avgRating ?? 0) / 5 
     };
   });
+
   res.json(candidates);
+  } catch (error: any) {
+    console.error("Error in smart-candidates:", error);
+    res.status(500).json({ error: error.message || "Internal Server Error" });
+  }
 });
 
 // GET /events/:id/waitlist
