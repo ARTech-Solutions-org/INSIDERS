@@ -88,6 +88,7 @@ router.post("/send-event-reminders", async (req, res) => {
 
     // Format event start time nicely
     const startLabel = new Date(event.startTime).toLocaleString("en-US", {
+      timeZone: "Africa/Cairo",
       dateStyle: "short",
       timeStyle: "short",
     });
