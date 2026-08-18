@@ -445,8 +445,8 @@ router.post("/events/:id/smart-assign-batch", requireAdmin, async (req, res) => 
     busyUsherIds.add(oa.usherId);
   }
 
-  // Get all active ushers
-  let ushers = await db.select().from(ushersTable).where(eq(ushersTable.status, "active"));
+  // Get all ushers
+  let ushers = await db.select().from(ushersTable);
 
   // Apply simple filters
   ushers = ushers.filter(u => {
@@ -531,8 +531,8 @@ router.get("/events/:id/smart-candidates", requireAdmin, async (req, res) => {
     const [event] = await db.select().from(eventsTable).where(eq(eventsTable.id, eventId));
     if (!event) { res.status(404).json({ error: "Not found" }); return; }
     
-    // Fetch up to 100 active ushers
-    const activeUshers = await db.select().from(ushersTable).where(eq(ushersTable.status, "active")).orderBy(desc(ushersTable.avgRating)).limit(100);
+    // Fetch up to 100 ushers
+    const activeUshers = await db.select().from(ushersTable).orderBy(desc(ushersTable.avgRating)).limit(100);
     
     // Fetch currently assigned ushers to exclude them
     const currentAssignments = await db.select({ usherId: eventAssignmentsTable.usherId }).from(eventAssignmentsTable).where(eq(eventAssignmentsTable.eventId, eventId));
