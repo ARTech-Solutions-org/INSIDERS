@@ -85,29 +85,29 @@ export function PWAInstallPrompt() {
           <div className="mx-auto w-16 h-16 bg-primary/10 flex items-center justify-center rounded-full mb-4">
             <DownloadCloud className="w-8 h-8 text-primary" />
           </div>
-          <AlertDialogTitle className="text-center text-xl font-bold">تثبيت التطبيق والإشعارات</AlertDialogTitle>
+          <AlertDialogTitle className="text-center text-xl font-bold">Install App & Notifications</AlertDialogTitle>
           <AlertDialogDescription className="text-center text-base space-y-4 pt-2">
             <p className="text-foreground">
-              للحصول على أفضل تجربة وعدم تفويت أي أحداث، يرجى إضافة الموقع للشاشة الرئيسية.
+              For the best experience and to never miss an event, please add the app to your home screen.
             </p>
             
             <div className="bg-primary/5 border border-primary/20 p-4 rounded-xl flex flex-col items-center gap-2">
               <BellRing className="w-6 h-6 text-primary animate-pulse" />
               <p className="font-bold text-primary">
-                عشان تفتح النوتيفيكيشنز لازم تعمل موافقة
+                You must allow notifications to receive updates
               </p>
             </div>
 
             {isIOS && !isStandalone && (
-              <p className="text-sm text-muted-foreground bg-muted p-3 rounded-lg text-right" dir="rtl">
-                <strong>في أجهزة الآيفون:</strong> اضغط على زر المشاركة (Share) تحت في المتصفح، ثم اختر "Add to Home Screen" ➕
+              <p className="text-sm text-muted-foreground bg-muted p-3 rounded-lg text-left" dir="ltr">
+                <strong>For iPhone:</strong> Tap the Share button below, then select "Add to Home Screen" ➕
               </p>
             )}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter className="sm:justify-center mt-6">
           <Button onClick={handleInstallAndNotify} size="lg" className="w-full text-lg h-14 rounded-xl font-bold shadow-lg shadow-primary/20">
-            {isIOS && !isStandalone ? 'تفعيل الإشعارات' : 'موافق وتثبيت'}
+            {isIOS && !isStandalone ? 'Enable Notifications' : 'Accept & Install'}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
