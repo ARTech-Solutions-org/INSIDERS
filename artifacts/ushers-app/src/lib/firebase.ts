@@ -55,9 +55,17 @@ export async function getMessagingToken(): Promise<string | null> {
   if (!messaging) return null;
 
   try {
-    // Register (or retrieve) the firebase-messaging service worker
+    // Pass config as query params so we don't hardcode the API key in the public JS file
+    const swUrl = new URL("/firebase-messaging-sw.js", window.location.origin);
+    swUrl.searchParams.set("apiKey", firebaseConfig.apiKey);
+    swUrl.searchParams.set("authDomain", firebaseConfig.authDomain);
+    swUrl.searchParams.set("projectId", firebaseConfig.projectId);
+    swUrl.searchParams.set("storageBucket", firebaseConfig.storageBucket);
+    swUrl.searchParams.set("messagingSenderId", firebaseConfig.messagingSenderId);
+    swUrl.searchParams.set("appId", firebaseConfig.appId);
+
     const registration = await navigator.serviceWorker.register(
-      "/firebase-messaging-sw.js",
+      swUrl.toString(),
       { scope: "/" }
     );
 
