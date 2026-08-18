@@ -515,8 +515,8 @@ router.post("/events/:id/smart-assign-batch", requireAdmin, async (req, res) => 
   const [targetEvent] = await db.select({ title: eventsTable.title }).from(eventsTable).where(eq(eventsTable.id, eventId));
   if (targetEvent) {
     await sendPushToUshers(created.map(c => c.usherId), {
-      title: "تم تعيينك في فعالية 🎉",
-      body: `تم تعيينك في فعالية "${targetEvent.title}". تحقق من تفاصيل الفعالية.`,
+      title: "You are Assigned 🎉",
+      body: `You have been assigned to the event "${targetEvent.title}". Check event details.`,
       data: { eventId: String(eventId), type: "assignment" },
     });
   }
@@ -527,18 +527,26 @@ router.post("/events/:id/smart-assign-batch", requireAdmin, async (req, res) => 
 // GET /events/:id/smart-candidates
 router.get("/events/:id/smart-candidates", requireAdmin, async (req, res) => {
   const eventId = parseInt(req.params.id as string, 10);
-  const event = await db.select().from(eventsTable).where(eq(eventsTable.id, eventId));
-  if (!event.length) { res.status(404).json({ error: "Not found" }); return; }
+  const [event] = await db.select().from(eventsTable).where(eq(eventsTable.id, eventId));
+  if (!event) { res.status(404).json({ error: "Not found" }); return; }
   
-  const ushers = await db.select().from(ushersTable).where(eq(ushersTable.status, "active")).orderBy(desc(ushersTable.avgRating)).limit(20);
+  // Fetch up to 100 active ushers
+  const activeUshers = await db.select().from(ushersTable).where(eq(ushersTable.status, "active")).orderBy(desc(ushersTable.avgRating)).limit(100);
+  
+  // Fetch currently assigned ushers to exclude them
+  const currentAssignments = await db.select({ usherId: eventAssignmentsTable.usherId }).from(eventAssignmentsTable).where(eq(eventAssignmentsTable.eventId, eventId));
+  const assignedUsherIds = new Set(currentAssignments.map(a => a.usherId));
+  
+  // Get up to 20 unassigned ushers
+  const ushers = activeUshers.filter(u => !assignedUsherIds.has(u.id)).slice(0, 20);
   
   if (ushers.length === 0) {
     res.json([]);
     return;
   }
 
-  const eventStart = new Date(event[0].startTime);
-  const eventEnd = new Date(event[0].endTime);
+  const eventStart = new Date(event.startTime);
+  const eventEnd = new Date(event.endTime);
   const eventStartStr = eventStart.toISOString().split("T")[0];
   const eventEndStr = eventEnd.toISOString().split("T")[0];
 
@@ -557,8 +565,8 @@ router.get("/events/:id/smart-candidates", requireAdmin, async (req, res) => {
     .where(
       and(
         inArray(eventAssignmentsTable.status, ["assigned", "accepted", "checked_in"]),
-        lt(eventsTable.startTime, event[0].endTime),
-        gt(eventsTable.endTime, event[0].startTime),
+        lt(eventsTable.startTime, eventEnd),
+        gt(eventsTable.endTime, eventStart),
         neq(eventsTable.id, eventId) // Exclude current event
       )
     );
