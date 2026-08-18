@@ -46,14 +46,23 @@ function getFirebaseMessaging(): Messaging | null {
  * Returns null if the browser doesn't support notifications or if the user denies.
  */
 export async function getMessagingToken(): Promise<string | null> {
-  if (typeof window === "undefined" || !("serviceWorker" in navigator)) return null;
+  if (typeof window === "undefined" || !("serviceWorker" in navigator)) {
+    toast.error("المتصفح لا يدعم Service Worker");
+    return null;
+  }
 
   // Request permission
   const permission = await Notification.requestPermission();
-  if (permission !== "granted") return null;
+  if (permission !== "granted") {
+    toast.error(`صلاحية الإشعارات غير ممنوحة: ${permission}`);
+    return null;
+  }
 
   const messaging = getFirebaseMessaging();
-  if (!messaging) return null;
+  if (!messaging) {
+    toast.error("فشل في تهيئة Firebase Messaging (ربما جهازك لا يدعم الإشعارات)");
+    return null;
+  }
 
   try {
     // Pass config as query params so we don't hardcode the API key in the public JS file
