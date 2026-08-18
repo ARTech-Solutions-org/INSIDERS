@@ -437,7 +437,7 @@ router.post("/events/:id/smart-assign-batch", requireAdmin, async (req, res) => 
         inArray(eventAssignmentsTable.status, ["assigned", "accepted", "checked_in"]),
         lt(eventsTable.startTime, eventEnd),
         gt(eventsTable.endTime, eventStart),
-        neq(eventsTable.id, eventId)
+        ne(eventsTable.id, eventId)
       )
     );
     
@@ -568,7 +568,7 @@ router.get("/events/:id/smart-candidates", requireAdmin, async (req, res) => {
           inArray(eventAssignmentsTable.status, ["assigned", "accepted", "checked_in"]),
           lt(eventsTable.startTime, event.endTime),
           gt(eventsTable.endTime, event.startTime),
-          neq(eventsTable.id, eventId) // Exclude current event
+          ne(eventsTable.id, eventId) // Exclude current event
         )
       );
 
