@@ -22,7 +22,7 @@ const router = Router();
  */
 router.post("/send-event-reminders", async (req, res) => {
   // ── Auth guard ──────────────────────────────────────────────────────────────
-  const secret = process.env.REMINDER_SECRET;
+  const secret = process.env.CRON_SECRET || process.env.REMINDER_SECRET;
   if (!secret) {
     console.warn("[Reminders] REMINDER_SECRET is not configured. Endpoint is disabled.");
     res.status(503).json({ error: "Reminders not configured" });

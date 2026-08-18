@@ -14,5 +14,11 @@
       "src": "/(.*)",
       "dest": "/api/index.js"
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/send-event-reminders",
+      "schedule": "*/10 * * * *"
+    }
   ]
 }
