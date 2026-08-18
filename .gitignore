@@ -67,3 +67,14 @@ artifacts/api-server/_vercel_build/
 *.db
 *.sqlite
 *-firebase-adminsdk-*.json
+
+# Scratch and test scripts
+check-events.ts
+check_waitlist.ts
+test-query.ts
+clean_types.py
+fix_zod.py
+db-check.ts
+lib/api-spec/clean.js
+artifacts/api-server/check-events.ts
+artifacts/api-server/db-check.ts
