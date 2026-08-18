@@ -1,6 +1,7 @@
 import { createRoot } from 'react-dom/client';
 import { setBaseUrl } from '@workspace/api-client-react';
 import './lib/auth';
+import { registerPushToken } from './lib/auth';
 import App from './App';
 import './index.css';
 
@@ -15,7 +16,9 @@ createRoot(document.getElementById('root')!).render(<App />);
 
 // Register the basic PWA service worker (makes the app installable on iOS/Android)
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
-  navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch((err) => {
-    console.warn('[SW] Registration failed:', err);
-  });
+  navigator.serviceWorker.register('/sw.js', { scope: '/' })
+    .then(() => registerPushToken())
+    .catch((err) => {
+      console.warn('[SW] Registration failed:', err);
+    });
 }
