@@ -96,6 +96,11 @@ router.get("/fcm-debug", async (req, res) => {
     let credential;
     try {
       credential = JSON.parse(raw);
+      
+      // Vercel environment variables often escape \n as literal string "\\n"
+      if (credential.private_key && credential.private_key.includes('\\n')) {
+        credential.private_key = credential.private_key.replace(/\\n/g, '\n');
+      }
     } catch (e: any) {
       res.json({ error: "FIREBASE_SERVICE_ACCOUNT_JSON is not valid JSON.", details: e.message, firstFewChars: raw.substring(0, 15) });
       return;
