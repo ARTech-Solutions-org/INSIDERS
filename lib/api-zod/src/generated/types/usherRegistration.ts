@@ -4,6 +4,7 @@
  * Api
  * OpenAPI spec version: 1.0.0
  */
+import type { UsherRegistrationPaymentMethod } from './usherRegistrationPaymentMethod';
 
 export interface UsherRegistration {
   fullName: string;
@@ -15,4 +16,6 @@ export interface UsherRegistration {
   nationalIdDocUrl?: string | null;
   /** @nullable */
   profilePhotoUrl?: string | null;
+  paymentMethod?: UsherRegistrationPaymentMethod;
+  paymentMethodDetails?: string;
 }

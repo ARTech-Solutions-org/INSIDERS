@@ -19,4 +19,8 @@ export interface UsherProfile {
   avgRating: number;
   balance: number;
   createdAt: Date;
+  /** @nullable */
+  paymentMethod?: string | null;
+  /** @nullable */
+  paymentMethodDetails?: string | null;
 }

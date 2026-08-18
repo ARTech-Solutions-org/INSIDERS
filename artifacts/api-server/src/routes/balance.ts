@@ -88,8 +88,26 @@ router.patch("/admin/payouts/:id/status", requireAdmin, async (req, res) => {
   if (!parsed.success) { res.status(400).json({ error: parsed.error.flatten() }); return; }
   const paidAt = parsed.data.status === "paid" ? new Date() : null;
   const payoutId = parseInt(req.params.id as string, 10);
+  
+  const [existing] = await db.select().from(payoutsTable).where(eq(payoutsTable.id, payoutId));
+  if (!existing) { res.status(404).json({ error: "Not found" }); return; }
+
   const [payout] = await db.update(payoutsTable).set({ status: parsed.data.status, paidAt: paidAt ?? undefined }).where(eq(payoutsTable.id, payoutId)).returning();
-  if (!payout) { res.status(404).json({ error: "Not found" }); return; }
+  
+  if (parsed.data.status === "cancelled" && existing.status !== "cancelled") {
+    // Refund the balance
+    await db.update(ushersTable).set({
+      balance: sql`${ushersTable.balance} + ${existing.amount}`
+    }).where(eq(ushersTable.id, existing.usherId));
+
+    await db.insert(balanceTransactionsTable).values({
+      usherId: existing.usherId,
+      amount: existing.amount,
+      type: "credit",
+      reason: "Payout cancelled refund",
+    });
+  }
+
   await audit(req.user!.id, "UPDATE_PAYOUT_STATUS", "payouts", payout.id, `status=${parsed.data.status}`);
   res.json(payout);
 });

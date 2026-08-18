@@ -278,6 +278,16 @@ export default function UsherDetails() {
                 <p className="font-medium">{usher.nationalIdNumber}</p>
               </div>
             </div>
+            {usher.paymentMethod && (
+              <div className="flex items-center gap-3 text-sm">
+                <Banknote className="w-4 h-4 text-muted-foreground shrink-0" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Payment Method</p>
+                  <p className="font-medium uppercase">{usher.paymentMethod}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5 break-all">{usher.paymentMethodDetails}</p>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 

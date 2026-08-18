@@ -15,6 +15,7 @@ import EventsNew from '@/pages/events-new';
 import EventDetails from '@/pages/event-details';
 import Broadcasts from '@/pages/broadcasts';
 import AuditLog from '@/pages/audit-log';
+import Financials from '@/pages/financials';
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ function ProtectedRoutes() {
         <Route path="/ushers" component={Ushers} />
         <Route path="/broadcasts" component={Broadcasts} />
         <Route path="/audit-log" component={AuditLog} />
+        <Route path="/financials" component={Financials} />
         <Route path="/settings" component={() => <div>Settings</div>} />
         <Route component={NotFound} />
       </Switch>

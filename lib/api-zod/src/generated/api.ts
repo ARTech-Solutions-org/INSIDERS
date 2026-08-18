@@ -505,6 +505,7 @@ export const CreateEventBody = zod.object({
   "eventLocUrl": zod.string().nullish(),
   "venueLat": zod.number().nullish(),
   "venueLng": zod.number().nullish(),
+  "checkinWindowMinutes": zod.int().nullish(),
   "meetingPointLat": zod.number().nullish(),
   "meetingPointLng": zod.number().nullish(),
   "dressCode": zod.string().nullish(),

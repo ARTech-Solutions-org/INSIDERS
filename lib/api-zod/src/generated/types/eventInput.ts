@@ -16,6 +16,8 @@ export interface EventInput {
   /** @nullable */
   venueLng?: number | null;
   /** @nullable */
+  checkinWindowMinutes?: number | null;
+  /** @nullable */
   meetingPointLat?: number | null;
   /** @nullable */
   meetingPointLng?: number | null;

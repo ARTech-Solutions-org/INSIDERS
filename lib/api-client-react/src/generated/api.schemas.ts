@@ -13,6 +13,14 @@ export interface LoginInput {
   password: string;
 }
 
+export type UsherRegistrationPaymentMethod = typeof UsherRegistrationPaymentMethod[keyof typeof UsherRegistrationPaymentMethod];
+
+
+export const UsherRegistrationPaymentMethod = {
+  instapay: 'instapay',
+  ewallet: 'ewallet',
+} as const;
+
 export interface UsherRegistration {
   fullName: string;
   phone: string;
@@ -23,6 +31,8 @@ export interface UsherRegistration {
   nationalIdDocUrl?: string | null;
   /** @nullable */
   profilePhotoUrl?: string | null;
+  paymentMethod?: UsherRegistrationPaymentMethod;
+  paymentMethodDetails?: string;
 }
 
 export interface UsherProfile {
@@ -39,6 +49,10 @@ export interface UsherProfile {
   avgRating: number;
   balance: number;
   createdAt: string;
+  /** @nullable */
+  paymentMethod?: string | null;
+  /** @nullable */
+  paymentMethodDetails?: string | null;
 }
 
 export interface AuthResult {
@@ -264,6 +278,8 @@ export interface EventInput {
   venueLat?: number | null;
   /** @nullable */
   venueLng?: number | null;
+  /** @nullable */
+  checkinWindowMinutes?: number | null;
   /** @nullable */
   meetingPointLat?: number | null;
   /** @nullable */

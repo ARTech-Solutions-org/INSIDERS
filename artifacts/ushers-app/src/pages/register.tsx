@@ -4,8 +4,9 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Logo } from '@/components/ui/logo';
 import { useRegisterUsher } from '@workspace/api-client-react';
 import { setAuthToken } from '@/lib/auth';
@@ -20,6 +21,8 @@ const registerSchema = z.object({
   email: z.string().email('Valid email is required'),
   nationalIdNumber: z.string().min(14, 'National ID must be 14 digits').max(14),
   password: z.string().min(6, 'Password must be at least 6 characters'),
+  paymentMethod: z.enum(['instapay', 'ewallet'], { required_error: 'Payment method is required' }),
+  paymentMethodDetails: z.string().min(1, 'Payment details are required'),
 });
 
 export default function Register() {
@@ -29,7 +32,7 @@ export default function Register() {
 
   const form = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { fullName: '', phone: '', email: '', nationalIdNumber: '', password: '' }
+    defaultValues: { fullName: '', phone: '', email: '', nationalIdNumber: '', password: '', paymentMethod: 'instapay', paymentMethodDetails: '' }
   });
 
   const onSubmit = (data: z.infer<typeof registerSchema>) => {
@@ -112,6 +115,48 @@ export default function Register() {
                   <FormMessage className="text-red-300 text-xs" />
                 </FormItem>
               )} />
+
+              <div className="bg-primary-foreground/5 p-4 rounded-xl border border-primary-foreground/10 space-y-4 mt-2">
+                <h3 className="text-sm font-bold text-primary-foreground/90 tracking-widest uppercase">Payment Method</h3>
+                
+                <FormField control={form.control} name="paymentMethod" render={({ field }) => (
+                  <FormItem>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="bg-transparent border-primary-foreground/20 text-primary-foreground rounded-xl h-12">
+                          <SelectValue placeholder="Select Payment Method" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="instapay">InstaPay</SelectItem>
+                        <SelectItem value="ewallet">E-Wallet (Vodafone Cash, etc.)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage className="text-red-300 text-xs" />
+                  </FormItem>
+                )} />
+
+                <FormField control={form.control} name="paymentMethodDetails" render={({ field }) => (
+                  <FormItem className="relative mt-4">
+                    <FormControl>
+                      <Input 
+                        placeholder=" " 
+                        {...field} 
+                        className="peer bg-primary-foreground/5 border border-primary-foreground/20 text-primary-foreground rounded-xl h-14 pt-4 pb-1 px-4 outline-none focus-visible:ring-1 focus-visible:ring-primary-foreground focus-visible:border-primary-foreground transition-colors w-full" 
+                      />
+                    </FormControl>
+                    <FormLabel className="absolute left-4 transition-all duration-300 pointer-events-none top-1/2 -translate-y-1/2 text-sm text-primary-foreground/60 font-medium peer-focus:top-4 peer-focus:text-[10px] peer-focus:font-bold peer-focus:text-primary-foreground peer-[:not(:placeholder-shown)]:top-4 peer-[:not(:placeholder-shown)]:text-[10px] peer-[:not(:placeholder-shown)]:font-bold peer-[:not(:placeholder-shown)]:text-primary-foreground/90">
+                      {form.watch('paymentMethod') === 'instapay' ? 'InstaPay Username / Link' : 'Wallet Phone Number'}
+                    </FormLabel>
+                    {form.watch('paymentMethod') === 'instapay' && (
+                      <FormDescription className="text-[10px] text-primary-foreground/60 mt-1 ml-1 leading-tight">
+                        To get your link: Open InstaPay &gt; Tap your profile &gt; Copy payment link. Or just write your InstaPay address (e.g., name@instapay).
+                      </FormDescription>
+                    )}
+                    <FormMessage className="text-red-300 text-xs" />
+                  </FormItem>
+                )} />
+              </div>
 
               <Button type="submit" className="w-full h-12 mt-6 bg-primary-foreground text-primary hover:bg-primary-foreground/90 rounded-xl text-sm font-bold tracking-widest uppercase shadow-sm transition-transform active:scale-[0.98]" disabled={registerMutation.isPending}>
                 {registerMutation.isPending ? <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" /> : (

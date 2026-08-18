@@ -8,7 +8,8 @@ import {
   Settings, 
   LogOut, 
   ShieldAlert,
-  Megaphone
+  Megaphone,
+  Wallet
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { clearAuthToken } from "@/lib/auth";
@@ -51,6 +52,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
     { name: "Events", href: "/events", icon: Calendar },
     { name: "Ushers", href: "/ushers", icon: Users, hide: isCoordinator },
     { name: "Broadcasts", href: "/broadcasts", icon: Megaphone, hide: isCoordinator },
+    { name: "Financials", href: "/financials", icon: Wallet, hide: isCoordinator },
     { name: "Audit Log", href: "/audit-log", icon: ShieldAlert, hide: !isSuper && !user },
     { name: "Settings", href: "/settings", icon: Settings, hide: !isSuper },
   ].filter(item => !item.hide);

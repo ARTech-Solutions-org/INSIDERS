@@ -1348,6 +1348,8 @@ paths:
     post:
       operationId: createTransaction
       summary: Admin manually adjusts usher balance
+      tags:
+        - admin
       requestBody:
         required: true
         content:
@@ -1366,6 +1368,8 @@ paths:
     get:
       operationId: listAllPayouts
       summary: List all payouts (admin)
+      tags:
+        - admin
       parameters:
         - name: status
           in: query
@@ -1387,6 +1391,8 @@ paths:
     post:
       operationId: createPayout
       summary: Create payout for usher (admin)
+      tags:
+        - admin
       requestBody:
         required: true
         content:
@@ -1405,6 +1411,8 @@ paths:
     patch:
       operationId: updatePayoutStatus
       summary: Update payout status (admin)
+      tags:
+        - admin
       parameters:
         - name: id
           in: path
@@ -2021,6 +2029,8 @@ components:
           type: ["number", "null"]
         venueLng:
           type: ["number", "null"]
+        checkinWindowMinutes:
+          type: ["integer", "null"]
         meetingPointLat:
           type: ["number", "null"]
         meetingPointLng:
