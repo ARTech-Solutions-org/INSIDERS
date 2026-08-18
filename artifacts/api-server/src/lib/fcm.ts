@@ -16,7 +16,7 @@ import { eq, inArray } from "drizzle-orm";
 let _app: App | null = null;
 let _messaging: Messaging | null = null;
 
-function getFirebaseMessaging(): Messaging | null {
+export function getFirebaseMessaging(): Messaging | null {
   if (_messaging) return _messaging;
 
   const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;

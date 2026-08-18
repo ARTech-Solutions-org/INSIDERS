@@ -52,6 +52,8 @@ router.delete("/admins/:id", requireAdmin, async (req, res) => {
   res.status(204).send();
 });
 
+import { getFirebaseMessaging } from "../lib/fcm.js";
+
 // GET /broadcasts
 router.get("/broadcasts", requireAdmin, async (req, res) => {
   const broadcasts = await db.select().from(broadcastMessagesTable).orderBy(desc(broadcastMessagesTable.sentAt));
@@ -77,6 +79,37 @@ router.post("/broadcasts", requireAdmin, async (req, res) => {
   }
   await audit(req.user!.id, "SEND_BROADCAST", "broadcast_messages", broadcast.id);
   res.status(201).json(broadcast);
+});
+
+// GET /fcm-debug
+router.get("/fcm-debug", requireAdmin, async (req, res) => {
+  try {
+    const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+    if (!raw) {
+      res.json({ error: "FIREBASE_SERVICE_ACCOUNT_JSON is missing from environment variables." });
+      return;
+    }
+    
+    // Try to parse it
+    let credential;
+    try {
+      credential = JSON.parse(raw);
+    } catch (e: any) {
+      res.json({ error: "FIREBASE_SERVICE_ACCOUNT_JSON is not valid JSON.", details: e.message, firstFewChars: raw.substring(0, 15) });
+      return;
+    }
+
+    // Try to init messaging
+    const messaging = getFirebaseMessaging();
+    if (!messaging) {
+      res.json({ error: "getFirebaseMessaging() returned null for an unknown reason." });
+      return;
+    }
+
+    res.json({ success: true, message: "Firebase Admin initialized correctly." });
+  } catch (err: any) {
+    res.json({ error: "Caught an exception.", details: err.message, stack: err.stack });
+  }
 });
 
 // GET /audit-log
