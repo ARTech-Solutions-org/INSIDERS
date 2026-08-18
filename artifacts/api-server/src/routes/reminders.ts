@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db, eventsTable, eventAssignmentsTable, ushersTable } from "@workspace/db";
-import { and, gte, lte, eq, inArray } from "drizzle-orm";
+import { and, gte, lte, eq, inArray, lt, ne } from "drizzle-orm";
 import { sendPushToUsher } from "../lib/fcm.js";
 
 const router = Router();
