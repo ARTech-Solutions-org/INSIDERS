@@ -6,7 +6,7 @@ import { DownloadCloud, BellRing } from 'lucide-react';
 
 export function PWAInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [isStandalone, setIsStandalone] = useState(true); // default true to prevent flash
+  const [isStandalone, setIsStandalone] = useState(true);
   const [showPrompt, setShowPrompt] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
 
@@ -38,18 +38,33 @@ export function PWAInstallPrompt() {
   }, []);
 
   useEffect(() => {
-    // Only show if:
-    // 1. User hasn't dismissed before
-    // 2. Notifications are not yet granted
     const dismissed = localStorage.getItem('pwa_prompt_dismissed');
-    const notifPermission = 'Notification' in window ? Notification.permission : 'denied';
     
-    if (!dismissed && notifPermission === 'default') {
-      setShowPrompt(true);
+    // On iOS Safari (not installed), 'Notification' might not exist on window at all.
+    // If it doesn't exist, we assume 'default' so we can at least show the prompt telling them to install.
+    const notifPermission = 'Notification' in window ? Notification.permission : 'default';
+    
+    const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    const standalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
+
+    if (!dismissed) {
+      // Show prompt if notifications aren't granted, OR if they are on iOS and not installed yet.
+      if (notifPermission === 'default' || (ios && !standalone)) {
+        setShowPrompt(true);
+      }
     }
   }, []);
 
   const handleInstallAndNotify = async () => {
+    // If iOS and NOT standalone, they CANNOT request notifications yet.
+    // They MUST add to home screen first.
+    if (isIOS && !isStandalone) {
+      // Just dismiss the prompt, they need to manually tap Share -> Add to Home Screen.
+      localStorage.setItem('pwa_prompt_dismissed', '1');
+      setShowPrompt(false);
+      return;
+    }
+
     // Always dismiss the prompt first
     localStorage.setItem('pwa_prompt_dismissed', '1');
     setShowPrompt(false);
@@ -97,14 +112,16 @@ export function PWAInstallPrompt() {
 
             {isIOS && !isStandalone && (
               <p className="text-sm text-muted-foreground bg-muted p-3 rounded-lg text-left" dir="ltr">
-                <strong>For iPhone:</strong> Tap the Share button below, then select "Add to Home Screen" ➕
+                <strong>For iPhone:</strong> Safari requires the app to be installed first. Tap the <strong>Share</strong> button at the bottom of Safari, then select <strong>"Add to Home Screen" ➕</strong>. 
+                <br/><br/>
+                Once added, open the app from your Home Screen to enable notifications.
               </p>
             )}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter className="sm:justify-center mt-6 flex flex-col gap-2">
           <Button onClick={handleInstallAndNotify} size="lg" className="w-full text-lg h-14 rounded-xl font-bold shadow-lg shadow-primary/20">
-            Enable Notifications
+            {isIOS && !isStandalone ? "Understood" : "Enable Notifications"}
           </Button>
           <Button onClick={handleSkip} variant="ghost" size="sm" className="w-full text-muted-foreground">
             Skip for now
