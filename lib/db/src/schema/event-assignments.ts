@@ -21,6 +21,7 @@ export const eventAssignmentsTable = pgTable("event_assignments", {
   checkoutLat: real("checkout_lat"),
   checkoutLng: real("checkout_lng"),
   earlyLeaveMinutes: integer("early_leave_minutes").default(0),     // minutes before event end
+  reminderSent: boolean("reminder_sent").default(false),
 });
 
 export const insertEventAssignmentSchema = createInsertSchema(eventAssignmentsTable).omit({ id: true });

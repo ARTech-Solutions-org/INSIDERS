@@ -62,3 +62,8 @@ main.zip
 
 # Vercel build output
 artifacts/api-server/_vercel_build/
+
+# Local databases and secrets
+*.db
+*.sqlite
+*-firebase-adminsdk-*.json

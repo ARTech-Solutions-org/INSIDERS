@@ -5,6 +5,7 @@ import { eq, lte, and, desc, gte, sql, lt, inArray } from "drizzle-orm";
 import { requireAdmin } from "../middleware/auth.js";
 import { audit } from "../lib/audit.js";
 import { CreateAdminBody, UpdateAdminBody, SendBroadcastBody } from "@workspace/api-zod";
+import { sendPushToUshers } from "../lib/fcm.js";
 
 const router = Router();
 
@@ -66,6 +67,13 @@ router.post("/broadcasts", requireAdmin, async (req, res) => {
   const ushers = await db.select({ id: ushersTable.id }).from(ushersTable).where(eq(ushersTable.status, "active"));
   if (ushers.length) {
     await db.insert(notificationsTable).values(ushers.map(u => ({ recipientType: "usher", recipientId: u.id, type: "broadcast", message: parsed.data.message })));
+
+    // Also send as push notifications to all active ushers
+    await sendPushToUshers(ushers.map(u => u.id), {
+      title: "رسالة من الإدارة 📣",
+      body: parsed.data.message,
+      data: { type: "broadcast" },
+    });
   }
   await audit(req.user!.id, "SEND_BROADCAST", "broadcast_messages", broadcast.id);
   res.status(201).json(broadcast);

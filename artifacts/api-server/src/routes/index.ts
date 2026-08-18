@@ -8,6 +8,8 @@ import balanceRouter from "./balance.js";
 import myAssignmentsRouter from "./my-assignments.js";
 import notificationsRouter from "./notifications.js";
 import ratingsRouter from "./ratings.js";
+import pushTokensRouter from "./push-tokens.js";
+import remindersRouter from "./reminders.js";
 
 const router: IRouter = Router();
 
@@ -20,5 +22,7 @@ router.use(balanceRouter);
 router.use(myAssignmentsRouter);
 router.use(notificationsRouter);
 router.use(ratingsRouter);
+router.use(pushTokensRouter);
+router.use(remindersRouter);
 
 export default router;

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { randomBytes } from "crypto";
 import { db, eventsTable, eventAssignmentsTable, deductionRulesTable, eventHolderLinksTable, waitlistTable, ushersTable, usherAvailabilityTable, eventTeamsTable } from "@workspace/db";
-import { eq, and, gte, sql, desc, lt, ne, inArray, lte } from "drizzle-orm";
+import { eq, and, gte, sql, desc, lt, gt, ne, inArray, lte } from "drizzle-orm";
 import { requireAdmin, requireAuth } from "../middleware/auth.js";
 import { audit } from "../lib/audit.js";
 import {
@@ -13,6 +13,7 @@ import {
   CreateEventTeamBody,
 } from "@workspace/api-zod";
 import { z } from "zod";
+import { sendPushToUsher, sendPushToUshers } from "../lib/fcm.js";
 
 function getDistanceMeters(lat1: number, lon1: number, lat2: number, lon2: number) {
   const R = 6371e3; // metres
@@ -299,8 +300,34 @@ router.post("/events/:id/assignments", requireAdmin, async (req, res) => {
     return;
   }
 
+  // Check for overlaps with other events
+  const overlappingAssignments = await db.select()
+    .from(eventAssignmentsTable)
+    .innerJoin(eventsTable, eq(eventAssignmentsTable.eventId, eventsTable.id))
+    .where(
+      and(
+        eq(eventAssignmentsTable.usherId, parsed.data.usherId),
+        inArray(eventAssignmentsTable.status, ["assigned", "accepted", "checked_in"]),
+        lt(eventsTable.startTime, existing.endTime),
+        gt(eventsTable.endTime, existing.startTime)
+      )
+    );
+
+  if (overlappingAssignments.length > 0) {
+    res.status(400).json({ error: "Cannot assign usher because they are busy with another event during this time." });
+    return;
+  }
+
   const [assignment] = await db.insert(eventAssignmentsTable).values({ eventId, usherId: parsed.data.usherId, eventTeamId: parsed.data.eventTeamId, isTeamLead: parsed.data.isTeamLead ?? false, status: "assigned" }).returning();
   await audit(req.user!.id, "ASSIGN_USHER", "event_assignments", assignment.id);
+
+  // Send push notification to the assigned usher
+  await sendPushToUsher(parsed.data.usherId, {
+    title: "تم تعيينك في فعالية 🎉",
+    body: `تم تعيينك في فعالية "${existing.title}". تحقق من تفاصيل الفعالية.`,
+    data: { eventId: String(eventId), type: "assignment" },
+  });
+
   res.status(201).json(assignment);
 });
 
@@ -485,6 +512,16 @@ router.post("/events/:id/smart-assign-batch", requireAdmin, async (req, res) => 
     await audit(req.user!.id, "ASSIGN_USHER", "event_assignments", c.id);
   }
 
+  // Send push notifications to all newly assigned ushers
+  const [targetEvent] = await db.select({ title: eventsTable.title }).from(eventsTable).where(eq(eventsTable.id, eventId));
+  if (targetEvent) {
+    await sendPushToUshers(created.map(c => c.usherId), {
+      title: "تم تعيينك في فعالية 🎉",
+      body: `تم تعيينك في فعالية "${targetEvent.title}". تحقق من تفاصيل الفعالية.`,
+      data: { eventId: String(eventId), type: "assignment" },
+    });
+  }
+
   res.status(201).json(created);
 });
 
@@ -585,7 +622,28 @@ router.post("/events/:id/waitlist/:waitlistId/promote", requireAdmin, async (req
   const [existing] = await db.select().from(waitlistTable).where(and(eq(waitlistTable.id, waitlistId), eq(waitlistTable.eventId, eventId)));
   if (!existing) { res.status(404).json({ error: "Waitlist entry not found" }); return; }
 
+  const [event] = await db.select().from(eventsTable).where(eq(eventsTable.id, eventId));
+  if (!event) { res.status(404).json({ error: "Event not found" }); return; }
+
   const [usher] = await db.select().from(ushersTable).where(eq(ushersTable.id, existing.usherId));
+
+  // Check for overlaps with other events
+  const overlappingAssignments = await db.select()
+    .from(eventAssignmentsTable)
+    .innerJoin(eventsTable, eq(eventAssignmentsTable.eventId, eventsTable.id))
+    .where(
+      and(
+        eq(eventAssignmentsTable.usherId, existing.usherId),
+        inArray(eventAssignmentsTable.status, ["assigned", "accepted", "checked_in"]),
+        lt(eventsTable.startTime, event.endTime),
+        gt(eventsTable.endTime, event.startTime)
+      )
+    );
+
+  if (overlappingAssignments.length > 0) {
+    res.status(400).json({ error: "Cannot promote usher because they are busy with another event during this time." });
+    return;
+  }
 
   // Remove from waitlist
   await db.delete(waitlistTable).where(eq(waitlistTable.id, waitlistId));
@@ -598,6 +656,16 @@ router.post("/events/:id/waitlist/:waitlistId/promote", requireAdmin, async (req
     isTeamLead: isTeamLead || false,
     status: existing.status === "accepted" ? "accepted" : "assigned"
   }).returning();
+
+  // Send push notification to the promoted usher
+  const [promotedEvent] = await db.select({ title: eventsTable.title }).from(eventsTable).where(eq(eventsTable.id, eventId));
+  if (promotedEvent) {
+    await sendPushToUsher(existing.usherId, {
+      title: "تمت ترقيتك من قائمة الانتظار 🎉",
+      body: `تم ترقيتك لفعالية "${promotedEvent.title}". تحقق من تفاصيل الفعالية.`,
+      data: { eventId: String(eventId), type: "assignment" },
+    });
+  }
 
   res.json({ ...assignment, usher });
 });
