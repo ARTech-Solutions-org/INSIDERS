@@ -50,18 +50,17 @@ router.post("/send-event-reminders", async (req, res) => {
     console.error("[Cron] Failed to auto-complete events:", err);
   }
 
-  // --- 2. Find events starting in ~24 hours ───────────────────────────────────────
+  // --- 2. Find events starting in the next 24 hours ───────────────────────────────────────
   const now = new Date();
-  const windowStart = new Date(now.getTime() + (24 * 60 - 5) * 60 * 1000); // 23h 55m from now
-  const windowEnd   = new Date(now.getTime() + (24 * 60 + 5) * 60 * 1000); // 24h 05m from now
+  const next24Hours = new Date(now.getTime() + 24 * 60 * 60 * 1000); // exactly 24 hours from now
 
   const upcomingEvents = await db
     .select()
     .from(eventsTable)
     .where(
       and(
-        gte(eventsTable.startTime, windowStart),
-        lte(eventsTable.startTime, windowEnd)
+        gte(eventsTable.startTime, now),
+        lte(eventsTable.startTime, next24Hours)
       )
     );
 
