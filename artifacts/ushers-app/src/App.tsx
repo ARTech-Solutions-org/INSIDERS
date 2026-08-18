@@ -6,6 +6,8 @@ import { Route, Switch, Router as WouterRouter } from 'wouter';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Watermark } from '@/components/ui/watermark';
 import { PWAInstallPrompt } from '@/components/pwa-install-prompt';
+import { onForegroundMessage } from '@/lib/firebase';
+import { useEffect } from 'react';
 
 // Pages
 import Login from '@/pages/login';
@@ -59,6 +61,22 @@ function Router() {
   );
 }
 
+function ForegroundNotifications() {
+  useEffect(() => {
+    return onForegroundMessage((payload: any) => {
+      const title = payload.notification?.title ?? payload.data?.title ?? 'إشعار جديد';
+      const body = payload.notification?.body ?? payload.data?.body ?? '';
+      
+      toast(title, {
+        description: body,
+        duration: 8000,
+      });
+    });
+  }, []);
+  
+  return null;
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -69,6 +87,7 @@ function App() {
             <Router />
           </WouterRouter>
           <PWAInstallPrompt />
+          <ForegroundNotifications />
         </div>
         <Toaster position="top-center" richColors />
       </TooltipProvider>
