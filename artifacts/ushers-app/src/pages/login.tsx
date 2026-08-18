@@ -8,7 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Logo } from '@/components/ui/logo';
 import { useLoginUsher } from '@workspace/api-client-react';
-import { setAuthToken } from '@/lib/auth';
+import { setAuthToken, registerPushToken } from '@/lib/auth';
 import { useQueryClient } from '@tanstack/react-query';
 import { getGetMeQueryKey } from '@workspace/api-client-react';
 import { toast } from 'sonner';
@@ -35,6 +35,8 @@ export default function Login() {
         setAuthToken(res.token);
         queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
         toast.success('Logged in successfully');
+        // Register push token now that we have an auth token
+        registerPushToken();
         if (res.usher.status === 'pending') {
           setLocation('/pending');
         } else if (res.usher.status === 'declined') {
