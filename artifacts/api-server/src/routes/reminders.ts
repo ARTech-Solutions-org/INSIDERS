@@ -35,7 +35,22 @@ router.post("/send-event-reminders", async (req, res) => {
     return;
   }
 
-  // ── Find events starting in ~24 hours ───────────────────────────────────────
+  // --- 1. Auto-complete events whose end time has passed ---
+  try {
+    await db
+      .update(eventsTable)
+      .set({ status: "completed" })
+      .where(
+        and(
+          lt(eventsTable.endTime, new Date()),
+          ne(eventsTable.status, "completed")
+        )
+      );
+  } catch (err) {
+    console.error("[Cron] Failed to auto-complete events:", err);
+  }
+
+  // --- 2. Find events starting in ~24 hours ───────────────────────────────────────
   const now = new Date();
   const windowStart = new Date(now.getTime() + (24 * 60 - 5) * 60 * 1000); // 23h 55m from now
   const windowEnd   = new Date(now.getTime() + (24 * 60 + 5) * 60 * 1000); // 24h 05m from now

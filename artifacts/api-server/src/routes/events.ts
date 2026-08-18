@@ -36,16 +36,7 @@ function buildEventDetail(event: any, assignments: any[], deductionRules: any[])
 
 // GET /events
 router.get("/events", requireAuth, async (req, res) => {
-  // Automatically mark events as completed if their end time has passed
-  await db
-    .update(eventsTable)
-    .set({ status: "completed" })
-    .where(
-      and(
-        lt(eventsTable.endTime, new Date()),
-        ne(eventsTable.status, "completed")
-      )
-    );
+  // Auto-completion logic moved to the background cron job to prevent slow page loads
 
   const { status, page = "1", limit = "20" } = req.query as Record<string, string>;
   const offset = (parseInt(page) - 1) * parseInt(limit);
@@ -67,16 +58,7 @@ router.post("/events", requireAdmin, async (req, res) => {
 
 // GET /events/:id
 router.get("/events/:id", requireAuth, async (req, res) => {
-  // Automatically mark events as completed if their end time has passed
-  await db
-    .update(eventsTable)
-    .set({ status: "completed" })
-    .where(
-      and(
-        lt(eventsTable.endTime, new Date()),
-        ne(eventsTable.status, "completed")
-      )
-    );
+  // Auto-completion logic moved to the background cron job to prevent slow page loads
 
   const eventId = parseInt(req.params.id as string, 10);
   const [event] = await db.select().from(eventsTable).where(eq(eventsTable.id, eventId));
