@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useRoute, Link } from "wouter";
 import { 
   useGetUsher, 
@@ -37,6 +38,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import { InstaPayModal } from "@/components/ui/instapay-modal";
 
 const getImageUrl = (key?: string | null) => {
   if (!key) return undefined;
@@ -71,6 +73,7 @@ export default function UsherDetails() {
   const usherId = params?.id ? parseInt(params.id, 10) : 0;
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [isInstaPayModalOpen, setIsInstaPayModalOpen] = useState(false);
 
   const { data: usher, isLoading, isError } = useGetUsher(usherId, {
     query: { enabled: !!usherId, queryKey: getGetUsherQueryKey(usherId) as any }
@@ -339,10 +342,21 @@ export default function UsherDetails() {
             {usher.paymentMethod && (
               <div className="flex items-center gap-3 text-sm">
                 <Banknote className="w-4 h-4 text-muted-foreground shrink-0" />
-                <div>
-                  <p className="text-xs text-muted-foreground">Payment Method</p>
-                  <p className="font-medium uppercase">{usher.paymentMethod}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5 break-all">{usher.paymentMethodDetails}</p>
+                <div className="flex items-center justify-between w-full">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Payment Method</p>
+                    <p className="font-medium uppercase">{usher.paymentMethod}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5 break-all">{usher.paymentMethodDetails}</p>
+                  </div>
+                  {usher.paymentMethod.toLowerCase() === 'instapay' && usher.paymentMethodDetails && (
+                    <Button 
+                      size="sm" 
+                      onClick={() => setIsInstaPayModalOpen(true)}
+                      className="shrink-0"
+                    >
+                      Pay via InstaPay
+                    </Button>
+                  )}
                 </div>
               </div>
             )}
@@ -459,6 +473,18 @@ export default function UsherDetails() {
           </CardContent>
         </Card>
       </div>
+
+      {usher?.paymentMethodDetails && usher.paymentMethod?.toLowerCase() === 'instapay' && (
+        <InstaPayModal
+          isOpen={isInstaPayModalOpen}
+          onClose={() => setIsInstaPayModalOpen(false)}
+          paymentLink={
+            usher.paymentMethodDetails.startsWith('http') 
+              ? usher.paymentMethodDetails 
+              : `https://ipn.eg/S/${usher.paymentMethodDetails}`
+          }
+        />
+      )}
     </div>
   );
 }
