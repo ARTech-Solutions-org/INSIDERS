@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import { UserPlus, Upload, Image as ImageIcon, ChevronDown } from 'lucide-react';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuCheckboxItem } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
+import { ImageCropper } from '@/components/ui/image-cropper';
 
 const COMMON_LANGUAGES = [
   "Arabic",
@@ -148,6 +149,7 @@ export default function Register() {
   const queryClient = useQueryClient();
   const registerMutation = useRegisterUsher();
   const [isUploading, setIsUploading] = useState(false);
+  const [photoToCrop, setPhotoToCrop] = useState<File | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(registerSchema),
@@ -261,7 +263,19 @@ export default function Register() {
                   <h3 className="text-lg font-bold tracking-widest uppercase mb-4 flex items-center gap-2"><ImageIcon className="w-5 h-5 opacity-70" /> Profile Photo</h3>
                   <FormField control={form.control} name="profilePhotoFile" render={({ field }) => (
                     <FormItem>
-                      <FormControl><FileUpload accept="image/jpeg, image/png" placeholder="Upload Profile Photo (Max 3MB)" onChange={field.onChange} /></FormControl>
+                      <FormControl>
+                        <FileUpload 
+                          accept="image/jpeg, image/png" 
+                          placeholder="Upload Profile Photo (Max 3MB)" 
+                          onChange={(file) => {
+                            if (file) {
+                              setPhotoToCrop(file);
+                            } else {
+                              field.onChange(file);
+                            }
+                          }} 
+                        />
+                      </FormControl>
                       <FormDescription className="text-xs text-primary-foreground/60">For your ID badge and client-facing profile.</FormDescription>
                       <FormMessage className="text-red-300 text-xs" />
                     </FormItem>
@@ -442,6 +456,18 @@ export default function Register() {
           </form>
         </Form>
       </div>
+
+      <ImageCropper
+        imageFile={photoToCrop}
+        onCropComplete={(croppedFile) => {
+          form.setValue('profilePhotoFile', croppedFile, { shouldValidate: true });
+          setPhotoToCrop(null);
+        }}
+        onCancel={() => {
+          setPhotoToCrop(null);
+          form.setValue('profilePhotoFile', undefined as any, { shouldValidate: true });
+        }}
+      />
     </div>
   );
 }

@@ -76,6 +76,7 @@
     "zod": "catalog:"
   },
   "dependencies": {
-    "firebase": "^12.17.1"
+    "firebase": "^12.17.1",
+    "react-easy-crop": "^6.2.3"
   }
 }

@@ -23,6 +23,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format, addDays } from 'date-fns';
+import { ImageCropper } from '@/components/ui/image-cropper';
 
 const uploadToR2 = async (file: File, type: string) => {
   const baseUrl = import.meta.env.VITE_API_URL?.replace(/\/+$/, '') || '';
@@ -68,6 +69,7 @@ export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({ fullName: '', phone: '' });
   const [newProfilePhoto, setNewProfilePhoto] = useState<File | null>(null);
+  const [photoToCrop, setPhotoToCrop] = useState<File | null>(null);
 
   const SKILL_OPTIONS: Record<string, string[]> = {
     language: ['Arabic', 'English', 'French', 'German', 'Spanish', 'Italian'],
@@ -243,12 +245,13 @@ export default function Profile() {
                   className="absolute inset-0 opacity-0 cursor-pointer"
                   onChange={e => {
                     if (e.target.files && e.target.files[0]) {
-                      setNewProfilePhoto(e.target.files[0]);
+                      setPhotoToCrop(e.target.files[0]);
+                      e.target.value = '';
                     }
                   }}
                 />
                 <Pencil className="w-5 h-5 text-white mb-1" />
-                <span className="text-[10px] text-white font-bold">CHANGE</span>
+                <span className="text-[10px] text-white font-bold tracking-widest uppercase">CHANGE</span>
               </div>
             )}
           </div>
@@ -447,6 +450,15 @@ export default function Profile() {
           SIGN OUT
         </Button>
       </div>
+
+      <ImageCropper
+        imageFile={photoToCrop}
+        onCropComplete={(croppedFile) => {
+          setNewProfilePhoto(croppedFile);
+          setPhotoToCrop(null);
+        }}
+        onCancel={() => setPhotoToCrop(null)}
+      />
     </div>
   );
 }
