@@ -95,7 +95,7 @@ function FileUpload({ accept, onChange, placeholder }: { accept: string, onChang
   const [fileName, setFileName] = useState<string | null>(null);
 
   return (
-    <div className="relative border border-primary-foreground/20 bg-primary-foreground/5 rounded-xl h-14 flex items-center px-4 overflow-hidden hover:bg-primary-foreground/10 transition-colors group">
+    <div className="relative border border-primary-foreground/20 bg-primary-foreground/5 rounded-xl h-14 flex items-center px-4 overflow-hidden hover:bg-primary-foreground/10 transition-colors group w-full">
       <input 
         type="file" 
         accept={accept}
@@ -243,7 +243,7 @@ export default function Register() {
             <div className="grid md:grid-cols-2 gap-8">
               
               {/* Left Column */}
-              <div className="space-y-8">
+              <div className="space-y-8 min-w-0">
                 
                 {/* Profile Photo */}
                 <div className="bg-primary p-6 md:p-8 rounded-3xl relative overflow-hidden text-primary-foreground shadow-sm">
@@ -296,7 +296,7 @@ export default function Register() {
               </div>
 
               {/* Right Column */}
-              <div className="space-y-8">
+              <div className="space-y-8 min-w-0">
                 
                 {/* Uniform Sizes */}
                 <div className="bg-primary-foreground/5 border border-primary-foreground/10 p-6 md:p-8 rounded-3xl relative overflow-hidden">
@@ -327,7 +327,7 @@ export default function Register() {
                     <FormField control={form.control} name="idFrontFile" render={({ field }) => (
                       <FormItem>
                         <FormControl>
-                          <div className="relative border border-border bg-background rounded-xl h-14 flex items-center px-4 overflow-hidden hover:bg-muted/50 transition-colors group">
+                          <div className="relative border border-border bg-background rounded-xl h-14 flex items-center px-4 overflow-hidden hover:bg-muted/50 transition-colors group w-full">
                             <input type="file" accept="image/jpeg, image/png, application/pdf" className="absolute inset-0 opacity-0 cursor-pointer z-10" onChange={e => { field.onChange(e.target.files?.[0] || null); }} />
                             <Upload className="w-5 h-5 shrink-0 text-muted-foreground mr-3 group-hover:text-foreground transition-colors" />
                             <span className="flex-1 min-w-0 text-sm text-foreground/80 truncate pointer-events-none group-hover:text-foreground transition-colors">{field.value instanceof File ? field.value.name : "Upload National ID (Front)"}</span>
@@ -339,7 +339,7 @@ export default function Register() {
                     <FormField control={form.control} name="idBackFile" render={({ field }) => (
                       <FormItem>
                         <FormControl>
-                          <div className="relative border border-border bg-background rounded-xl h-14 flex items-center px-4 overflow-hidden hover:bg-muted/50 transition-colors group">
+                          <div className="relative border border-border bg-background rounded-xl h-14 flex items-center px-4 overflow-hidden hover:bg-muted/50 transition-colors group w-full">
                             <input type="file" accept="image/jpeg, image/png, application/pdf" className="absolute inset-0 opacity-0 cursor-pointer z-10" onChange={e => { field.onChange(e.target.files?.[0] || null); }} />
                             <Upload className="w-5 h-5 shrink-0 text-muted-foreground mr-3 group-hover:text-foreground transition-colors" />
                             <span className="flex-1 min-w-0 text-sm text-foreground/80 truncate pointer-events-none group-hover:text-foreground transition-colors">{field.value instanceof File ? field.value.name : "Upload National ID (Back)"}</span>
