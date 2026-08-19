@@ -13,8 +13,22 @@ import { setAuthToken } from '@/lib/auth';
 import { useQueryClient } from '@tanstack/react-query';
 import { getGetMeQueryKey } from '@workspace/api-client-react';
 import { toast } from 'sonner';
-import { UserPlus, Upload, Image as ImageIcon } from 'lucide-react';
+import { UserPlus, Upload, Image as ImageIcon, ChevronDown } from 'lucide-react';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuCheckboxItem } from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
 
+const COMMON_LANGUAGES = [
+  "Arabic",
+  "English",
+  "French",
+  "German",
+  "Spanish",
+  "Italian",
+  "Russian",
+  "Turkish",
+  "Chinese",
+  "Japanese"
+];
 const registerSchema = z.object({
   fullName: z.string().min(2, 'Full name is required'),
   fullNameArabic: z.string().optional(),
@@ -46,48 +60,43 @@ const registerSchema = z.object({
 
 type FormValues = z.infer<typeof registerSchema>;
 
-function TagInput({ value = [], onChange, placeholder = "Add language..." }: { value: string[], onChange: (v: string[]) => void, placeholder?: string }) {
-  const [inputValue, setInputValue] = useState('');
-  
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' || e.key === ',') {
-      e.preventDefault();
-      const newTag = inputValue.trim();
-      if (newTag && !value.includes(newTag)) {
-        onChange([...value, newTag]);
-      }
-      setInputValue('');
-    }
-  };
-
-  const removeTag = (tagToRemove: string) => {
-    onChange(value.filter(tag => tag !== tagToRemove));
-  };
-
+function MultiSelectDropdown({ options, value = [], onChange, placeholder = "Select..." }: { options: string[], value: string[], onChange: (v: string[]) => void, placeholder?: string }) {
   return (
-    <div className="flex flex-wrap gap-2 items-center bg-primary-foreground/5 border border-primary-foreground/20 rounded-xl p-2 min-h-[56px] focus-within:border-primary-foreground focus-within:ring-1 focus-within:ring-primary-foreground transition-colors">
-      {value.map(tag => (
-        <span key={tag} className="bg-primary-foreground/20 text-primary-foreground px-2 py-1 rounded-md text-xs flex items-center gap-1 font-medium">
-          {tag}
-          <button type="button" onClick={() => removeTag(tag)} className="hover:text-red-300 ml-1 transition-colors">&times;</button>
-        </span>
-      ))}
-      <input 
-        type="text" 
-        className="flex-1 bg-transparent border-none outline-none text-primary-foreground text-sm min-w-[120px] placeholder:text-primary-foreground/50" 
-        placeholder={value.length === 0 ? placeholder : ''}
-        value={inputValue}
-        onChange={e => setInputValue(e.target.value)}
-        onKeyDown={handleKeyDown}
-        onBlur={() => {
-          const newTag = inputValue.trim();
-          if (newTag && !value.includes(newTag)) {
-            onChange([...value, newTag]);
-          }
-          setInputValue('');
-        }}
-      />
-    </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <div className="flex flex-wrap gap-2 items-center justify-between bg-primary-foreground/5 border border-primary-foreground/20 rounded-xl p-3 min-h-[56px] focus-within:border-primary-foreground focus-within:ring-1 focus-within:ring-primary-foreground transition-colors cursor-pointer w-full">
+          <div className="flex flex-wrap gap-1 items-center flex-1">
+            {value.length === 0 ? (
+              <span className="text-primary-foreground/50 text-sm pl-1">{placeholder}</span>
+            ) : (
+              value.map(tag => (
+                <Badge key={tag} variant="secondary" className="bg-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/30 px-2 py-1 font-medium text-xs">
+                  {tag}
+                </Badge>
+              ))
+            )}
+          </div>
+          <ChevronDown className="h-4 w-4 text-primary-foreground/50 shrink-0" />
+        </div>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-[var(--radix-dropdown-menu-trigger-width)] bg-popover max-h-60 overflow-y-auto">
+        {options.map(opt => (
+          <DropdownMenuCheckboxItem
+            key={opt}
+            checked={value.includes(opt)}
+            onCheckedChange={(checked) => {
+              if (checked) {
+                onChange([...value, opt]);
+              } else {
+                onChange(value.filter(s => s !== opt));
+              }
+            }}
+          >
+            {opt}
+          </DropdownMenuCheckboxItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
@@ -290,7 +299,7 @@ export default function Register() {
                       <FormItem className="relative"><FormControl><Input placeholder=" " {...field} className="peer bg-primary-foreground/5 border border-primary-foreground/20 text-primary-foreground rounded-xl h-14 pt-4 pb-1 px-4 outline-none focus-visible:ring-1 focus-visible:ring-primary-foreground focus-visible:border-primary-foreground transition-colors w-full" /></FormControl><FormLabel className="absolute left-4 transition-all duration-300 pointer-events-none top-1/2 -translate-y-1/2 text-sm text-primary-foreground/60 font-medium peer-focus:top-4 peer-focus:text-[10px] peer-focus:font-bold peer-focus:text-primary-foreground peer-[:not(:placeholder-shown)]:top-4 peer-[:not(:placeholder-shown)]:text-[10px] peer-[:not(:placeholder-shown)]:font-bold peer-[:not(:placeholder-shown)]:text-primary-foreground/90">Major / Field of Study</FormLabel><FormMessage className="text-red-300 text-xs" /></FormItem>
                     )} />
                     <FormField control={form.control} name="languages" render={({ field }) => (
-                      <FormItem><FormLabel className="text-primary-foreground/80 text-sm ml-1">Languages</FormLabel><FormControl><TagInput placeholder="+ Add Language (e.g. English, Arabic)" value={field.value || []} onChange={field.onChange} /></FormControl><FormMessage className="text-red-300 text-xs" /></FormItem>
+                      <FormItem><FormLabel className="text-primary-foreground/80 text-sm ml-1">Languages</FormLabel><FormControl><MultiSelectDropdown placeholder="Select Languages" options={COMMON_LANGUAGES} value={field.value || []} onChange={field.onChange} /></FormControl><FormMessage className="text-red-300 text-xs" /></FormItem>
                     )} />
                   </div>
                 </div>
