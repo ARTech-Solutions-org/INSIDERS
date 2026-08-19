@@ -24,6 +24,33 @@ import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format, addDays } from 'date-fns';
 
+const uploadToR2 = async (file: File, type: string) => {
+  const baseUrl = import.meta.env.VITE_API_URL?.replace(/\/+$/, '') || '';
+  const res = await fetch(`${baseUrl}/api/uploads/presigned-url`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ filename: file.name, contentType: file.type, type })
+  });
+  if (!res.ok) throw new Error('Failed to get upload URL');
+  const { url, key } = await res.json();
+  
+  const uploadRes = await fetch(url, {
+    method: 'PUT',
+    headers: { 'Content-Type': file.type },
+    body: file
+  });
+  if (!uploadRes.ok) throw new Error('Failed to upload file');
+  
+  // Return the read url
+  return { url: `${baseUrl}/api/uploads/read?key=${encodeURIComponent(key)}`, key };
+};
+
+const getImageUrl = (key?: string | null) => {
+  if (!key) return undefined;
+  const baseUrl = import.meta.env.VITE_API_URL?.replace(/\/+$/, '') || '';
+  return `${baseUrl}/api/uploads/read?key=${encodeURIComponent(key)}`;
+};
+
 export default function Profile() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
@@ -40,6 +67,7 @@ export default function Profile() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({ fullName: '', phone: '' });
+  const [newProfilePhoto, setNewProfilePhoto] = useState<File | null>(null);
 
   const SKILL_OPTIONS: Record<string, string[]> = {
     language: ['Arabic', 'English', 'French', 'German', 'Spanish', 'Italian'],
@@ -64,15 +92,34 @@ export default function Profile() {
     }
   }, [profile]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!/^01[0125][0-9]{8}$/.test(formData.phone)) {
       toast.error('Please enter a valid Egyptian phone number (e.g. 01012345678)');
       return;
     }
-    updateMutation.mutate({ data: formData }, {
+    
+    let profilePhotoUrl = undefined;
+    let profilePhotoKey = undefined;
+    
+    if (newProfilePhoto) {
+      try {
+        toast.loading('Uploading photo...', { id: 'upload' });
+        const res = await uploadToR2(newProfilePhoto, 'profilePhoto');
+        profilePhotoUrl = res.url;
+        profilePhotoKey = res.key;
+        toast.dismiss('upload');
+      } catch (e) {
+        toast.dismiss('upload');
+        toast.error('Failed to upload photo');
+        return;
+      }
+    }
+
+    updateMutation.mutate({ data: { ...formData, profilePhotoUrl, profilePhotoKey } }, {
       onSuccess: () => {
         toast.success('Profile updated');
         setIsEditing(false);
+        setNewProfilePhoto(null);
         queryClient.invalidateQueries({ queryKey: getGetMyUsherProfileQueryKey() });
       },
       onError: (err) => toast.error(err.message || 'Update failed')
@@ -177,11 +224,32 @@ export default function Profile() {
       <div className="px-5 relative z-10 space-y-5">
         {/* Profile Card */}
         <div className="bg-card border border-border rounded-2xl p-6 flex flex-col items-center relative overflow-hidden shadow-sm">
-          <div className="w-24 h-24 rounded-full bg-muted border-4 border-background mb-4 flex items-center justify-center overflow-hidden shadow-sm relative z-10">
-            {profile.profilePhotoUrl ? (
+          <div className="w-24 h-24 rounded-full bg-muted border-4 border-background mb-4 flex items-center justify-center overflow-hidden shadow-sm relative z-10 group">
+            {newProfilePhoto ? (
+               <img src={URL.createObjectURL(newProfilePhoto)} alt="New Photo" className="w-full h-full object-cover" />
+            ) : profile.profilePhotoKey ? (
+              <img src={getImageUrl(profile.profilePhotoKey)} alt={profile.fullName} className="w-full h-full object-cover" />
+            ) : profile.profilePhotoUrl ? (
               <img src={profile.profilePhotoUrl} alt={profile.fullName} className="w-full h-full object-cover" />
             ) : (
               <User className="w-10 h-10 text-muted-foreground" />
+            )}
+            
+            {isEditing && (
+              <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                <Input 
+                  type="file" 
+                  accept="image/*"
+                  className="absolute inset-0 opacity-0 cursor-pointer"
+                  onChange={e => {
+                    if (e.target.files && e.target.files[0]) {
+                      setNewProfilePhoto(e.target.files[0]);
+                    }
+                  }}
+                />
+                <Pencil className="w-5 h-5 text-white mb-1" />
+                <span className="text-[10px] text-white font-bold">CHANGE</span>
+              </div>
             )}
           </div>
 

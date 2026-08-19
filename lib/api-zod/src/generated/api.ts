@@ -61,7 +61,11 @@ export const RegisterUsherResponse = zod.object({
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
   "paymentMethod": zod.string().nullish(),
-  "paymentMethodDetails": zod.string().nullish()
+  "paymentMethodDetails": zod.string().nullish(),
+  "profilePhotoKey": zod.string().nullish(),
+  "nationalIdDocKey": zod.string().nullish(),
+  "nationalIdDocBackKey": zod.string().nullish(),
+  "nationalIdDocBackUrl": zod.string().nullish()
 })
 })
 
@@ -89,7 +93,11 @@ export const LoginUsherResponse = zod.object({
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
   "paymentMethod": zod.string().nullish(),
-  "paymentMethodDetails": zod.string().nullish()
+  "paymentMethodDetails": zod.string().nullish(),
+  "profilePhotoKey": zod.string().nullish(),
+  "nationalIdDocKey": zod.string().nullish(),
+  "nationalIdDocBackKey": zod.string().nullish(),
+  "nationalIdDocBackUrl": zod.string().nullish()
 })
 })
 
@@ -230,7 +238,11 @@ export const ListUshersResponse = zod.object({
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
   "paymentMethod": zod.string().nullish(),
-  "paymentMethodDetails": zod.string().nullish()
+  "paymentMethodDetails": zod.string().nullish(),
+  "profilePhotoKey": zod.string().nullish(),
+  "nationalIdDocKey": zod.string().nullish(),
+  "nationalIdDocBackKey": zod.string().nullish(),
+  "nationalIdDocBackUrl": zod.string().nullish()
 })),
   "total": zod.int()
 })
@@ -252,7 +264,11 @@ export const GetMyUsherProfileResponse = zod.object({
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
   "paymentMethod": zod.string().nullish(),
-  "paymentMethodDetails": zod.string().nullish()
+  "paymentMethodDetails": zod.string().nullish(),
+  "profilePhotoKey": zod.string().nullish(),
+  "nationalIdDocKey": zod.string().nullish(),
+  "nationalIdDocBackKey": zod.string().nullish(),
+  "nationalIdDocBackUrl": zod.string().nullish()
 })
 
 
@@ -264,7 +280,8 @@ export const UpdateMyUsherProfileBody = zod.object({
   "phone": zod.string().optional(),
   "email": zod.string().optional(),
   "nationalIdDocUrl": zod.string().nullish(),
-  "profilePhotoUrl": zod.string().nullish()
+  "profilePhotoUrl": zod.string().nullish(),
+  "profilePhotoKey": zod.string().nullish()
 })
 
 export const UpdateMyUsherProfileResponse = zod.object({
@@ -280,7 +297,11 @@ export const UpdateMyUsherProfileResponse = zod.object({
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
   "paymentMethod": zod.string().nullish(),
-  "paymentMethodDetails": zod.string().nullish()
+  "paymentMethodDetails": zod.string().nullish(),
+  "profilePhotoKey": zod.string().nullish(),
+  "nationalIdDocKey": zod.string().nullish(),
+  "nationalIdDocBackKey": zod.string().nullish(),
+  "nationalIdDocBackUrl": zod.string().nullish()
 })
 
 
@@ -304,7 +325,11 @@ export const GetUsherResponse = zod.object({
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
   "paymentMethod": zod.string().nullish(),
-  "paymentMethodDetails": zod.string().nullish()
+  "paymentMethodDetails": zod.string().nullish(),
+  "profilePhotoKey": zod.string().nullish(),
+  "nationalIdDocKey": zod.string().nullish(),
+  "nationalIdDocBackKey": zod.string().nullish(),
+  "nationalIdDocBackUrl": zod.string().nullish()
 })
 
 
@@ -332,7 +357,11 @@ export const UpdateUsherStatusResponse = zod.object({
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
   "paymentMethod": zod.string().nullish(),
-  "paymentMethodDetails": zod.string().nullish()
+  "paymentMethodDetails": zod.string().nullish(),
+  "profilePhotoKey": zod.string().nullish(),
+  "nationalIdDocKey": zod.string().nullish(),
+  "nationalIdDocBackKey": zod.string().nullish(),
+  "nationalIdDocBackUrl": zod.string().nullish()
 })
 
 
@@ -610,7 +639,11 @@ export const GetEventResponse = zod.object({
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
   "paymentMethod": zod.string().nullish(),
-  "paymentMethodDetails": zod.string().nullish()
+  "paymentMethodDetails": zod.string().nullish(),
+  "profilePhotoKey": zod.string().nullish(),
+  "nationalIdDocKey": zod.string().nullish(),
+  "nationalIdDocBackKey": zod.string().nullish(),
+  "nationalIdDocBackUrl": zod.string().nullish()
 }).optional()
 })),
   "deductionRules": zod.array(zod.object({
@@ -892,7 +925,11 @@ export const PromoteWaitlistResponse = zod.object({
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
   "paymentMethod": zod.string().nullish(),
-  "paymentMethodDetails": zod.string().nullish()
+  "paymentMethodDetails": zod.string().nullish(),
+  "profilePhotoKey": zod.string().nullish(),
+  "nationalIdDocKey": zod.string().nullish(),
+  "nationalIdDocBackKey": zod.string().nullish(),
+  "nationalIdDocBackUrl": zod.string().nullish()
 })
 })
 
@@ -931,7 +968,11 @@ export const ListEventAssignmentsResponseItem = zod.object({
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
   "paymentMethod": zod.string().nullish(),
-  "paymentMethodDetails": zod.string().nullish()
+  "paymentMethodDetails": zod.string().nullish(),
+  "profilePhotoKey": zod.string().nullish(),
+  "nationalIdDocKey": zod.string().nullish(),
+  "nationalIdDocBackKey": zod.string().nullish(),
+  "nationalIdDocBackUrl": zod.string().nullish()
 }).optional()
 })
 export const ListEventAssignmentsResponse = zod.array(ListEventAssignmentsResponseItem)
@@ -977,7 +1018,11 @@ export const AssignUsherToEventResponse = zod.object({
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
   "paymentMethod": zod.string().nullish(),
-  "paymentMethodDetails": zod.string().nullish()
+  "paymentMethodDetails": zod.string().nullish(),
+  "profilePhotoKey": zod.string().nullish(),
+  "nationalIdDocKey": zod.string().nullish(),
+  "nationalIdDocBackKey": zod.string().nullish(),
+  "nationalIdDocBackUrl": zod.string().nullish()
 }).optional()
 })
 
@@ -1023,7 +1068,11 @@ export const UpdateAssignmentResponse = zod.object({
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
   "paymentMethod": zod.string().nullish(),
-  "paymentMethodDetails": zod.string().nullish()
+  "paymentMethodDetails": zod.string().nullish(),
+  "profilePhotoKey": zod.string().nullish(),
+  "nationalIdDocKey": zod.string().nullish(),
+  "nationalIdDocBackKey": zod.string().nullish(),
+  "nationalIdDocBackUrl": zod.string().nullish()
 }).optional()
 })
 
@@ -1074,7 +1123,11 @@ export const AdminCheckinResponse = zod.object({
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
   "paymentMethod": zod.string().nullish(),
-  "paymentMethodDetails": zod.string().nullish()
+  "paymentMethodDetails": zod.string().nullish(),
+  "profilePhotoKey": zod.string().nullish(),
+  "nationalIdDocKey": zod.string().nullish(),
+  "nationalIdDocBackKey": zod.string().nullish(),
+  "nationalIdDocBackUrl": zod.string().nullish()
 }).optional()
 })
 
@@ -1114,7 +1167,11 @@ export const AdminCheckoutResponse = zod.object({
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
   "paymentMethod": zod.string().nullish(),
-  "paymentMethodDetails": zod.string().nullish()
+  "paymentMethodDetails": zod.string().nullish(),
+  "profilePhotoKey": zod.string().nullish(),
+  "nationalIdDocKey": zod.string().nullish(),
+  "nationalIdDocBackKey": zod.string().nullish(),
+  "nationalIdDocBackUrl": zod.string().nullish()
 }).optional()
 })
 
@@ -1187,7 +1244,11 @@ export const SmartAssignBatchResponseItem = zod.object({
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
   "paymentMethod": zod.string().nullish(),
-  "paymentMethodDetails": zod.string().nullish()
+  "paymentMethodDetails": zod.string().nullish(),
+  "profilePhotoKey": zod.string().nullish(),
+  "nationalIdDocKey": zod.string().nullish(),
+  "nationalIdDocBackKey": zod.string().nullish(),
+  "nationalIdDocBackUrl": zod.string().nullish()
 }).optional()
 })
 export const SmartAssignBatchResponse = zod.array(SmartAssignBatchResponseItem)
@@ -1219,7 +1280,11 @@ export const ListWaitlistResponseItem = zod.object({
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
   "paymentMethod": zod.string().nullish(),
-  "paymentMethodDetails": zod.string().nullish()
+  "paymentMethodDetails": zod.string().nullish(),
+  "profilePhotoKey": zod.string().nullish(),
+  "nationalIdDocKey": zod.string().nullish(),
+  "nationalIdDocBackKey": zod.string().nullish(),
+  "nationalIdDocBackUrl": zod.string().nullish()
 }).optional()
 })
 export const ListWaitlistResponse = zod.array(ListWaitlistResponseItem)
@@ -1256,7 +1321,11 @@ export const AddToWaitlistResponse = zod.object({
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
   "paymentMethod": zod.string().nullish(),
-  "paymentMethodDetails": zod.string().nullish()
+  "paymentMethodDetails": zod.string().nullish(),
+  "profilePhotoKey": zod.string().nullish(),
+  "nationalIdDocKey": zod.string().nullish(),
+  "nationalIdDocBackKey": zod.string().nullish(),
+  "nationalIdDocBackUrl": zod.string().nullish()
 }).optional()
 })
 
@@ -1323,7 +1392,11 @@ export const ListMyAssignmentsResponseItem = zod.object({
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
   "paymentMethod": zod.string().nullish(),
-  "paymentMethodDetails": zod.string().nullish()
+  "paymentMethodDetails": zod.string().nullish(),
+  "profilePhotoKey": zod.string().nullish(),
+  "nationalIdDocKey": zod.string().nullish(),
+  "nationalIdDocBackKey": zod.string().nullish(),
+  "nationalIdDocBackUrl": zod.string().nullish()
 }).optional()
 })),
   "deductionRules": zod.array(zod.object({
@@ -1446,7 +1519,11 @@ export const AcceptAssignmentResponse = zod.object({
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
   "paymentMethod": zod.string().nullish(),
-  "paymentMethodDetails": zod.string().nullish()
+  "paymentMethodDetails": zod.string().nullish(),
+  "profilePhotoKey": zod.string().nullish(),
+  "nationalIdDocKey": zod.string().nullish(),
+  "nationalIdDocBackKey": zod.string().nullish(),
+  "nationalIdDocBackUrl": zod.string().nullish()
 }).optional()
 })),
   "deductionRules": zod.array(zod.object({
@@ -1539,7 +1616,11 @@ export const DeclineAssignmentResponse = zod.object({
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
   "paymentMethod": zod.string().nullish(),
-  "paymentMethodDetails": zod.string().nullish()
+  "paymentMethodDetails": zod.string().nullish(),
+  "profilePhotoKey": zod.string().nullish(),
+  "nationalIdDocKey": zod.string().nullish(),
+  "nationalIdDocBackKey": zod.string().nullish(),
+  "nationalIdDocBackUrl": zod.string().nullish()
 }).optional()
 })),
   "deductionRules": zod.array(zod.object({
@@ -1633,7 +1714,11 @@ export const UsherCheckinResponse = zod.object({
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
   "paymentMethod": zod.string().nullish(),
-  "paymentMethodDetails": zod.string().nullish()
+  "paymentMethodDetails": zod.string().nullish(),
+  "profilePhotoKey": zod.string().nullish(),
+  "nationalIdDocKey": zod.string().nullish(),
+  "nationalIdDocBackKey": zod.string().nullish(),
+  "nationalIdDocBackUrl": zod.string().nullish()
 }).optional()
 })),
   "deductionRules": zod.array(zod.object({
@@ -1727,7 +1812,11 @@ export const UsherCheckoutResponse = zod.object({
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
   "paymentMethod": zod.string().nullish(),
-  "paymentMethodDetails": zod.string().nullish()
+  "paymentMethodDetails": zod.string().nullish(),
+  "profilePhotoKey": zod.string().nullish(),
+  "nationalIdDocKey": zod.string().nullish(),
+  "nationalIdDocBackKey": zod.string().nullish(),
+  "nationalIdDocBackUrl": zod.string().nullish()
 }).optional()
 })),
   "deductionRules": zod.array(zod.object({
@@ -1821,7 +1910,11 @@ export const CancelAssignmentResponse = zod.object({
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
   "paymentMethod": zod.string().nullish(),
-  "paymentMethodDetails": zod.string().nullish()
+  "paymentMethodDetails": zod.string().nullish(),
+  "profilePhotoKey": zod.string().nullish(),
+  "nationalIdDocKey": zod.string().nullish(),
+  "nationalIdDocBackKey": zod.string().nullish(),
+  "nationalIdDocBackUrl": zod.string().nullish()
 }).optional()
 })),
   "deductionRules": zod.array(zod.object({
@@ -1921,7 +2014,11 @@ export const TeamCheckinMemberResponse = zod.object({
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
   "paymentMethod": zod.string().nullish(),
-  "paymentMethodDetails": zod.string().nullish()
+  "paymentMethodDetails": zod.string().nullish(),
+  "profilePhotoKey": zod.string().nullish(),
+  "nationalIdDocKey": zod.string().nullish(),
+  "nationalIdDocBackKey": zod.string().nullish(),
+  "nationalIdDocBackUrl": zod.string().nullish()
 }).optional()
 })),
   "deductionRules": zod.array(zod.object({
@@ -2426,7 +2523,11 @@ export const GetCoordinatorEventsResponseItem = zod.object({
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
   "paymentMethod": zod.string().nullish(),
-  "paymentMethodDetails": zod.string().nullish()
+  "paymentMethodDetails": zod.string().nullish(),
+  "profilePhotoKey": zod.string().nullish(),
+  "nationalIdDocKey": zod.string().nullish(),
+  "nationalIdDocBackKey": zod.string().nullish(),
+  "nationalIdDocBackUrl": zod.string().nullish()
 }).optional()
 }))
 })

@@ -23,4 +23,12 @@ export interface UsherProfile {
   paymentMethod?: string | null;
   /** @nullable */
   paymentMethodDetails?: string | null;
+  /** @nullable */
+  profilePhotoKey?: string | null;
+  /** @nullable */
+  nationalIdDocKey?: string | null;
+  /** @nullable */
+  nationalIdDocBackKey?: string | null;
+  /** @nullable */
+  nationalIdDocBackUrl?: string | null;
 }

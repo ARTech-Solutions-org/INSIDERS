@@ -3,22 +3,19 @@ info:
   title: Api
   version: 1.0.0
 servers:
-  - url: /api
-
+- url: /api
 paths:
   /healthz:
     get:
       operationId: getHealth
       summary: Health check
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/HealthStatus"
-
-  # ─── AUTH ────────────────────────────────────────────────────────────────
+                $ref: '#/components/schemas/HealthStatus'
   /auth/usher/register:
     post:
       operationId: registerUsher
@@ -28,17 +25,16 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UsherRegistration"
+              $ref: '#/components/schemas/UsherRegistration'
       responses:
-        "201":
+        '201':
           description: Created
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AuthResult"
-        "400":
+                $ref: '#/components/schemas/AuthResult'
+        '400':
           description: Bad request
-
   /auth/usher/login:
     post:
       operationId: loginUsher
@@ -48,17 +44,16 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/LoginInput"
+              $ref: '#/components/schemas/LoginInput'
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AuthResult"
-        "401":
+                $ref: '#/components/schemas/AuthResult'
+        '401':
           description: Unauthorized
-
   /auth/admin/login:
     post:
       operationId: loginAdmin
@@ -68,122 +63,117 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/LoginInput"
+              $ref: '#/components/schemas/LoginInput'
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AdminAuthResult"
-        "401":
+                $ref: '#/components/schemas/AdminAuthResult'
+        '401':
           description: Unauthorized
-
   /auth/me:
     get:
       operationId: getMe
       summary: Get current user
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CurrentUser"
-        "401":
+                $ref: '#/components/schemas/CurrentUser'
+        '401':
           description: Unauthorized
-
   /auth/logout:
     post:
       operationId: logout
       summary: Logout
       responses:
-        "200":
+        '200':
           description: OK
-
   /my/waitlists/{waitlistId}/accept:
     post:
-      tags: [Waitlist]
+      tags:
+      - Waitlist
       security:
-        - bearerAuth: []
+      - bearerAuth: []
       operationId: acceptWaitlist
       summary: Accept a waitlist offer
       parameters:
-        - name: waitlistId
-          in: path
-          required: true
-          schema:
-            type: integer
+      - name: waitlistId
+        in: path
+        required: true
+        schema:
+          type: integer
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/MyWaitlistEntry"
-
+                $ref: '#/components/schemas/MyWaitlistEntry'
   /my/waitlists/{waitlistId}/reject:
     post:
-      tags: [Waitlist]
+      tags:
+      - Waitlist
       security:
-        - bearerAuth: []
+      - bearerAuth: []
       operationId: rejectWaitlist
       summary: Reject a waitlist offer
       parameters:
-        - name: waitlistId
-          in: path
-          required: true
-          schema:
-            type: integer
+      - name: waitlistId
+        in: path
+        required: true
+        schema:
+          type: integer
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/MyWaitlistEntry"
-
-  # ─── ADMIN USHERS ──────────────────────────────────────────────────────────────
+                $ref: '#/components/schemas/MyWaitlistEntry'
   /ushers:
     get:
       operationId: listUshers
       summary: List all ushers (admin)
       parameters:
-        - name: status
-          in: query
-          schema:
-            type: string
-        - name: search
-          in: query
-          schema:
-            type: string
-        - name: page
-          in: query
-          schema:
-            type: integer
-        - name: limit
-          in: query
-          schema:
-            type: integer
+      - name: status
+        in: query
+        schema:
+          type: string
+      - name: search
+        in: query
+        schema:
+          type: string
+      - name: page
+        in: query
+        schema:
+          type: integer
+      - name: limit
+        in: query
+        schema:
+          type: integer
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UsherListResponse"
-
+                $ref: '#/components/schemas/UsherListResponse'
   /ushers/me:
     get:
       operationId: getMyUsherProfile
       summary: Get authenticated usher's profile
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UsherProfile"
+                $ref: '#/components/schemas/UsherProfile'
     patch:
       operationId: updateMyUsherProfile
       summary: Update authenticated usher's profile
@@ -192,73 +182,69 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UsherUpdate"
+              $ref: '#/components/schemas/UsherUpdate'
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UsherProfile"
-
+                $ref: '#/components/schemas/UsherProfile'
   /ushers/{id}:
     get:
       operationId: getUsher
       summary: Get usher by ID (admin)
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UsherProfile"
-        "404":
+                $ref: '#/components/schemas/UsherProfile'
+        '404':
           description: Not found
-
   /ushers/{id}/status:
     patch:
       operationId: updateUsherStatus
       summary: Approve or decline usher (admin)
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UsherStatusUpdate"
+              $ref: '#/components/schemas/UsherStatusUpdate'
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UsherProfile"
-
-  # ─── USHER DOCUMENTS ─────────────────────────────────────────────────────
+                $ref: '#/components/schemas/UsherProfile'
   /ushers/me/documents:
     get:
       operationId: listMyDocuments
       summary: List documents for the authenticated usher
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/UsherDocument"
+                  $ref: '#/components/schemas/UsherDocument'
     post:
       operationId: addMyDocument
       summary: Add document for authenticated usher
@@ -267,49 +253,46 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UsherDocumentInput"
+              $ref: '#/components/schemas/UsherDocumentInput'
       responses:
-        "201":
+        '201':
           description: Created
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UsherDocument"
-
+                $ref: '#/components/schemas/UsherDocument'
   /ushers/{id}/documents:
     get:
       operationId: listUsherDocuments
       summary: List usher documents (admin)
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/UsherDocument"
-
-  # ─── USHER SKILLS ────────────────────────────────────────────────────────
+                  $ref: '#/components/schemas/UsherDocument'
   /ushers/me/skills:
     get:
       operationId: listMySkills
       summary: List skills for authenticated usher
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/UsherSkill"
+                  $ref: '#/components/schemas/UsherSkill'
     post:
       operationId: addMySkill
       summary: Add skill for authenticated usher
@@ -318,54 +301,51 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UsherSkillInput"
+              $ref: '#/components/schemas/UsherSkillInput'
       responses:
-        "201":
+        '201':
           description: Created
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UsherSkill"
-
+                $ref: '#/components/schemas/UsherSkill'
   /ushers/me/skills/{skillId}:
     delete:
       operationId: deleteMySkill
       summary: Remove skill from authenticated usher
       parameters:
-        - name: skillId
-          in: path
-          required: true
-          schema:
-            type: integer
+      - name: skillId
+        in: path
+        required: true
+        schema:
+          type: integer
       responses:
-        "204":
+        '204':
           description: Deleted
-
-  # ─── USHER AVAILABILITY ──────────────────────────────────────────────────
   /ushers/me/availability:
     get:
       operationId: listMyAvailability
       summary: List availability for authenticated usher
       parameters:
-        - name: from
-          in: query
-          schema:
-            type: string
-            format: date
-        - name: to
-          in: query
-          schema:
-            type: string
-            format: date
+      - name: from
+        in: query
+        schema:
+          type: string
+          format: date
+      - name: to
+        in: query
+        schema:
+          type: string
+          format: date
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/UsherAvailability"
+                  $ref: '#/components/schemas/UsherAvailability'
     post:
       operationId: setMyAvailability
       summary: Set availability date for authenticated usher
@@ -374,355 +354,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UsherAvailabilityInput"
+              $ref: '#/components/schemas/UsherAvailabilityInput'
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UsherAvailability"
+                $ref: '#/components/schemas/UsherAvailability'
   /ushers/me/availability/{id}:
     delete:
       operationId: deleteMyAvailability
       summary: Delete availability slot for authenticated usher
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-  # ─── EVENTS ──────────────────────────────────────────────────────────────
-  /events:
-    get:
-      operationId: listEvents
-      summary: List events
-      parameters:
-        - name: status
-          in: query
-          schema:
-            type: string
-        - name: upcoming
-          in: query
-          schema:
-            type: boolean
-        - name: page
-          in: query
-          schema:
-            type: integer
-        - name: limit
-          in: query
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/EventListResponse"
-    post:
-      operationId: createEvent
-      summary: Create event (admin)
-      requestBody:
+      - name: id
+        in: path
         required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/EventInput"
-      responses:
-        "201":
-          description: Created
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Event"
-
-  /events/{id}:
-    get:
-      operationId: getEvent
-      summary: Get event by ID
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/EventDetail"
-        "404":
-          description: Not found
-    patch:
-      operationId: updateEvent
-      summary: Update event (admin)
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/EventUpdate"
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Event"
-    delete:
-      operationId: deleteEvent
-      summary: Delete event (admin)
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "204":
-          description: Deleted
-
-  /events/{id}/deduction-rules:
-    get:
-      operationId: listDeductionRules
-      summary: List deduction rules for event
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/DeductionRule"
-    post:
-      operationId: createDeductionRule
-      summary: Create deduction rule (admin)
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/DeductionRuleInput"
-      responses:
-        "201":
-          description: Created
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/DeductionRule"
-
-  /events/{id}/deduction-rules/{ruleId}:
-    delete:
-      operationId: deleteDeductionRule
-      summary: Delete deduction rule (admin)
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-        - name: ruleId
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "204":
-          description: Deleted
-
-  /events/{id}/holder-link:
-    get:
-      operationId: getEventHolderLink
-      summary: Get or create event holder link
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/EventHolderLink"
-    post:
-      operationId: createEventHolderLink
-      summary: Generate event holder link
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "201":
-          description: Created
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/EventHolderLink"
-
-  /events/holder/{token}:
-    get:
-      operationId: getEventByHolderToken
-      summary: Get event info by holder token (public)
-      parameters:
-        - name: token
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/EventHolderView"
-        "404":
-          description: Not found
-
-  # ─── EVENT TEAMS ─────────────────────────────────────────────────────────
-  /events/{id}/teams:
-    get:
-      operationId: listEventTeams
-      summary: List teams for an event
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/EventTeam"
-    post:
-      operationId: createEventTeam
-      summary: Create team for an event
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/EventTeamInput"
-      responses:
-        "201":
-          description: Created
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/EventTeam"
-
-  /events/{id}/teams/{teamId}:
-    delete:
-      operationId: deleteEventTeam
-      summary: Delete an event team
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-        - name: teamId
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "204":
-          description: Deleted
-
-  /events/{id}/teams/{teamId}/leader-suggestions:
-    get:
-      operationId: getTeamLeaderSuggestions
-      summary: Get ranked leader candidates from a team
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-        - name: teamId
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/UsherCandidate"
-
-  # ─── EVENT ASSIGNMENTS ───────────────────────────────────────────────────
-  /events/{id}/waitlist/{waitlistId}:
-    delete:
-      tags: [Events]
-      security:
-        - bearerAuth: []
-      operationId: removeFromWaitlist
-      summary: Remove usher from waitlist (admin)
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-        - name: waitlistId
-          in: path
-          required: true
-          schema:
-            type: integer
+        schema:
+          type: integer
       responses:
         '200':
           description: OK
@@ -733,25 +382,345 @@ paths:
                 properties:
                   success:
                     type: boolean
-
+  /events:
+    get:
+      operationId: listEvents
+      summary: List events
+      parameters:
+      - name: status
+        in: query
+        schema:
+          type: string
+      - name: upcoming
+        in: query
+        schema:
+          type: boolean
+      - name: page
+        in: query
+        schema:
+          type: integer
+      - name: limit
+        in: query
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventListResponse'
+    post:
+      operationId: createEvent
+      summary: Create event (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventInput'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+  /events/{id}:
+    get:
+      operationId: getEvent
+      summary: Get event by ID
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventDetail'
+        '404':
+          description: Not found
+    patch:
+      operationId: updateEvent
+      summary: Update event (admin)
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventUpdate'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+    delete:
+      operationId: deleteEvent
+      summary: Delete event (admin)
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '204':
+          description: Deleted
+  /events/{id}/deduction-rules:
+    get:
+      operationId: listDeductionRules
+      summary: List deduction rules for event
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeductionRule'
+    post:
+      operationId: createDeductionRule
+      summary: Create deduction rule (admin)
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeductionRuleInput'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeductionRule'
+  /events/{id}/deduction-rules/{ruleId}:
+    delete:
+      operationId: deleteDeductionRule
+      summary: Delete deduction rule (admin)
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: ruleId
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '204':
+          description: Deleted
+  /events/{id}/holder-link:
+    get:
+      operationId: getEventHolderLink
+      summary: Get or create event holder link
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventHolderLink'
+    post:
+      operationId: createEventHolderLink
+      summary: Generate event holder link
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventHolderLink'
+  /events/holder/{token}:
+    get:
+      operationId: getEventByHolderToken
+      summary: Get event info by holder token (public)
+      parameters:
+      - name: token
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventHolderView'
+        '404':
+          description: Not found
+  /events/{id}/teams:
+    get:
+      operationId: listEventTeams
+      summary: List teams for an event
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EventTeam'
+    post:
+      operationId: createEventTeam
+      summary: Create team for an event
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventTeamInput'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventTeam'
+  /events/{id}/teams/{teamId}:
+    delete:
+      operationId: deleteEventTeam
+      summary: Delete an event team
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: teamId
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '204':
+          description: Deleted
+  /events/{id}/teams/{teamId}/leader-suggestions:
+    get:
+      operationId: getTeamLeaderSuggestions
+      summary: Get ranked leader candidates from a team
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: teamId
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UsherCandidate'
+  /events/{id}/waitlist/{waitlistId}:
+    delete:
+      tags:
+      - Events
+      security:
+      - bearerAuth: []
+      operationId: removeFromWaitlist
+      summary: Remove usher from waitlist (admin)
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: waitlistId
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
   /events/{id}/waitlist/{waitlistId}/promote:
     post:
-      tags: [Events]
+      tags:
+      - Events
       security:
-        - bearerAuth: []
+      - bearerAuth: []
       operationId: promoteWaitlist
       summary: Promote usher from waitlist to assigned (admin)
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-        - name: waitlistId
-          in: path
-          required: true
-          schema:
-            type: integer
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: waitlistId
+        in: path
+        required: true
+        schema:
+          type: integer
       requestBody:
         content:
           application/json:
@@ -769,461 +738,438 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AssignmentWithUsher"
-
+                $ref: '#/components/schemas/AssignmentWithUsher'
   /events/{id}/assignments:
     get:
       operationId: listEventAssignments
       summary: List assignments for an event (admin)
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/EventAssignment"
+                  $ref: '#/components/schemas/EventAssignment'
     post:
       operationId: assignUsherToEvent
       summary: Assign usher to event (admin)
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/AssignmentInput"
+              $ref: '#/components/schemas/AssignmentInput'
       responses:
-        "201":
+        '201':
           description: Created
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EventAssignment"
-
+                $ref: '#/components/schemas/EventAssignment'
   /events/{id}/assignments/{assignmentId}:
     patch:
       operationId: updateAssignment
       summary: Update assignment (admin)
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-        - name: assignmentId
-          in: path
-          required: true
-          schema:
-            type: integer
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: assignmentId
+        in: path
+        required: true
+        schema:
+          type: integer
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/AssignmentInput"
+              $ref: '#/components/schemas/AssignmentInput'
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EventAssignment"
+                $ref: '#/components/schemas/EventAssignment'
     delete:
       operationId: removeAssignment
       summary: Remove assignment (admin)
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-        - name: assignmentId
-          in: path
-          required: true
-          schema:
-            type: integer
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: assignmentId
+        in: path
+        required: true
+        schema:
+          type: integer
       responses:
-        "204":
+        '204':
           description: Deleted
-
   /events/{id}/assignments/{assignmentId}/checkin:
     post:
       operationId: adminCheckin
       summary: Admin/coordinator manual check-in
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-        - name: assignmentId
-          in: path
-          required: true
-          schema:
-            type: integer
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: assignmentId
+        in: path
+        required: true
+        schema:
+          type: integer
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EventAssignment"
-
+                $ref: '#/components/schemas/EventAssignment'
   /events/{id}/assignments/{assignmentId}/checkout:
     post:
       operationId: adminCheckout
       summary: Admin/coordinator manual check-out
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-        - name: assignmentId
-          in: path
-          required: true
-          schema:
-            type: integer
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: assignmentId
+        in: path
+        required: true
+        schema:
+          type: integer
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EventAssignment"
-
+                $ref: '#/components/schemas/EventAssignment'
   /events/{id}/smart-candidates:
     get:
       operationId: getSmartCandidates
       summary: Get ranked usher candidates for event (admin)
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-        - name: skills
-          in: query
-          schema:
-            type: string
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: skills
+        in: query
+        schema:
+          type: string
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/UsherCandidate"
-
+                  $ref: '#/components/schemas/UsherCandidate'
   /events/{id}/smart-assign-batch:
     post:
       operationId: smartAssignBatch
       summary: Auto-assign multiple ushers based on criteria
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/SmartAssignFilters"
+              $ref: '#/components/schemas/SmartAssignFilters'
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/EventAssignment"
-
-  # ─── WAITLIST ─────────────────────────────────────────────────────────────
+                  $ref: '#/components/schemas/EventAssignment'
   /events/{id}/waitlist:
     get:
       operationId: listWaitlist
       summary: List waitlist for event (admin)
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/WaitlistEntry"
+                  $ref: '#/components/schemas/WaitlistEntry'
     post:
       operationId: addToWaitlist
       summary: Add usher to waitlist (admin)
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/WaitlistInput"
+              $ref: '#/components/schemas/WaitlistInput'
       responses:
-        "201":
+        '201':
           description: Created
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/WaitlistEntry"
-
-  # ─── MY ASSIGNMENTS (USHER) ───────────────────────────────────────────────
+                $ref: '#/components/schemas/WaitlistEntry'
   /my/assignments:
     get:
       operationId: listMyAssignments
       summary: List usher's own assignments
       parameters:
-        - name: status
-          in: query
-          schema:
-            type: string
+      - name: status
+        in: query
+        schema:
+          type: string
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/MyAssignment"
-
+                  $ref: '#/components/schemas/MyAssignment'
   /my/waitlists:
     get:
       tags:
-        - Usher Actions
+      - Usher Actions
       summary: List events the usher is waitlisted for
       operationId: listMyWaitlists
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/MyWaitlistEntry"
-
+                  $ref: '#/components/schemas/MyWaitlistEntry'
   /my/assignments/{assignmentId}/accept:
     post:
       operationId: acceptAssignment
       summary: Accept an event assignment
       parameters:
-        - name: assignmentId
-          in: path
-          required: true
-          schema:
-            type: integer
+      - name: assignmentId
+        in: path
+        required: true
+        schema:
+          type: integer
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/MyAssignment"
-
+                $ref: '#/components/schemas/MyAssignment'
   /my/assignments/{assignmentId}/decline:
     post:
       operationId: declineAssignment
       summary: Decline an event assignment
       parameters:
-        - name: assignmentId
-          in: path
-          required: true
-          schema:
-            type: integer
+      - name: assignmentId
+        in: path
+        required: true
+        schema:
+          type: integer
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/DeclineInput"
+              $ref: '#/components/schemas/DeclineInput'
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/MyAssignment"
-
+                $ref: '#/components/schemas/MyAssignment'
   /my/assignments/{assignmentId}/checkin:
     post:
       operationId: usherCheckin
       summary: Usher GPS check-in
       parameters:
-        - name: assignmentId
-          in: path
-          required: true
-          schema:
-            type: integer
+      - name: assignmentId
+        in: path
+        required: true
+        schema:
+          type: integer
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/GpsCheckinInput"
+              $ref: '#/components/schemas/GpsCheckinInput'
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/MyAssignment"
-        "400":
+                $ref: '#/components/schemas/MyAssignment'
+        '400':
           description: Out of range or time window error
-
   /my/assignments/{assignmentId}/checkout:
     post:
       operationId: usherCheckout
       summary: Usher GPS check-out
       parameters:
-        - name: assignmentId
-          in: path
-          required: true
-          schema:
-            type: integer
+      - name: assignmentId
+        in: path
+        required: true
+        schema:
+          type: integer
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/GpsCheckinInput"
+              $ref: '#/components/schemas/GpsCheckinInput'
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/MyAssignment"
-
+                $ref: '#/components/schemas/MyAssignment'
   /my/assignments/{assignmentId}/cancel:
     post:
       operationId: cancelAssignment
       summary: Usher cancels accepted assignment
       parameters:
-        - name: assignmentId
-          in: path
-          required: true
-          schema:
-            type: integer
+      - name: assignmentId
+        in: path
+        required: true
+        schema:
+          type: integer
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CancelInput"
+              $ref: '#/components/schemas/CancelInput'
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CancellationResult"
-
+                $ref: '#/components/schemas/CancellationResult'
   /my/assignments/{assignmentId}/team-checkin/{usherId}:
     post:
       operationId: teamCheckinMember
       summary: Team Leader checks in a team member
       parameters:
-        - name: assignmentId
-          in: path
-          required: true
-          schema:
-            type: integer
-        - name: usherId
-          in: path
-          required: true
-          schema:
-            type: integer
+      - name: assignmentId
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: usherId
+        in: path
+        required: true
+        schema:
+          type: integer
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/MyAssignment"
-
-  # ─── BALANCE & PAYOUTS (USHER) ────────────────────────────────────────────
+                $ref: '#/components/schemas/MyAssignment'
   /my/balance:
     get:
       operationId: getMyBalance
       summary: Get usher's current balance and recent transactions
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/BalanceSummary"
-
+                $ref: '#/components/schemas/BalanceSummary'
   /my/transactions:
     get:
       operationId: listMyTransactions
       summary: List balance transactions for authenticated usher
       parameters:
-        - name: page
-          in: query
-          schema:
-            type: integer
-        - name: limit
-          in: query
-          schema:
-            type: integer
+      - name: page
+        in: query
+        schema:
+          type: integer
+      - name: limit
+        in: query
+        schema:
+          type: integer
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/BalanceTransaction"
-
+                  $ref: '#/components/schemas/BalanceTransaction'
   /my/payouts:
     get:
       operationId: listMyPayouts
       summary: List payout history for authenticated usher
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Payout"
-
-  # ─── RATINGS ─────────────────────────────────────────────────────────────
+                  $ref: '#/components/schemas/Payout'
   /ratings:
     post:
       operationId: createRating
@@ -1233,220 +1179,208 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/RatingInput"
+              $ref: '#/components/schemas/RatingInput'
       responses:
-        "201":
+        '201':
           description: Created
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Rating"
-
+                $ref: '#/components/schemas/Rating'
   /ratings/holder/{token}:
     post:
       operationId: submitHolderRating
       summary: Event holder submits rating via token (public)
       parameters:
-        - name: token
-          in: path
-          required: true
-          schema:
-            type: string
+      - name: token
+        in: path
+        required: true
+        schema:
+          type: string
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/HolderRatingInput"
+              $ref: '#/components/schemas/HolderRatingInput'
       responses:
-        "201":
+        '201':
           description: Created
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Rating"
-
+                $ref: '#/components/schemas/Rating'
   /my/ratings:
     get:
       operationId: listMyRatings
       summary: List ratings for authenticated usher
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Rating"
-
-  # ─── NOTIFICATIONS ────────────────────────────────────────────────────────
+                  $ref: '#/components/schemas/Rating'
   /my/notifications:
     get:
       operationId: listMyNotifications
       summary: List notifications for authenticated user
       parameters:
-        - name: unread
-          in: query
-          schema:
-            type: boolean
+      - name: unread
+        in: query
+        schema:
+          type: boolean
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Notification"
-
+                  $ref: '#/components/schemas/Notification'
   /my/notifications/read-all:
     post:
       operationId: markAllNotificationsRead
       summary: Mark all notifications as read
       responses:
-        "200":
+        '200':
           description: OK
-
   /my/notifications/{notificationId}/read:
     post:
       operationId: markNotificationRead
       summary: Mark a notification as read
       parameters:
-        - name: notificationId
-          in: path
-          required: true
-          schema:
-            type: integer
+      - name: notificationId
+        in: path
+        required: true
+        schema:
+          type: integer
       responses:
-        "200":
+        '200':
           description: OK
-
-  # ─── ADMIN — BALANCE / PAYOUTS ────────────────────────────────────────────
   /admin/transactions:
     get:
       operationId: listAllTransactions
       summary: List all balance transactions (admin)
       parameters:
-        - name: usherId
-          in: query
-          schema:
-            type: integer
-        - name: page
-          in: query
-          schema:
-            type: integer
+      - name: usherId
+        in: query
+        schema:
+          type: integer
+      - name: page
+        in: query
+        schema:
+          type: integer
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/BalanceTransaction"
+                  $ref: '#/components/schemas/BalanceTransaction'
     post:
       operationId: createTransaction
       summary: Admin manually adjusts usher balance
       tags:
-        - admin
+      - admin
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/TransactionInput"
+              $ref: '#/components/schemas/TransactionInput'
       responses:
-        "201":
+        '201':
           description: Created
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/BalanceTransaction"
-
+                $ref: '#/components/schemas/BalanceTransaction'
   /admin/payouts:
     get:
       operationId: listAllPayouts
       summary: List all payouts (admin)
       tags:
-        - admin
+      - admin
       parameters:
-        - name: status
-          in: query
-          schema:
-            type: string
-        - name: usherId
-          in: query
-          schema:
-            type: integer
+      - name: status
+        in: query
+        schema:
+          type: string
+      - name: usherId
+        in: query
+        schema:
+          type: integer
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Payout"
+                  $ref: '#/components/schemas/Payout'
     post:
       operationId: createPayout
       summary: Create payout for usher (admin)
       tags:
-        - admin
+      - admin
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PayoutInput"
+              $ref: '#/components/schemas/PayoutInput'
       responses:
-        "201":
+        '201':
           description: Created
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Payout"
-
+                $ref: '#/components/schemas/Payout'
   /admin/payouts/{id}/status:
     patch:
       operationId: updatePayoutStatus
       summary: Update payout status (admin)
       tags:
-        - admin
+      - admin
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PayoutStatusUpdate"
+              $ref: '#/components/schemas/PayoutStatusUpdate'
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Payout"
-
-  # ─── ADMIN — ADMINS ───────────────────────────────────────────────────────
+                $ref: '#/components/schemas/Payout'
   /admins:
     get:
       operationId: listAdmins
       summary: List all admin accounts (super admin)
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/AdminProfile"
+                  $ref: '#/components/schemas/AdminProfile'
     post:
       operationId: createAdmin
       summary: Create new admin account (super admin)
@@ -1455,65 +1389,62 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/AdminInput"
+              $ref: '#/components/schemas/AdminInput'
       responses:
-        "201":
+        '201':
           description: Created
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AdminProfile"
-
+                $ref: '#/components/schemas/AdminProfile'
   /admins/{id}:
     patch:
       operationId: updateAdmin
       summary: Update admin role (super admin)
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/AdminUpdate"
+              $ref: '#/components/schemas/AdminUpdate'
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AdminProfile"
+                $ref: '#/components/schemas/AdminProfile'
     delete:
       operationId: deleteAdmin
       summary: Delete admin account (super admin)
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
       responses:
-        "204":
+        '204':
           description: Deleted
-
-  # ─── BROADCAST MESSAGES ───────────────────────────────────────────────────
   /broadcasts:
     get:
       operationId: listBroadcasts
       summary: List broadcast messages (admin)
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/BroadcastMessage"
+                  $ref: '#/components/schemas/BroadcastMessage'
     post:
       operationId: sendBroadcast
       summary: Send broadcast message (admin)
@@ -1522,195 +1453,216 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/BroadcastInput"
+              $ref: '#/components/schemas/BroadcastInput'
       responses:
-        "201":
+        '201':
           description: Created
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/BroadcastMessage"
-
-  # ─── AUDIT LOG ────────────────────────────────────────────────────────────
+                $ref: '#/components/schemas/BroadcastMessage'
   /audit-log:
     get:
       operationId: listAuditLog
       summary: List audit log entries (admin)
       parameters:
-        - name: adminId
-          in: query
-          schema:
-            type: integer
-        - name: actionType
-          in: query
-          schema:
-            type: string
-        - name: from
-          in: query
-          schema:
-            type: string
-            format: date
-        - name: to
-          in: query
-          schema:
-            type: string
-            format: date
-        - name: page
-          in: query
-          schema:
-            type: integer
-        - name: limit
-          in: query
-          schema:
-            type: integer
+      - name: adminId
+        in: query
+        schema:
+          type: integer
+      - name: actionType
+        in: query
+        schema:
+          type: string
+      - name: from
+        in: query
+        schema:
+          type: string
+          format: date
+      - name: to
+        in: query
+        schema:
+          type: string
+          format: date
+      - name: page
+        in: query
+        schema:
+          type: integer
+      - name: limit
+        in: query
+        schema:
+          type: integer
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/AuditLogEntry"
-
-  # ─── DOCUMENT EXPIRY ──────────────────────────────────────────────────────
+                  $ref: '#/components/schemas/AuditLogEntry'
   /admin/expiring-documents:
     get:
       operationId: listExpiringDocuments
       summary: List documents expiring within 30 days or already expired (admin)
       parameters:
-        - name: days
-          in: query
-          schema:
-            type: integer
+      - name: days
+        in: query
+        schema:
+          type: integer
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ExpiringDocument"
-
-  # ─── DASHBOARD ────────────────────────────────────────────────────────────
+                  $ref: '#/components/schemas/ExpiringDocument'
   /admin/dashboard:
     get:
       operationId: getAdminDashboard
       summary: Get admin dashboard overview stats
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AdminDashboard"
-
+                $ref: '#/components/schemas/AdminDashboard'
   /admin/usher-stats/{id}:
     get:
       operationId: getUsherStats
       summary: Get per-usher performance stats (admin)
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UsherStats"
-
+                $ref: '#/components/schemas/UsherStats'
   /admin/event-stats/{id}:
     get:
       operationId: getEventStats
       summary: Get per-event performance stats (admin)
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EventStats"
-
-  # ─── COORDINATOR ──────────────────────────────────────────────────────────
+                $ref: '#/components/schemas/EventStats'
   /coordinator/today:
     get:
       operationId: getCoordinatorEvents
       summary: Get today's events for coordinator
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/CoordinatorEvent"
-
+                  $ref: '#/components/schemas/CoordinatorEvent'
 components:
   schemas:
     HealthStatus:
       type: object
-      required: [status]
+      required:
+      - status
       properties:
         status:
           type: string
-
-    # ─── AUTH ──────────────────────────────────────────────────────────────
     LoginInput:
       type: object
-      required: [email, password]
+      required:
+      - email
+      - password
       properties:
         email:
           type: string
           format: email
         password:
           type: string
-
     UsherRegistration:
       type: object
-      required: [fullName, phone, email, nationalIdNumber, password]
+      required:
+      - fullName
+      - phone
+      - email
+      - nationalIdNumber
+      - password
       properties:
         fullName:
           type: string
         fullNameArabic:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         gender:
-          type: ["string", "null"]
-          enum: [male, female, null]
+          type:
+          - string
+          - 'null'
+          enum:
+          - male
+          - female
+          - null
         dateOfBirth:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
           format: date
         height:
-          type: ["integer", "null"]
+          type:
+          - integer
+          - 'null'
         university:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         major:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         languages:
-          type: ["array", "null"]
+          type:
+          - array
+          - 'null'
           items:
             type: string
         shoeSize:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         shirtSize:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         tShirtSize:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         pantsSize:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         shortsSize:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         phone:
           type: string
         email:
@@ -1721,44 +1673,61 @@ components:
         password:
           type: string
         nationalIdDocUrl:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         nationalIdDocKey:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         nationalIdDocBackUrl:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         nationalIdDocBackKey:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         profilePhotoUrl:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         profilePhotoKey:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         paymentMethod:
           type: string
-          enum: [instapay, ewallet]
+          enum:
+          - instapay
+          - ewallet
         paymentMethodDetails:
           type: string
-
     AuthResult:
       type: object
-      required: [token, usher]
+      required:
+      - token
+      - usher
       properties:
         token:
           type: string
         usher:
-          $ref: "#/components/schemas/UsherProfile"
-
+          $ref: '#/components/schemas/UsherProfile'
     AdminAuthResult:
       type: object
-      required: [token, admin]
+      required:
+      - token
+      - admin
       properties:
         token:
           type: string
         admin:
-          $ref: "#/components/schemas/AdminProfile"
-
+          $ref: '#/components/schemas/AdminProfile'
     CurrentUser:
       type: object
-      required: [type, id]
+      required:
+      - type
+      - id
       properties:
         type:
           type: string
@@ -1769,14 +1738,25 @@ components:
         email:
           type: string
         role:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         status:
-          type: ["string", "null"]
-
-    # ─── USHER ────────────────────────────────────────────────────────────
+          type:
+          - string
+          - 'null'
     UsherProfile:
       type: object
-      required: [id, fullName, phone, email, nationalIdNumber, status, avgRating, balance, createdAt]
+      required:
+      - id
+      - fullName
+      - phone
+      - email
+      - nationalIdNumber
+      - status
+      - avgRating
+      - balance
+      - createdAt
       properties:
         id:
           type: integer
@@ -1789,9 +1769,13 @@ components:
         nationalIdNumber:
           type: string
         nationalIdDocUrl:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         profilePhotoUrl:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         status:
           type: string
         avgRating:
@@ -1802,10 +1786,29 @@ components:
           type: string
           format: date-time
         paymentMethod:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         paymentMethodDetails:
-          type: ["string", "null"]
-
+          type:
+          - string
+          - 'null'
+        profilePhotoKey:
+          type:
+          - string
+          - 'null'
+        nationalIdDocKey:
+          type:
+          - string
+          - 'null'
+        nationalIdDocBackKey:
+          type:
+          - string
+          - 'null'
+        nationalIdDocBackUrl:
+          type:
+          - string
+          - 'null'
     UsherUpdate:
       type: object
       properties:
@@ -1816,31 +1819,45 @@ components:
         email:
           type: string
         nationalIdDocUrl:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         profilePhotoUrl:
-          type: ["string", "null"]
-
+          type:
+          - string
+          - 'null'
+        profilePhotoKey:
+          type:
+          - string
+          - 'null'
     UsherStatusUpdate:
       type: object
-      required: [status]
+      required:
+      - status
       properties:
         status:
           type: string
-
     UsherListResponse:
       type: object
-      required: [data, total]
+      required:
+      - data
+      - total
       properties:
         data:
           type: array
           items:
-            $ref: "#/components/schemas/UsherProfile"
+            $ref: '#/components/schemas/UsherProfile'
         total:
           type: integer
-
     UsherDocument:
       type: object
-      required: [id, usherId, docType, fileUrl, fileKey, status]
+      required:
+      - id
+      - usherId
+      - docType
+      - fileUrl
+      - fileKey
+      - status
       properties:
         id:
           type: integer
@@ -1853,13 +1870,17 @@ components:
         fileKey:
           type: string
         expiryDate:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         status:
           type: string
-
     UsherDocumentInput:
       type: object
-      required: [docType, fileUrl, fileKey]
+      required:
+      - docType
+      - fileUrl
+      - fileKey
       properties:
         docType:
           type: string
@@ -1868,11 +1889,16 @@ components:
         fileKey:
           type: string
         expiryDate:
-          type: ["string", "null"]
-
+          type:
+          - string
+          - 'null'
     UsherSkill:
       type: object
-      required: [id, usherId, skillType, value]
+      required:
+      - id
+      - usherId
+      - skillType
+      - value
       properties:
         id:
           type: integer
@@ -1882,19 +1908,24 @@ components:
           type: string
         value:
           type: string
-
     UsherSkillInput:
       type: object
-      required: [skillType, value]
+      required:
+      - skillType
+      - value
       properties:
         skillType:
           type: string
         value:
           type: string
-
     UsherAvailability:
       type: object
-      required: [id, usherId, date, startTime, endTime]
+      required:
+      - id
+      - usherId
+      - date
+      - startTime
+      - endTime
       properties:
         id:
           type: integer
@@ -1907,10 +1938,12 @@ components:
           type: string
         endTime:
           type: string
-
     UsherAvailabilityInput:
       type: object
-      required: [date, startTime, endTime]
+      required:
+      - date
+      - startTime
+      - endTime
       properties:
         date:
           type: string
@@ -1919,10 +1952,14 @@ components:
           type: string
         endTime:
           type: string
-
     UsherCandidate:
       type: object
-      required: [id, fullName, avgRating, phone, status]
+      required:
+      - id
+      - fullName
+      - avgRating
+      - phone
+      - status
       properties:
         id:
           type: integer
@@ -1931,7 +1968,9 @@ components:
         avgRating:
           type: number
         profilePhotoUrl:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         phone:
           type: string
         status:
@@ -1940,10 +1979,13 @@ components:
           type: boolean
         matchScore:
           type: number
-
     UsherStats:
       type: object
-      required: [jobsCompleted, avgRating, cancelCount, noShowCount]
+      required:
+      - jobsCompleted
+      - avgRating
+      - cancelCount
+      - noShowCount
       properties:
         jobsCompleted:
           type: integer
@@ -1955,32 +1997,51 @@ components:
           type: integer
         totalEarned:
           type: number
-
-    # ─── EVENTS ───────────────────────────────────────────────────────────
     Event:
       type: object
-      required: [id, title, startTime, endTime, status]
+      required:
+      - id
+      - title
+      - startTime
+      - endTime
+      - status
       properties:
         id:
           type: integer
         title:
           type: string
         eventLocName:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         eventLocUrl:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         venueLat:
-          type: ["number", "null"]
+          type:
+          - number
+          - 'null'
         venueLng:
-          type: ["number", "null"]
+          type:
+          - number
+          - 'null'
         meetingPointLat:
-          type: ["number", "null"]
+          type:
+          - number
+          - 'null'
         meetingPointLng:
-          type: ["number", "null"]
+          type:
+          - number
+          - 'null'
         dressCode:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         instructions:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         startTime:
           type: string
           format: date-time
@@ -1992,38 +2053,65 @@ components:
         eventBudget:
           type: number
         contactName:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         contactPhone:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         status:
           type: string
         createdByAdminId:
-          type: ["integer", "null"]
-
+          type:
+          - integer
+          - 'null'
     EventDetail:
       type: object
-      required: [id, title, startTime, endTime, status, assignments]
+      required:
+      - id
+      - title
+      - startTime
+      - endTime
+      - status
+      - assignments
       properties:
         id:
           type: integer
         title:
           type: string
         eventLocName:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         eventLocUrl:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         venueLat:
-          type: ["number", "null"]
+          type:
+          - number
+          - 'null'
         venueLng:
-          type: ["number", "null"]
+          type:
+          - number
+          - 'null'
         meetingPointLat:
-          type: ["number", "null"]
+          type:
+          - number
+          - 'null'
         meetingPointLng:
-          type: ["number", "null"]
+          type:
+          - number
+          - 'null'
         dressCode:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         instructions:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         startTime:
           type: string
           format: date-time
@@ -2035,46 +2123,72 @@ components:
         eventBudget:
           type: number
         contactName:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         contactPhone:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         status:
           type: string
         createdByAdminId:
-          type: ["integer", "null"]
+          type:
+          - integer
+          - 'null'
         assignments:
           type: array
           items:
-            $ref: "#/components/schemas/EventAssignment"
+            $ref: '#/components/schemas/EventAssignment'
         deductionRules:
           type: array
           items:
-            $ref: "#/components/schemas/DeductionRule"
-
+            $ref: '#/components/schemas/DeductionRule'
     EventInput:
       type: object
-      required: [title, startTime, endTime]
+      required:
+      - title
+      - startTime
+      - endTime
       properties:
         title:
           type: string
         eventLocName:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         eventLocUrl:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         venueLat:
-          type: ["number", "null"]
+          type:
+          - number
+          - 'null'
         venueLng:
-          type: ["number", "null"]
+          type:
+          - number
+          - 'null'
         checkinWindowMinutes:
-          type: ["integer", "null"]
+          type:
+          - integer
+          - 'null'
         meetingPointLat:
-          type: ["number", "null"]
+          type:
+          - number
+          - 'null'
         meetingPointLng:
-          type: ["number", "null"]
+          type:
+          - number
+          - 'null'
         dressCode:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         instructions:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         startTime:
           type: string
           format: date-time
@@ -2086,33 +2200,52 @@ components:
         eventBudget:
           type: number
         contactName:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         contactPhone:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         status:
           type: string
-
     EventUpdate:
       type: object
       properties:
         title:
           type: string
         eventLocName:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         eventLocUrl:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         venueLat:
-          type: ["number", "null"]
+          type:
+          - number
+          - 'null'
         venueLng:
-          type: ["number", "null"]
+          type:
+          - number
+          - 'null'
         meetingPointLat:
-          type: ["number", "null"]
+          type:
+          - number
+          - 'null'
         meetingPointLng:
-          type: ["number", "null"]
+          type:
+          - number
+          - 'null'
         dressCode:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         instructions:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         startTime:
           type: string
           format: date-time
@@ -2124,26 +2257,34 @@ components:
         eventBudget:
           type: number
         contactName:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         contactPhone:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         status:
           type: string
-
     EventListResponse:
       type: object
-      required: [data, total]
+      required:
+      - data
+      - total
       properties:
         data:
           type: array
           items:
-            $ref: "#/components/schemas/Event"
+            $ref: '#/components/schemas/Event'
         total:
           type: integer
-
     EventStats:
       type: object
-      required: [attendanceRate, punctualityRate, completedCount, cancelledCount]
+      required:
+      - attendanceRate
+      - punctualityRate
+      - completedCount
+      - cancelledCount
       properties:
         attendanceRate:
           type: number
@@ -2155,11 +2296,15 @@ components:
           type: integer
         totalAssigned:
           type: integer
-
-    # ─── ASSIGNMENTS ──────────────────────────────────────────────────────
     AssignmentWithUsher:
       type: object
-      required: [id, eventId, usherId, status, isTeamLead, usher]
+      required:
+      - id
+      - eventId
+      - usherId
+      - status
+      - isTeamLead
+      - usher
       properties:
         id:
           type: integer
@@ -2168,30 +2313,43 @@ components:
         usherId:
           type: integer
         eventTeamId:
-          type: ["integer", "null"]
+          type:
+          - integer
+          - 'null'
         status:
           type: string
         isTeamLead:
           type: boolean
         checkinTime:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         checkoutTime:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         checkinMethod:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         usher:
-          $ref: "#/components/schemas/UsherProfile"
-
+          $ref: '#/components/schemas/UsherProfile'
     EventAssignment:
       type: object
-      required: [id, eventId, usherId, status]
+      required:
+      - id
+      - eventId
+      - usherId
+      - status
       properties:
         id:
           type: integer
         eventId:
           type: integer
         eventTeamId:
-          type: ["integer", "null"]
+          type:
+          - integer
+          - 'null'
         usherId:
           type: integer
         status:
@@ -2199,36 +2357,57 @@ components:
         isTeamLead:
           type: boolean
         checkinTime:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         checkinLat:
-          type: ["number", "null"]
+          type:
+          - number
+          - 'null'
         checkinLng:
-          type: ["number", "null"]
+          type:
+          - number
+          - 'null'
         checkinMethod:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         checkoutTime:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         checkoutLat:
-          type: ["number", "null"]
+          type:
+          - number
+          - 'null'
         checkoutLng:
-          type: ["number", "null"]
+          type:
+          - number
+          - 'null'
         usher:
-          $ref: "#/components/schemas/UsherProfile"
-
+          $ref: '#/components/schemas/UsherProfile'
     AssignmentInput:
       type: object
-      required: [usherId]
+      required:
+      - usherId
       properties:
         usherId:
           type: integer
         eventTeamId:
-          type: ["integer", "null"]
+          type:
+          - integer
+          - 'null'
         isTeamLead:
           type: boolean
-
     MyWaitlistEntry:
       type: object
-      required: [id, eventId, usherId, priorityOrder, status, event]
+      required:
+      - id
+      - eventId
+      - usherId
+      - priorityOrder
+      - status
+      - event
       properties:
         id:
           type: integer
@@ -2241,57 +2420,77 @@ components:
         status:
           type: string
         event:
-          $ref: "#/components/schemas/Event"
-
+          $ref: '#/components/schemas/Event'
     MyAssignment:
       type: object
-      required: [id, eventId, status, event]
+      required:
+      - id
+      - eventId
+      - status
+      - event
       properties:
         id:
           type: integer
         eventId:
           type: integer
         eventTeamId:
-          type: ["integer", "null"]
+          type:
+          - integer
+          - 'null'
         status:
           type: string
         isTeamLead:
           type: boolean
         checkinTime:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         checkoutTime:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         checkinMethod:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         event:
-          $ref: "#/components/schemas/EventDetail"
+          $ref: '#/components/schemas/EventDetail'
         teamMembers:
           type: array
           items:
-            $ref: "#/components/schemas/TeamMember"
+            $ref: '#/components/schemas/TeamMember'
         team:
-          $ref: "#/components/schemas/EventTeam"
-
+          $ref: '#/components/schemas/EventTeam'
     TeamMember:
       type: object
-      required: [id, fullName, isTeamLead]
+      required:
+      - id
+      - fullName
+      - isTeamLead
       properties:
         id:
           type: integer
         fullName:
           type: string
         profilePhotoUrl:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         isTeamLead:
           type: boolean
         phone:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         status:
           type: string
-
     EventTeam:
       type: object
-      required: [id, eventId, name, createdAt]
+      required:
+      - id
+      - eventId
+      - name
+      - createdAt
       properties:
         id:
           type: integer
@@ -2302,26 +2501,28 @@ components:
         createdAt:
           type: string
           format: date-time
-
     EventTeamInput:
       type: object
-      required: [name]
+      required:
+      - name
       properties:
         name:
           type: string
-
     SmartAssignFilters:
       type: object
-      required: [count]
+      required:
+      - count
       properties:
         count:
           type: integer
-          description: "Number of ushers to assign"
+          description: Number of ushers to assign
         eventTeamId:
           type: integer
         gender:
           type: string
-          enum: [male, female]
+          enum:
+          - male
+          - female
         minRating:
           type: number
         minCompletedEvents:
@@ -2330,44 +2531,52 @@ components:
           type: boolean
         maxDistanceMeters:
           type: integer
-
     DeclineInput:
       type: object
       properties:
         reason:
-          type: ["string", "null"]
-
+          type:
+          - string
+          - 'null'
     GpsCheckinInput:
       type: object
-      required: [lat, lng]
+      required:
+      - lat
+      - lng
       properties:
         lat:
           type: number
         lng:
           type: number
-
     CancelInput:
       type: object
       properties:
         reason:
-          type: ["string", "null"]
-
+          type:
+          - string
+          - 'null'
     CancellationResult:
       type: object
-      required: [assignment, cancellation]
+      required:
+      - assignment
+      - cancellation
       properties:
         assignment:
-          $ref: "#/components/schemas/MyAssignment"
+          $ref: '#/components/schemas/MyAssignment'
         cancellation:
-          $ref: "#/components/schemas/Cancellation"
+          $ref: '#/components/schemas/Cancellation'
         penaltyApplied:
           type: boolean
         penaltyAmount:
-          type: ["number", "null"]
-
+          type:
+          - number
+          - 'null'
     Cancellation:
       type: object
-      required: [id, eventAssignmentId, cancelledAt]
+      required:
+      - id
+      - eventAssignmentId
+      - cancelledAt
       properties:
         id:
           type: integer
@@ -2377,14 +2586,18 @@ components:
           type: string
           format: date-time
         reason:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         penaltyApplied:
           type: boolean
-
-    # ─── DEDUCTION RULES ──────────────────────────────────────────────────
     DeductionRule:
       type: object
-      required: [id, eventId, ruleType, amount]
+      required:
+      - id
+      - eventId
+      - ruleType
+      - amount
       properties:
         id:
           type: integer
@@ -2394,20 +2607,22 @@ components:
           type: string
         amount:
           type: number
-
     DeductionRuleInput:
       type: object
-      required: [ruleType, amount]
+      required:
+      - ruleType
+      - amount
       properties:
         ruleType:
           type: string
         amount:
           type: number
-
-    # ─── HOLDER LINK ──────────────────────────────────────────────────────
     EventHolderLink:
       type: object
-      required: [id, eventId, uniqueToken]
+      required:
+      - id
+      - eventId
+      - uniqueToken
       properties:
         id:
           type: integer
@@ -2415,14 +2630,18 @@ components:
           type: integer
         uniqueToken:
           type: string
-
     EventHolderView:
       type: object
-      required: [event, ushers]
+      required:
+      - event
+      - ushers
       properties:
         event:
           type: object
-          required: [title, startTime, endTime]
+          required:
+          - title
+          - startTime
+          - endTime
           properties:
             title:
               type: string
@@ -2436,19 +2655,26 @@ components:
           type: array
           items:
             type: object
-            required: [id, fullName]
+            required:
+            - id
+            - fullName
             properties:
               id:
                 type: integer
               fullName:
                 type: string
               profilePhotoUrl:
-                type: ["string", "null"]
-
-    # ─── WAITLIST ─────────────────────────────────────────────────────────
+                type:
+                - string
+                - 'null'
     WaitlistEntry:
       type: object
-      required: [id, eventId, usherId, priorityOrder, status]
+      required:
+      - id
+      - eventId
+      - usherId
+      - priorityOrder
+      - status
       properties:
         id:
           type: integer
@@ -2461,67 +2687,86 @@ components:
         status:
           type: string
         usher:
-          $ref: "#/components/schemas/UsherProfile"
-
+          $ref: '#/components/schemas/UsherProfile'
     WaitlistInput:
       type: object
-      required: [usherId, priorityOrder]
+      required:
+      - usherId
+      - priorityOrder
       properties:
         usherId:
           type: integer
         priorityOrder:
           type: integer
-
-    # ─── BALANCE / PAYOUTS ────────────────────────────────────────────────
     BalanceSummary:
       type: object
-      required: [balance, recentTransactions]
+      required:
+      - balance
+      - recentTransactions
       properties:
         balance:
           type: number
         recentTransactions:
           type: array
           items:
-            $ref: "#/components/schemas/BalanceTransaction"
-
+            $ref: '#/components/schemas/BalanceTransaction'
     BalanceTransaction:
       type: object
-      required: [id, usherId, amount, type, createdAt]
+      required:
+      - id
+      - usherId
+      - amount
+      - type
+      - createdAt
       properties:
         id:
           type: integer
         usherId:
           type: integer
         eventAssignmentId:
-          type: ["integer", "null"]
+          type:
+          - integer
+          - 'null'
         amount:
           type: number
         type:
           type: string
         reason:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         createdAt:
           type: string
           format: date-time
-
     TransactionInput:
       type: object
-      required: [usherId, amount, type]
+      required:
+      - usherId
+      - amount
+      - type
       properties:
         usherId:
           type: integer
         eventAssignmentId:
-          type: ["integer", "null"]
+          type:
+          - integer
+          - 'null'
         amount:
           type: number
         type:
           type: string
         reason:
-          type: ["string", "null"]
-
+          type:
+          - string
+          - 'null'
     Payout:
       type: object
-      required: [id, usherId, amount, method, status]
+      required:
+      - id
+      - usherId
+      - amount
+      - method
+      - status
       properties:
         id:
           type: integer
@@ -2534,11 +2779,15 @@ components:
         status:
           type: string
         paidAt:
-          type: ["string", "null"]
-
+          type:
+          - string
+          - 'null'
     PayoutInput:
       type: object
-      required: [usherId, amount, method]
+      required:
+      - usherId
+      - amount
+      - method
       properties:
         usherId:
           type: integer
@@ -2546,20 +2795,24 @@ components:
           type: number
         method:
           type: string
-
     PayoutStatusUpdate:
       type: object
-      required: [status]
+      required:
+      - status
       properties:
         status:
           type: string
         paidAt:
-          type: ["string", "null"]
-
-    # ─── RATINGS ──────────────────────────────────────────────────────────
+          type:
+          - string
+          - 'null'
     Rating:
       type: object
-      required: [id, eventAssignmentId, ratedByType, ratingValue]
+      required:
+      - id
+      - eventAssignmentId
+      - ratedByType
+      - ratingValue
       properties:
         id:
           type: integer
@@ -2570,11 +2823,15 @@ components:
         ratingValue:
           type: integer
         comment:
-          type: ["string", "null"]
-
+          type:
+          - string
+          - 'null'
     RatingInput:
       type: object
-      required: [eventAssignmentId, ratedByType, ratingValue]
+      required:
+      - eventAssignmentId
+      - ratedByType
+      - ratingValue
       properties:
         eventAssignmentId:
           type: integer
@@ -2583,23 +2840,33 @@ components:
         ratingValue:
           type: integer
         comment:
-          type: ["string", "null"]
-
+          type:
+          - string
+          - 'null'
     HolderRatingInput:
       type: object
-      required: [eventAssignmentId, ratingValue]
+      required:
+      - eventAssignmentId
+      - ratingValue
       properties:
         eventAssignmentId:
           type: integer
         ratingValue:
           type: integer
         comment:
-          type: ["string", "null"]
-
-    # ─── NOTIFICATIONS ────────────────────────────────────────────────────
+          type:
+          - string
+          - 'null'
     Notification:
       type: object
-      required: [id, recipientType, recipientId, type, message, isRead, sentAt]
+      required:
+      - id
+      - recipientType
+      - recipientId
+      - type
+      - message
+      - isRead
+      - sentAt
       properties:
         id:
           type: integer
@@ -2616,37 +2883,47 @@ components:
         sentAt:
           type: string
           format: date-time
-
-    # ─── BROADCAST ────────────────────────────────────────────────────────
     BroadcastMessage:
       type: object
-      required: [id, message, sentAt]
+      required:
+      - id
+      - message
+      - sentAt
       properties:
         id:
           type: integer
         sentByAdminId:
-          type: ["integer", "null"]
+          type:
+          - integer
+          - 'null'
         message:
           type: string
         targetFilter:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         sentAt:
           type: string
           format: date-time
-
     BroadcastInput:
       type: object
-      required: [message]
+      required:
+      - message
       properties:
         message:
           type: string
         targetFilter:
-          type: ["string", "null"]
-
-    # ─── ADMIN ────────────────────────────────────────────────────────────
+          type:
+          - string
+          - 'null'
     AdminProfile:
       type: object
-      required: [id, name, email, role, createdAt]
+      required:
+      - id
+      - name
+      - email
+      - role
+      - createdAt
       properties:
         id:
           type: integer
@@ -2657,14 +2934,19 @@ components:
         role:
           type: string
         createdByAdminId:
-          type: ["integer", "null"]
+          type:
+          - integer
+          - 'null'
         createdAt:
           type: string
           format: date-time
-
     AdminInput:
       type: object
-      required: [name, email, password, role]
+      required:
+      - name
+      - email
+      - password
+      - role
       properties:
         name:
           type: string
@@ -2675,7 +2957,6 @@ components:
           type: string
         role:
           type: string
-
     AdminUpdate:
       type: object
       properties:
@@ -2683,34 +2964,48 @@ components:
           type: string
         role:
           type: string
-
-    # ─── AUDIT LOG ────────────────────────────────────────────────────────
     AuditLogEntry:
       type: object
-      required: [id, actionType, targetTable, createdAt]
+      required:
+      - id
+      - actionType
+      - targetTable
+      - createdAt
       properties:
         id:
           type: integer
         adminId:
-          type: ["integer", "null"]
+          type:
+          - integer
+          - 'null'
         actionType:
           type: string
         targetTable:
           type: string
         targetId:
-          type: ["integer", "null"]
+          type:
+          - integer
+          - 'null'
         details:
-          type: ["string", "null"]
+          type:
+          - string
+          - 'null'
         createdAt:
           type: string
           format: date-time
         adminName:
-          type: ["string", "null"]
-
-    # ─── EXPIRING DOCS ────────────────────────────────────────────────────
+          type:
+          - string
+          - 'null'
     ExpiringDocument:
       type: object
-      required: [id, usherId, docType, expiryDate, status, usherName]
+      required:
+      - id
+      - usherId
+      - docType
+      - expiryDate
+      - status
+      - usherName
       properties:
         id:
           type: integer
@@ -2728,11 +3023,15 @@ components:
           type: string
         daysUntilExpiry:
           type: integer
-
-    # ─── DASHBOARD ────────────────────────────────────────────────────────
     AdminDashboard:
       type: object
-      required: [totalActiveUshers, pendingApprovals, upcomingEventsThisWeek, totalBalanceOwed, recentActivity, eventTrends]
+      required:
+      - totalActiveUshers
+      - pendingApprovals
+      - upcomingEventsThisWeek
+      - totalBalanceOwed
+      - recentActivity
+      - eventTrends
       properties:
         totalActiveUshers:
           type: integer
@@ -2747,12 +3046,15 @@ components:
         recentActivity:
           type: array
           items:
-            $ref: "#/components/schemas/AuditLogEntry"
+            $ref: '#/components/schemas/AuditLogEntry'
         eventTrends:
           type: array
           items:
             type: object
-            required: [month, eventCount, completedCount]
+            required:
+            - month
+            - eventCount
+            - completedCount
             properties:
               month:
                 type: string
@@ -2760,11 +3062,15 @@ components:
                 type: integer
               completedCount:
                 type: integer
-
-    # ─── COORDINATOR ──────────────────────────────────────────────────────
     CoordinatorEvent:
       type: object
-      required: [id, title, startTime, endTime, status, assignments]
+      required:
+      - id
+      - title
+      - startTime
+      - endTime
+      - status
+      - assignments
       properties:
         id:
           type: integer
@@ -2781,4 +3087,4 @@ components:
         assignments:
           type: array
           items:
-            $ref: "#/components/schemas/EventAssignment"
+            $ref: '#/components/schemas/EventAssignment'

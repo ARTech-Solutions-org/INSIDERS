@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useListMyDocuments, useAddMyDocument, getListMyDocumentsQueryKey } from '@workspace/api-client-react';
+import { useListMyDocuments, useAddMyDocument, getListMyDocumentsQueryKey, useGetMyUsherProfile } from '@workspace/api-client-react';
 import { useQueryClient } from '@tanstack/react-query';
-import { FileText, Plus, UploadCloud, Calendar, AlertCircle } from 'lucide-react';
+import { FileText, Plus, Calendar, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -9,40 +9,83 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 
+const uploadToR2 = async (file: File, type: string) => {
+  const baseUrl = import.meta.env.VITE_API_URL?.replace(/\/+$/, '') || '';
+  const res = await fetch(`${baseUrl}/api/uploads/presigned-url`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ filename: file.name, contentType: file.type, type })
+  });
+  if (!res.ok) throw new Error('Failed to get upload URL');
+  const { url, key } = await res.json();
+  
+  const uploadRes = await fetch(url, {
+    method: 'PUT',
+    headers: { 'Content-Type': file.type },
+    body: file
+  });
+  if (!uploadRes.ok) throw new Error('Failed to upload file');
+  
+  return { url: `${baseUrl}/api/uploads/read?key=${encodeURIComponent(key)}`, key };
+};
+
 export default function Documents() {
   const { data: documents, isLoading } = useListMyDocuments();
+  const { data: profile } = useGetMyUsherProfile();
   const addMutation = useAddMyDocument();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [docType, setDocType] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
+  const [newFile, setNewFile] = useState<File | null>(null);
 
-  const handleAdd = () => {
+        queryClient.invalidateQueries({ queryKey: getListMyDocumentsQueryKey() });
+  const handleAdd = async () => {
     if (!docType) {
       toast.error('Document type is required');
       return;
     }
+    if (!newFile) {
+      toast.error('Please select a file');
+      return;
+    }
 
-    addMutation.mutate({
-      data: {
-        docType,
-        fileUrl: 'https://example.com/dummy.pdf', // In a real app, upload first
-        fileKey: 'dummy-key',
-        expiryDate: expiryDate ? new Date(expiryDate).toISOString() : undefined
-      }
-    }, {
-      onSuccess: () => {
-        toast.success('Document added');
-        setOpen(false);
-        setDocType('');
-        setExpiryDate('');
-        queryClient.invalidateQueries({ queryKey: getListMyDocumentsQueryKey() });
-      },
-      onError: (err) => toast.error(err.message || 'Failed to add document')
-    });
+    try {
+      toast.loading('Uploading document...', { id: 'upload' });
+      const res = await uploadToR2(newFile, 'document');
+      toast.dismiss('upload');
+      
+      addMutation.mutate({
+        data: {
+          docType,
+          fileUrl: res.url,
+          fileKey: res.key,
+          expiryDate: expiryDate ? new Date(expiryDate).toISOString() : undefined
+        }
+      }, {
+        onSuccess: () => {
+          toast.success('Document added');
+          setOpen(false);
+          setDocType('');
+          setExpiryDate('');
+          setNewFile(null);
+          queryClient.invalidateQueries({ queryKey: getListMyDocumentsQueryKey() });
+        },
+        onError: (err) => toast.error(err.message || 'Failed to add document')
+      });
+    } catch (e) {
+      toast.dismiss('upload');
+      toast.error('Failed to upload document');
+    }
   };
 
   const safeDocs = Array.isArray(documents) ? documents : [];
+
+  const getImageUrl = (key?: string | null) => {
+    if (!key) return undefined;
+    const baseUrl = import.meta.env.VITE_API_URL?.replace(/\/+$/, '') || '';
+    return `${baseUrl}/api/uploads/read?key=${encodeURIComponent(key)}`;
+  };
 
   return (
     <div className="p-5 flex flex-col h-full relative min-h-screen">
@@ -62,6 +105,14 @@ export default function Documents() {
               <DialogTitle className="brand-display text-2xl uppercase tracking-wide">UPLOAD DOCUMENT</DialogTitle>
             </DialogHeader>
             <div className="space-y-5 pt-4">
+              <div className="space-y-2">
+                <label className="font-semibold text-xs text-foreground/90">Document File</label>
+                <Input type="file" onChange={e => {
+                  if (e.target.files && e.target.files[0]) {
+                    setNewFile(e.target.files[0]);
+                  }
+                }} className="rounded-xl border-border h-11 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90" />
+              </div>
               <div className="space-y-2">
                 <label className="font-semibold text-xs text-foreground/90">Document Type</label>
                 <Input value={docType} onChange={e => setDocType(e.target.value)} placeholder="e.g., ID Card, Health Certificate" className="rounded-xl border-border h-11" />
@@ -89,7 +140,7 @@ export default function Documents() {
         <div className="space-y-4 relative z-10">
           {[1, 2].map(i => <Skeleton key={i} className="h-24 w-full rounded-2xl border border-border" />)}
         </div>
-      ) : safeDocs.length === 0 ? (
+      ) : safeDocs.length === 0 && !profile?.nationalIdDocUrl && !(profile as any)?.nationalIdDocBackUrl ? (
         <div className="border border-border/50 bg-card p-10 text-center mt-6 flex flex-col items-center justify-center relative overflow-hidden z-10 rounded-2xl shadow-sm">
           <FileText className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3 relative z-10" />
           <p className="brand-meta text-foreground/60 relative z-10 mb-1">NO DOCUMENTS UPLOADED</p>
@@ -97,6 +148,48 @@ export default function Documents() {
         </div>
       ) : (
         <div className="space-y-3 pb-safe relative z-10">
+          {profile?.nationalIdDocUrl && (
+            <div className="bg-card border border-border rounded-2xl p-4 flex flex-col shadow-sm">
+              <div className="flex items-center gap-4 mb-3">
+                <div className="w-12 h-12 border rounded-full flex items-center justify-center bg-primary/5 text-primary border-primary/20">
+                  <FileText className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="font-bold tracking-wide uppercase">National ID (Front)</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="brand-meta px-2 py-1 border rounded-md bg-secondary/10 text-secondary border-secondary/20">
+                      READ ONLY
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className="w-full h-40 bg-muted rounded-xl overflow-hidden mt-2 relative">
+                <img src={profile.nationalIdDocKey ? getImageUrl(profile.nationalIdDocKey) : profile.nationalIdDocUrl} alt="ID Front" className="w-full h-full object-cover" />
+              </div>
+            </div>
+          )}
+
+          {(profile as any)?.nationalIdDocBackUrl && (
+            <div className="bg-card border border-border rounded-2xl p-4 flex flex-col shadow-sm">
+              <div className="flex items-center gap-4 mb-3">
+                <div className="w-12 h-12 border rounded-full flex items-center justify-center bg-primary/5 text-primary border-primary/20">
+                  <FileText className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="font-bold tracking-wide uppercase">National ID (Back)</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="brand-meta px-2 py-1 border rounded-md bg-secondary/10 text-secondary border-secondary/20">
+                      READ ONLY
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className="w-full h-40 bg-muted rounded-xl overflow-hidden mt-2 relative">
+                <img src={(profile as any).nationalIdDocBackKey ? getImageUrl((profile as any).nationalIdDocBackKey) : (profile as any).nationalIdDocBackUrl} alt="ID Back" className="w-full h-full object-cover" />
+              </div>
+            </div>
+          )}
+
           {safeDocs.map(doc => {
             const isExpiringSoon = doc.expiryDate && new Date(doc.expiryDate).getTime() - new Date().getTime() < 30 * 24 * 60 * 60 * 1000;
             const isExpired = doc.expiryDate && new Date(doc.expiryDate) < new Date();

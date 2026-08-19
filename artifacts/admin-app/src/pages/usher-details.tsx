@@ -3,8 +3,10 @@ import {
   useGetUsher, 
   useUpdateUsherStatus,
   useGetUsherStats,
+  useListUsherDocuments,
   getGetUsherQueryKey,
-  getListUshersQueryKey
+  getListUshersQueryKey,
+  getListUsherDocumentsQueryKey
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -52,6 +54,12 @@ export default function UsherDetails() {
   });
 
   const { data: stats } = useGetUsherStats(usherId);
+  const { data: documents } = useListUsherDocuments(usherId, {
+    query: { 
+      enabled: !!usherId,
+      queryKey: getListUsherDocumentsQueryKey(usherId) as any
+    }
+  });
 
   const { mutate: updateStatus, isPending: isUpdating } = useUpdateUsherStatus({
     mutation: {
@@ -326,6 +334,58 @@ export default function UsherDetails() {
             ) : (
               <div className="text-center py-6 text-muted-foreground text-sm">
                 No National ID document uploaded.
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Additional Documents */}
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <FileText className="w-5 h-5 text-primary" /> Additional Documents
+            </CardTitle>
+            <CardDescription>Extra documents uploaded by the usher.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {!documents || documents.length === 0 ? (
+              <div className="text-center py-6 text-muted-foreground text-sm">
+                No additional documents uploaded.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {documents.map((doc) => (
+                  <div key={doc.id} className="border rounded-xl p-4 flex flex-col gap-3 shadow-sm bg-card hover:bg-muted/30 transition-colors">
+                    <div className="flex items-start justify-between">
+                      <div className="flex flex-col">
+                        <span className="font-semibold">{doc.docType}</span>
+                        {doc.expiryDate && (
+                          <span className="text-xs text-muted-foreground mt-1">
+                            Expires: {format(new Date(doc.expiryDate), "MMM d, yyyy")}
+                          </span>
+                        )}
+                        <span className={`text-[10px] uppercase font-bold tracking-wider mt-2 px-2 py-0.5 rounded-full w-fit ${doc.status === 'approved' ? 'bg-green-100 text-green-700' : doc.status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-secondary/20 text-secondary-foreground'}`}>
+                          {doc.status}
+                        </span>
+                      </div>
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                        <FileText className="w-5 h-5 text-primary" />
+                      </div>
+                    </div>
+                    {doc.fileKey || doc.fileUrl ? (
+                      <a 
+                        href={doc.fileKey ? getImageUrl(doc.fileKey) : doc.fileUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="mt-2 text-sm text-primary hover:underline font-medium inline-flex items-center gap-1"
+                      >
+                        View Document
+                      </a>
+                    ) : (
+                      <span className="mt-2 text-sm text-muted-foreground italic">No file attached</span>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
           </CardContent>

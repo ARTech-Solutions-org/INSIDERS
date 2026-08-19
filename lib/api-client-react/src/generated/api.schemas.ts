@@ -96,6 +96,14 @@ export interface UsherProfile {
   paymentMethod?: string | null;
   /** @nullable */
   paymentMethodDetails?: string | null;
+  /** @nullable */
+  profilePhotoKey?: string | null;
+  /** @nullable */
+  nationalIdDocKey?: string | null;
+  /** @nullable */
+  nationalIdDocBackKey?: string | null;
+  /** @nullable */
+  nationalIdDocBackUrl?: string | null;
 }
 
 export interface AuthResult {
@@ -137,6 +145,8 @@ export interface UsherUpdate {
   nationalIdDocUrl?: string | null;
   /** @nullable */
   profilePhotoUrl?: string | null;
+  /** @nullable */
+  profilePhotoKey?: string | null;
 }
 
 export interface UsherStatusUpdate {
