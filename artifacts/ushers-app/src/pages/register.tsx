@@ -115,7 +115,8 @@ function FileUpload({ accept, onChange, placeholder }: { accept: string, onChang
 }
 
 const uploadToR2 = async (file: File, type: string) => {
-  const res = await fetch('/api/uploads/presigned-url', {
+  const baseUrl = import.meta.env.VITE_API_URL?.replace(/\/+$/, '') || '';
+  const res = await fetch(`${baseUrl}/api/uploads/presigned-url`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ filename: file.name, contentType: file.type, type })
