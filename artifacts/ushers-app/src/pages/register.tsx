@@ -106,8 +106,8 @@ function FileUpload({ accept, onChange, placeholder }: { accept: string, onChang
           setFileName(file ? file.name : null);
         }}
       />
-      <Upload className="w-5 h-5 text-primary-foreground/60 mr-3 group-hover:text-primary-foreground transition-colors" />
-      <span className="text-sm text-primary-foreground/80 truncate pointer-events-none group-hover:text-primary-foreground transition-colors">
+      <Upload className="w-5 h-5 shrink-0 text-primary-foreground/60 mr-3 group-hover:text-primary-foreground transition-colors" />
+      <span className="flex-1 min-w-0 text-sm text-primary-foreground/80 truncate pointer-events-none group-hover:text-primary-foreground transition-colors">
         {fileName || placeholder}
       </span>
     </div>
@@ -329,8 +329,8 @@ export default function Register() {
                         <FormControl>
                           <div className="relative border border-border bg-background rounded-xl h-14 flex items-center px-4 overflow-hidden hover:bg-muted/50 transition-colors group">
                             <input type="file" accept="image/jpeg, image/png, application/pdf" className="absolute inset-0 opacity-0 cursor-pointer z-10" onChange={e => { field.onChange(e.target.files?.[0] || null); }} />
-                            <Upload className="w-5 h-5 text-muted-foreground mr-3 group-hover:text-foreground transition-colors" />
-                            <span className="text-sm text-foreground/80 truncate pointer-events-none group-hover:text-foreground transition-colors">{field.value instanceof File ? field.value.name : "Upload National ID (Front)"}</span>
+                            <Upload className="w-5 h-5 shrink-0 text-muted-foreground mr-3 group-hover:text-foreground transition-colors" />
+                            <span className="flex-1 min-w-0 text-sm text-foreground/80 truncate pointer-events-none group-hover:text-foreground transition-colors">{field.value instanceof File ? field.value.name : "Upload National ID (Front)"}</span>
                           </div>
                         </FormControl>
                         <FormMessage className="text-red-500 text-xs" />
@@ -341,8 +341,8 @@ export default function Register() {
                         <FormControl>
                           <div className="relative border border-border bg-background rounded-xl h-14 flex items-center px-4 overflow-hidden hover:bg-muted/50 transition-colors group">
                             <input type="file" accept="image/jpeg, image/png, application/pdf" className="absolute inset-0 opacity-0 cursor-pointer z-10" onChange={e => { field.onChange(e.target.files?.[0] || null); }} />
-                            <Upload className="w-5 h-5 text-muted-foreground mr-3 group-hover:text-foreground transition-colors" />
-                            <span className="text-sm text-foreground/80 truncate pointer-events-none group-hover:text-foreground transition-colors">{field.value instanceof File ? field.value.name : "Upload National ID (Back)"}</span>
+                            <Upload className="w-5 h-5 shrink-0 text-muted-foreground mr-3 group-hover:text-foreground transition-colors" />
+                            <span className="flex-1 min-w-0 text-sm text-foreground/80 truncate pointer-events-none group-hover:text-foreground transition-colors">{field.value instanceof File ? field.value.name : "Upload National ID (Back)"}</span>
                           </div>
                         </FormControl>
                         <FormMessage className="text-red-500 text-xs" />
