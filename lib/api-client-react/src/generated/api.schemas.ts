@@ -13,6 +13,17 @@ export interface LoginInput {
   password: string;
 }
 
+/**
+ * @nullable
+ */
+export type UsherRegistrationGender = typeof UsherRegistrationGender[keyof typeof UsherRegistrationGender] | null;
+
+
+export const UsherRegistrationGender = {
+  male: 'male',
+  female: 'female',
+} as const;
+
 export type UsherRegistrationPaymentMethod = typeof UsherRegistrationPaymentMethod[keyof typeof UsherRegistrationPaymentMethod];
 
 
@@ -23,6 +34,30 @@ export const UsherRegistrationPaymentMethod = {
 
 export interface UsherRegistration {
   fullName: string;
+  /** @nullable */
+  fullNameArabic?: string | null;
+  /** @nullable */
+  gender?: UsherRegistrationGender;
+  /** @nullable */
+  dateOfBirth?: string | null;
+  /** @nullable */
+  height?: number | null;
+  /** @nullable */
+  university?: string | null;
+  /** @nullable */
+  major?: string | null;
+  /** @nullable */
+  languages?: string[] | null;
+  /** @nullable */
+  shoeSize?: string | null;
+  /** @nullable */
+  shirtSize?: string | null;
+  /** @nullable */
+  tShirtSize?: string | null;
+  /** @nullable */
+  pantsSize?: string | null;
+  /** @nullable */
+  shortsSize?: string | null;
   phone: string;
   email: string;
   nationalIdNumber: string;
@@ -30,7 +65,15 @@ export interface UsherRegistration {
   /** @nullable */
   nationalIdDocUrl?: string | null;
   /** @nullable */
+  nationalIdDocKey?: string | null;
+  /** @nullable */
+  nationalIdDocBackUrl?: string | null;
+  /** @nullable */
+  nationalIdDocBackKey?: string | null;
+  /** @nullable */
   profilePhotoUrl?: string | null;
+  /** @nullable */
+  profilePhotoKey?: string | null;
   paymentMethod?: UsherRegistrationPaymentMethod;
   paymentMethodDetails?: string;
 }

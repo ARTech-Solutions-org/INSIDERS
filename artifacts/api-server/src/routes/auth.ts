@@ -4,6 +4,10 @@ import { db, ushersTable, adminsTable } from "@workspace/db";
 import { eq, or } from "drizzle-orm";
 import { signToken, verifyToken } from "../lib/auth.js";
 import { requireAuth } from "../middleware/auth.js";
+import { r2Client, R2_BUCKET_NAME } from "../lib/r2.js";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import crypto from "crypto";
 import {
   RegisterUsherBody,
   LoginUsherBody,
@@ -12,6 +16,35 @@ import {
 
 const router = Router();
 
+// POST /uploads/presigned-url
+router.post("/uploads/presigned-url", async (req, res) => {
+  try {
+    const { filename, contentType, type } = req.body;
+    if (!filename || !contentType || !type) {
+      res.status(400).json({ error: "Missing required fields" });
+      return;
+    }
+    
+    const id = crypto.randomUUID();
+    let key = `uploads/${id}/${filename}`;
+    if (type === 'profilePhoto') key = `profile-photos/${id}.jpg`;
+    if (type === 'idDocumentFront') key = `id-documents/${id}/front.jpg`;
+    if (type === 'idDocumentBack') key = `id-documents/${id}/back.jpg`;
+
+    const command = new PutObjectCommand({
+      Bucket: R2_BUCKET_NAME,
+      Key: key,
+      ContentType: contentType,
+    });
+    
+    const url = await getSignedUrl(r2Client, command, { expiresIn: 3600 });
+    res.json({ url, key });
+  } catch (error) {
+    console.error("Presigned URL error:", error);
+    res.status(500).json({ error: "Failed to generate upload URL" });
+  }
+});
+
 // POST /auth/usher/register
 router.post("/auth/usher/register", async (req, res) => {
   const parsed = RegisterUsherBody.safeParse(req.body);
@@ -19,15 +52,39 @@ router.post("/auth/usher/register", async (req, res) => {
     res.status(400).json({ error: parsed.error.flatten() });
     return;
   }
-  const { fullName, phone, email, nationalIdNumber, password, nationalIdDocUrl, profilePhotoUrl, paymentMethod, paymentMethodDetails } = parsed.data;
+  const { 
+    fullName, phone, email, nationalIdNumber, password, 
+    nationalIdDocUrl, nationalIdDocKey,
+    nationalIdDocBackUrl, nationalIdDocBackKey,
+    profilePhotoUrl, profilePhotoKey,
+    paymentMethod, paymentMethodDetails,
+    fullNameArabic, gender, dateOfBirth, height, university, major, languages,
+    shoeSize, shirtSize, tShirtSize, pantsSize, shortsSize
+  } = parsed.data;
   const passwordHash = await bcrypt.hash(password, 10);
   try {
     const [usher] = await db.insert(ushersTable).values({
       fullName, phone, email, nationalIdNumber, passwordHash,
       nationalIdDocUrl: nationalIdDocUrl ?? null,
+      nationalIdDocKey: nationalIdDocKey ?? null,
+      nationalIdDocBackUrl: nationalIdDocBackUrl ?? null,
+      nationalIdDocBackKey: nationalIdDocBackKey ?? null,
       profilePhotoUrl: profilePhotoUrl ?? null,
+      profilePhotoKey: profilePhotoKey ?? null,
       paymentMethod,
       paymentMethodDetails,
+      fullNameArabic: fullNameArabic ?? null,
+      gender: gender ?? null,
+      dateOfBirth: dateOfBirth ? dateOfBirth.toISOString().split('T')[0] : null,
+      height: height ?? null,
+      university: university ?? null,
+      major: major ?? null,
+      languages: languages ?? null,
+      shoeSize: shoeSize ?? null,
+      shirtSize: shirtSize ?? null,
+      tShirtSize: tShirtSize ?? null,
+      pantsSize: pantsSize ?? null,
+      shortsSize: shortsSize ?? null,
       status: "pending",
     }).returning();
     const token = signToken({ type: "usher", id: usher.id });

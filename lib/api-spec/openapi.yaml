@@ -1683,6 +1683,34 @@ components:
       properties:
         fullName:
           type: string
+        fullNameArabic:
+          type: ["string", "null"]
+        gender:
+          type: ["string", "null"]
+          enum: [male, female, null]
+        dateOfBirth:
+          type: ["string", "null"]
+          format: date
+        height:
+          type: ["integer", "null"]
+        university:
+          type: ["string", "null"]
+        major:
+          type: ["string", "null"]
+        languages:
+          type: ["array", "null"]
+          items:
+            type: string
+        shoeSize:
+          type: ["string", "null"]
+        shirtSize:
+          type: ["string", "null"]
+        tShirtSize:
+          type: ["string", "null"]
+        pantsSize:
+          type: ["string", "null"]
+        shortsSize:
+          type: ["string", "null"]
         phone:
           type: string
         email:
@@ -1694,7 +1722,15 @@ components:
           type: string
         nationalIdDocUrl:
           type: ["string", "null"]
+        nationalIdDocKey:
+          type: ["string", "null"]
+        nationalIdDocBackUrl:
+          type: ["string", "null"]
+        nationalIdDocBackKey:
+          type: ["string", "null"]
         profilePhotoUrl:
+          type: ["string", "null"]
+        profilePhotoKey:
           type: ["string", "null"]
         paymentMethod:
           type: string

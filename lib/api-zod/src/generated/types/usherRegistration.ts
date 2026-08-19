@@ -4,10 +4,35 @@
  * Api
  * OpenAPI spec version: 1.0.0
  */
+import type { UsherRegistrationGender } from './usherRegistrationGender';
 import type { UsherRegistrationPaymentMethod } from './usherRegistrationPaymentMethod';
 
 export interface UsherRegistration {
   fullName: string;
+  /** @nullable */
+  fullNameArabic?: string | null;
+  /** @nullable */
+  gender?: UsherRegistrationGender;
+  /** @nullable */
+  dateOfBirth?: Date | null;
+  /** @nullable */
+  height?: number | null;
+  /** @nullable */
+  university?: string | null;
+  /** @nullable */
+  major?: string | null;
+  /** @nullable */
+  languages?: string[] | null;
+  /** @nullable */
+  shoeSize?: string | null;
+  /** @nullable */
+  shirtSize?: string | null;
+  /** @nullable */
+  tShirtSize?: string | null;
+  /** @nullable */
+  pantsSize?: string | null;
+  /** @nullable */
+  shortsSize?: string | null;
   phone: string;
   email: string;
   nationalIdNumber: string;
@@ -15,7 +40,15 @@ export interface UsherRegistration {
   /** @nullable */
   nationalIdDocUrl?: string | null;
   /** @nullable */
+  nationalIdDocKey?: string | null;
+  /** @nullable */
+  nationalIdDocBackUrl?: string | null;
+  /** @nullable */
+  nationalIdDocBackKey?: string | null;
+  /** @nullable */
   profilePhotoUrl?: string | null;
+  /** @nullable */
+  profilePhotoKey?: string | null;
   paymentMethod?: UsherRegistrationPaymentMethod;
   paymentMethodDetails?: string;
 }

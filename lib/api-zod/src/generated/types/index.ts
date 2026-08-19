@@ -77,6 +77,7 @@ export * from './usherDocumentInput';
 export * from './usherListResponse';
 export * from './usherProfile';
 export * from './usherRegistration';
+export * from './usherRegistrationGender';
 export * from './usherRegistrationPaymentMethod';
 export * from './usherSkill';
 export * from './usherSkillInput';

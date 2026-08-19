@@ -20,12 +20,28 @@ export const GetHealthResponse = zod.object({
  */
 export const RegisterUsherBody = zod.object({
   "fullName": zod.string(),
+  "fullNameArabic": zod.string().nullish(),
+  "gender": zod.union([zod.literal('male'),zod.literal('female'),zod.literal(null)]).nullish(),
+  "dateOfBirth": zod.coerce.date().nullish(),
+  "height": zod.int().nullish(),
+  "university": zod.string().nullish(),
+  "major": zod.string().nullish(),
+  "languages": zod.array(zod.string()).nullish(),
+  "shoeSize": zod.string().nullish(),
+  "shirtSize": zod.string().nullish(),
+  "tShirtSize": zod.string().nullish(),
+  "pantsSize": zod.string().nullish(),
+  "shortsSize": zod.string().nullish(),
   "phone": zod.string(),
   "email": zod.email(),
   "nationalIdNumber": zod.string(),
   "password": zod.string(),
   "nationalIdDocUrl": zod.string().nullish(),
+  "nationalIdDocKey": zod.string().nullish(),
+  "nationalIdDocBackUrl": zod.string().nullish(),
+  "nationalIdDocBackKey": zod.string().nullish(),
   "profilePhotoUrl": zod.string().nullish(),
+  "profilePhotoKey": zod.string().nullish(),
   "paymentMethod": zod.enum(['instapay', 'ewallet']).optional(),
   "paymentMethodDetails": zod.string().optional()
 })
