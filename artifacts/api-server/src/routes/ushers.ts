@@ -1,9 +1,10 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
-import { db, ushersTable, usherDocumentsTable, usherSkillsTable, usherAvailabilityTable } from "@workspace/db";
+import { db, ushersTable, usherDocumentsTable, usherSkillsTable, usherAvailabilityTable, notificationsTable } from "@workspace/db";
 import { eq, and, ilike, or, gte, lte, sql } from "drizzle-orm";
 import { requireUsher, requireAdmin } from "../middleware/auth.js";
 import { audit } from "../lib/audit.js";
+import { sendPushToUsher } from "../lib/fcm.js";
 import {
   UpdateMyUsherProfileBody,
   UpdateUsherStatusBody,
@@ -95,6 +96,29 @@ router.patch("/ushers/:id/status", requireAdmin, async (req, res) => {
   const [usher] = await db.update(ushersTable).set({ status: parsed.data.status }).where(eq(ushersTable.id, usherId)).returning();
   if (!usher) { res.status(404).json({ error: "Not found" }); return; }
   await audit(req.user!.id, "UPDATE_STATUS", "ushers", usher.id, `status=${parsed.data.status}`);
+  
+  if (parsed.data.status === 'active') {
+    const title = "Account Approved!";
+    const body = "Congratulations, your usher account has been approved.";
+    await db.insert(notificationsTable).values({
+      recipientType: "usher",
+      recipientId: usher.id,
+      type: "status_update",
+      message: body,
+    });
+    await sendPushToUsher(usher.id, { title, body, data: { url: "/profile" } });
+  } else if (parsed.data.status === 'declined') {
+    const title = "Account Declined";
+    const body = "We're sorry, but your usher account application has been declined.";
+    await db.insert(notificationsTable).values({
+      recipientType: "usher",
+      recipientId: usher.id,
+      type: "status_update",
+      message: body,
+    });
+    await sendPushToUsher(usher.id, { title, body });
+  }
+
   const { passwordHash: _ph, ...safe } = usher;
   res.json(safe);
 });
