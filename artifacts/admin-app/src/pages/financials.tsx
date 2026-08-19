@@ -245,20 +245,21 @@ function CreatePayoutDialog({ usher }: { usher: any }) {
             <Input value={method} readOnly className="capitalize bg-muted" />
             <p className="text-xs text-muted-foreground">{usher.paymentMethodDetails}</p>
             
-            {method.toLowerCase() === 'instapay' && usher.paymentMethodDetails && (
+            {method.toLowerCase() === 'instapay' && usher.paymentMethodDetails && amount && !isNaN(Number(amount)) && Number(amount) > 0 && (
               <div className="flex flex-col items-center justify-center p-4 mt-2 bg-slate-50 rounded-lg border border-slate-100">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">EGP {Number(amount).toFixed(2)} — Scan to pay</p>
                 <QRCodeSVG 
                   value={
                     usher.paymentMethodDetails.startsWith('http') 
                       ? usher.paymentMethodDetails 
                       : `https://ipn.eg/S/${usher.paymentMethodDetails}`
                   } 
-                  size={150} 
+                  size={160} 
                   level="H" 
                   includeMargin={true}
                 />
-                <p className="mt-2 text-xs font-medium text-center text-slate-500" dir="rtl">
-                  قم بمسح الكود باستخدام تطبيق إنستاباي لإتمام الدفع
+                <p className="mt-3 text-xs font-medium text-center text-slate-500">
+                  Scan this code using the InstaPay app to complete the payment.
                 </p>
               </div>
             )}
