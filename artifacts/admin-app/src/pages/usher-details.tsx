@@ -8,7 +8,8 @@ import {
   getListUshersQueryKey,
   getListUsherDocumentsQueryKey
 } from "@workspace/api-client-react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { getAuthToken } from "@/lib/auth";
 import { format } from "date-fns";
 import { 
   ArrowLeft, 
@@ -41,6 +42,28 @@ const getImageUrl = (key?: string | null) => {
   if (!key) return undefined;
   const baseUrl = import.meta.env.VITE_API_URL?.replace(/\/+$/, '') || '';
   return `${baseUrl}/api/uploads/read?key=${encodeURIComponent(key)}`;
+};
+
+export const useUpdateUsherDocumentStatus = () => {
+  return useMutation({
+    mutationFn: async ({ usherId, docId, status }: { usherId: number, docId: number, status: 'pending' | 'approved' | 'rejected' }) => {
+      const token = getAuthToken();
+      const baseUrl = import.meta.env.VITE_API_URL?.replace(/\/+$/, '') || '';
+      const res = await fetch(`${baseUrl}/api/ushers/${usherId}/documents/${docId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ status })
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Failed to update document status');
+      }
+      return res.json();
+    }
+  });
 };
 
 export default function UsherDetails() {
@@ -77,6 +100,27 @@ export default function UsherDetails() {
       }
     }
   });
+
+  const { mutate: updateDocStatus, isPending: isUpdatingDoc } = useUpdateUsherDocumentStatus();
+
+  const handleUpdateDocStatus = (docId: number, status: 'approved' | 'rejected') => {
+    updateDocStatus(
+      { usherId, docId, status },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getListUsherDocumentsQueryKey(usherId) as any });
+          toast({ title: "Document status updated" });
+        },
+        onError: (err: any) => {
+          toast({
+            variant: "destructive",
+            title: "Update Failed",
+            description: err.message || "Failed to update document status",
+          });
+        }
+      }
+    );
+  };
 
   const getStatusBadge = (status?: string) => {
     switch (status) {
@@ -373,14 +417,38 @@ export default function UsherDetails() {
                       </div>
                     </div>
                     {doc.fileKey || doc.fileUrl ? (
-                      <a 
-                        href={doc.fileKey ? getImageUrl(doc.fileKey) : doc.fileUrl} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="mt-2 text-sm text-primary hover:underline font-medium inline-flex items-center gap-1"
-                      >
-                        View Document
-                      </a>
+                      <div className="flex flex-col gap-2 mt-2">
+                        <a 
+                          href={doc.fileKey ? getImageUrl(doc.fileKey) : doc.fileUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-sm text-primary hover:underline font-medium inline-flex items-center gap-1"
+                        >
+                          View Document
+                        </a>
+                        {doc.status === 'pending' && (
+                          <div className="flex items-center gap-2 pt-1 border-t mt-1">
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="h-7 text-xs bg-green-50 text-green-700 border-green-200 hover:bg-green-100 hover:text-green-800 flex-1"
+                              onClick={() => handleUpdateDocStatus(doc.id, 'approved')}
+                              disabled={isUpdatingDoc}
+                            >
+                              Approve
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="h-7 text-xs bg-red-50 text-red-700 border-red-200 hover:bg-red-100 hover:text-red-800 flex-1"
+                              onClick={() => handleUpdateDocStatus(doc.id, 'rejected')}
+                              disabled={isUpdatingDoc}
+                            >
+                              Reject
+                            </Button>
+                          </div>
+                        )}
+                      </div>
                     ) : (
                       <span className="mt-2 text-sm text-muted-foreground italic">No file attached</span>
                     )}

@@ -280,6 +280,38 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/UsherDocument'
+  /ushers/{id}/documents/{docId}/status:
+    patch:
+      operationId: updateUsherDocumentStatus
+      summary: Approve or decline usher document (admin)
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: docId
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [pending, approved, rejected]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsherDocument'
   /ushers/me/skills:
     get:
       operationId: listMySkills

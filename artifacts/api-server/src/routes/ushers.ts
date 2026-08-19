@@ -215,4 +215,22 @@ router.delete("/ushers/me/availability/:id", requireUsher, async (req, res) => {
   res.json({ success: true });
 });
 
+// PATCH /ushers/:id/documents/:docId/status
+router.patch("/ushers/:id/documents/:docId/status", requireAdmin, async (req, res) => {
+  const usherId = parseInt(req.params.id as string, 10);
+  const docId = parseInt(req.params.docId as string, 10);
+  const { status } = req.body;
+  
+  if (isNaN(usherId) || isNaN(docId)) { res.status(400).json({ error: "Invalid IDs" }); return; }
+  if (!["pending", "approved", "rejected"].includes(status)) { res.status(400).json({ error: "Invalid status" }); return; }
+
+  const existing = await db.select().from(usherDocumentsTable).where(and(eq(usherDocumentsTable.id, docId), eq(usherDocumentsTable.usherId, usherId)));
+  if (!existing.length) { res.status(404).json({ error: "Not found" }); return; }
+
+  const [updated] = await db.update(usherDocumentsTable).set({ status }).where(eq(usherDocumentsTable.id, docId)).returning();
+  
+  audit(req.user!.id, "UPDATE_DOCUMENT_STATUS", `Admin updated document ${docId} status to ${status}`, req.ip);
+  res.json(updated);
+});
+
 export default router;
