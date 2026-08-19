@@ -25,6 +25,12 @@ import {
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 
+const getImageUrl = (key?: string | null) => {
+  if (!key) return undefined;
+  const baseUrl = import.meta.env.VITE_API_URL?.replace(/\/+$/, '') || '';
+  return `${baseUrl}/api/uploads/read?key=${encodeURIComponent(key)}`;
+};
+
 export default function Ushers() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<string>("");
@@ -164,7 +170,7 @@ export default function Ushers() {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar className="h-9 w-9">
-                          <AvatarImage src={usher.profilePhotoUrl || undefined} />
+                          <AvatarImage src={getImageUrl(usher.profilePhotoKey) || undefined} />
                           <AvatarFallback className="bg-primary/10 text-primary">
                             {usher.fullName.charAt(0)}
                           </AvatarFallback>
