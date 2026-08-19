@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useListUshers, useListAllPayouts, useListAllTransactions, useCreateTransaction, useCreatePayout, useUpdatePayoutStatus } from "@workspace/api-client-react";
+import { useListUshers, useListAllPayouts, useListAllTransactions, useCreateTransaction, useCreatePayout, useUpdatePayoutStatus, getListAllPayoutsQueryKey, getListUshersQueryKey } from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { QRCodeSVG } from 'qrcode.react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -192,11 +194,15 @@ function CreatePayoutDialog({ usher }: { usher: any }) {
   const [amount, setAmount] = useState(usher.balance > 0 ? usher.balance.toString() : "");
   const method = usher.paymentMethod || "cash";
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   const { mutate: createPayout, isPending } = useCreatePayout({
     mutation: {
       onSuccess: () => {
         toast({ title: "Payout Created", description: `Successfully created payout for ${usher.fullName}.` });
+        queryClient.invalidateQueries({ queryKey: getListAllPayoutsQueryKey({ status: 'pending' }) as any });
+        queryClient.invalidateQueries({ queryKey: getListAllPayoutsQueryKey({ status: 'paid' }) as any });
+        queryClient.invalidateQueries({ queryKey: getListUshersQueryKey() as any });
         setOpen(false);
       },
       onError: (err: any) => {
@@ -238,6 +244,24 @@ function CreatePayoutDialog({ usher }: { usher: any }) {
             <Label>Payment Method</Label>
             <Input value={method} readOnly className="capitalize bg-muted" />
             <p className="text-xs text-muted-foreground">{usher.paymentMethodDetails}</p>
+            
+            {method.toLowerCase() === 'instapay' && usher.paymentMethodDetails && (
+              <div className="flex flex-col items-center justify-center p-4 mt-2 bg-slate-50 rounded-lg border border-slate-100">
+                <QRCodeSVG 
+                  value={
+                    usher.paymentMethodDetails.startsWith('http') 
+                      ? usher.paymentMethodDetails 
+                      : `https://ipn.eg/S/${usher.paymentMethodDetails}`
+                  } 
+                  size={150} 
+                  level="H" 
+                  includeMargin={true}
+                />
+                <p className="mt-2 text-xs font-medium text-center text-slate-500" dir="rtl">
+                  قم بمسح الكود باستخدام تطبيق إنستاباي لإتمام الدفع
+                </p>
+              </div>
+            )}
           </div>
           <div className="space-y-2">
             <Label>Payout Amount (EGP)</Label>
@@ -309,10 +333,14 @@ function PayoutsTab({ status }: { status: "pending" | "paid" }) {
 
 function PayoutActions({ payout }: { payout: any }) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { mutate: updateStatus, isPending } = useUpdatePayoutStatus({
     mutation: {
       onSuccess: () => {
         toast({ title: "Status Updated", description: "Payout status was updated successfully." });
+        queryClient.invalidateQueries({ queryKey: getListAllPayoutsQueryKey({ status: 'pending' }) as any });
+        queryClient.invalidateQueries({ queryKey: getListAllPayoutsQueryKey({ status: 'paid' }) as any });
+        queryClient.invalidateQueries({ queryKey: getListUshersQueryKey() as any });
       }
     }
   });
