@@ -35,6 +35,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 
+const getImageUrl = (key?: string | null) => {
+  if (!key) return undefined;
+  const baseUrl = import.meta.env.VITE_API_URL?.replace(/\/+$/, '') || '';
+  return `${baseUrl}/api/uploads/read?key=${encodeURIComponent(key)}`;
+};
+
 export default function UsherDetails() {
   const [, params] = useRoute("/ushers/:id");
   const usherId = params?.id ? parseInt(params.id, 10) : 0;
@@ -168,7 +174,7 @@ export default function UsherDetails() {
         <CardContent className="p-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
             <Avatar className="w-24 h-24 border-4 border-background shadow-md">
-              <AvatarImage src={usher.profilePhotoUrl || undefined} />
+              <AvatarImage src={getImageUrl(usher.profilePhotoKey) || undefined} />
               <AvatarFallback className="text-2xl font-bold bg-primary/10 text-primary">
                 {usher.fullName?.charAt(0) || "U"}
               </AvatarFallback>
@@ -300,20 +306,22 @@ export default function UsherDetails() {
             <CardDescription>Verification document submitted during registration.</CardDescription>
           </CardHeader>
           <CardContent>
-            {usher.nationalIdDocUrl ? (
-              <div className="space-y-3">
-                <div className="border border-border rounded-xl p-4 bg-muted/20 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <FileText className="w-8 h-8 text-primary" />
-                    <div>
-                      <p className="font-semibold text-sm">National ID Attachment</p>
-                      <p className="text-xs text-muted-foreground truncate max-w-[200px]">{usher.nationalIdDocUrl}</p>
-                    </div>
-                  </div>
-                  <a href={usher.nationalIdDocUrl} target="_blank" rel="noopener noreferrer">
-                    <Button variant="outline" size="sm">View</Button>
+            {usher.nationalIdDocKey ? (
+              <div className="space-y-6">
+                <div className="flex flex-col gap-3">
+                  <h3 className="font-semibold text-sm">ID Front</h3>
+                  <a href={getImageUrl(usher.nationalIdDocKey)} target="_blank" rel="noopener noreferrer" className="block w-fit">
+                    <img src={getImageUrl(usher.nationalIdDocKey)} alt="ID Front" className="w-full max-w-sm rounded-lg border shadow-sm hover:opacity-90 transition-opacity" />
                   </a>
                 </div>
+                {usher.nationalIdDocBackKey && (
+                  <div className="flex flex-col gap-3 pt-4 border-t border-border">
+                    <h3 className="font-semibold text-sm">ID Back</h3>
+                    <a href={getImageUrl(usher.nationalIdDocBackKey)} target="_blank" rel="noopener noreferrer" className="block w-fit">
+                      <img src={getImageUrl(usher.nationalIdDocBackKey)} alt="ID Back" className="w-full max-w-sm rounded-lg border shadow-sm hover:opacity-90 transition-opacity" />
+                    </a>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="text-center py-6 text-muted-foreground text-sm">

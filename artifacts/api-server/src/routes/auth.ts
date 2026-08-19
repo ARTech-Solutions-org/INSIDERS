@@ -5,7 +5,7 @@ import { eq, or } from "drizzle-orm";
 import { signToken, verifyToken } from "../lib/auth.js";
 import { requireAuth } from "../middleware/auth.js";
 import { r2Client, R2_BUCKET_NAME } from "../lib/r2.js";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import crypto from "crypto";
 import {
@@ -42,6 +42,26 @@ router.post("/uploads/presigned-url", async (req, res) => {
   } catch (error) {
     console.error("Presigned URL error:", error);
     res.status(500).json({ error: "Failed to generate upload URL" });
+  }
+});
+
+// GET /uploads/read
+router.get("/uploads/read", async (req, res) => {
+  try {
+    const key = req.query.key as string;
+    if (!key) {
+      res.status(400).json({ error: "Missing key" });
+      return;
+    }
+    const command = new GetObjectCommand({
+      Bucket: R2_BUCKET_NAME,
+      Key: key,
+    });
+    const url = await getSignedUrl(r2Client, command, { expiresIn: 3600 });
+    res.redirect(url);
+  } catch (error) {
+    console.error("Failed to read upload:", error);
+    res.status(500).json({ error: "Failed to read upload" });
   }
 });
 
