@@ -229,7 +229,7 @@ router.patch("/ushers/:id/documents/:docId/status", requireAdmin, async (req, re
 
   const [updated] = await db.update(usherDocumentsTable).set({ status }).where(eq(usherDocumentsTable.id, docId)).returning();
   
-  audit(req.user!.id, "UPDATE_DOCUMENT_STATUS", `Admin updated document ${docId} status to ${status}`, req.ip);
+  audit(req.user!.id, "UPDATE_DOCUMENT_STATUS", "usher_documents", docId, `Admin updated document ${docId} status to ${status} from IP ${req.ip}`);
   res.json(updated);
 });
 
