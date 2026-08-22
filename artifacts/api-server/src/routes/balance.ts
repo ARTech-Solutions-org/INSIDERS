@@ -3,6 +3,7 @@ import { db, ushersTable, balanceTransactionsTable, payoutsTable } from "@worksp
 import { eq, desc, and, sql } from "drizzle-orm";
 import { requireUsher, requireAdmin } from "../middleware/auth.js";
 import { audit } from "../lib/audit.js";
+import { sendPushToUsher } from "../lib/fcm.js";
 import { CreateTransactionBody, CreatePayoutBody, UpdatePayoutStatusBody, RequestMyPayoutBody } from "@workspace/api-zod";
 
 const router = Router();
@@ -65,6 +66,13 @@ router.post("/my/payouts", requireUsher, async (req, res) => {
   });
 
   await audit(req.user!.id, "REQUEST_PAYOUT", "payouts", payout.id);
+
+  await sendPushToUsher(usher.id, {
+    title: "Payout Requested",
+    body: `Your request for EGP ${parsed.data.amount} has been received and is pending approval.`,
+    data: { type: "payout_requested", amount: parsed.data.amount.toString() }
+  }).catch(e => console.error("[FCM Error]", e));
+
   res.status(201).json(payout);
 });
 
@@ -88,6 +96,18 @@ router.post("/admin/transactions", requireAdmin, async (req, res) => {
     balance: sql`${ushersTable.balance} + ${type === "debit" ? (0 - amount) : amount}` 
   }).where(eq(ushersTable.id, usherId));
   await audit(req.user!.id, "CREATE_TRANSACTION", "balance_transactions", txn.id);
+
+  const title = type === "debit" ? "Balance Deduction" : "Balance Added";
+  const body = type === "debit" 
+    ? `EGP ${amount} has been deducted from your balance. Reason: ${reason}`
+    : `EGP ${amount} has been added to your balance. Reason: ${reason}`;
+  
+  await sendPushToUsher(usherId, {
+    title, 
+    body, 
+    data: { type: "balance_transaction", amount: amount.toString() }
+  }).catch(e => console.error("[FCM Error]", e));
+
   res.status(201).json(txn);
 });
 
@@ -131,6 +151,13 @@ router.post("/admin/payouts", requireAdmin, async (req, res) => {
   });
 
   await audit(req.user!.id, "CREATE_PAYOUT", "payouts", payout.id);
+
+  await sendPushToUsher(parsed.data.usherId, {
+    title: "Payout Initiated",
+    body: `A payout of EGP ${parsed.data.amount} has been initiated via ${parsed.data.method}.`,
+    data: { type: "payout_initiated", amount: parsed.data.amount.toString() }
+  }).catch(e => console.error("[FCM Error]", e));
+
   res.status(201).json(payout);
 });
 
@@ -161,6 +188,21 @@ router.patch("/admin/payouts/:id/status", requireAdmin, async (req, res) => {
   }
 
   await audit(req.user!.id, "UPDATE_PAYOUT_STATUS", "payouts", payout.id, `status=${parsed.data.status}`);
+
+  if (parsed.data.status === "paid" && existing.status !== "paid") {
+    await sendPushToUsher(existing.usherId, {
+      title: "Payout Completed \uD83D\uDCB0",
+      body: `Your payout of EGP ${existing.amount} has been completed!`,
+      data: { type: "payout_completed", amount: existing.amount.toString() }
+    }).catch(e => console.error("[FCM Error]", e));
+  } else if (parsed.data.status === "cancelled" && existing.status !== "cancelled") {
+    await sendPushToUsher(existing.usherId, {
+      title: "Payout Cancelled",
+      body: `Your payout of EGP ${existing.amount} was cancelled. The amount has been refunded to your balance.`,
+      data: { type: "payout_cancelled", amount: existing.amount.toString() }
+    }).catch(e => console.error("[FCM Error]", e));
+  }
+
   res.json(payout);
 });
 
