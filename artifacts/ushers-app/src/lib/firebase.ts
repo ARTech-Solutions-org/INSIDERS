@@ -54,7 +54,7 @@ export async function getMessagingToken(): Promise<string | null> {
   // Request permission
   const permission = await Notification.requestPermission();
   if (permission !== "granted") {
-    toast.error(`صلاحية الإشعارات غير ممنوحة: ${permission}`);
+    toast.error(`Notification permission not granted: ${permission}`);
     return null;
   }
 
