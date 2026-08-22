@@ -84,6 +84,7 @@ export default function Broadcasts() {
                   <option value="female_ushers">Female Ushers (Active)</option>
                   <option value="high_rating">Top Rated (≥4.5)</option>
                   <option value="no_payment_method">No Payment Method Configured</option>
+                  <option value="incomplete_profile">Incomplete Profile (Missing info/ID/photo)</option>
                   <option value="pending_payouts">Ushers with Pending Payouts</option>
                 </select>
               </div>

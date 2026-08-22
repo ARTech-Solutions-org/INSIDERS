@@ -1,7 +1,7 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
 import { db, adminsTable, broadcastMessagesTable, auditLogTable, usherDocumentsTable, ushersTable, notificationsTable, eventsTable, eventAssignmentsTable, ratingsTable, payoutsTable } from "@workspace/db";
-import { eq, lte, and, desc, gte, sql, lt, inArray, isNull } from "drizzle-orm";
+import { eq, lte, and, desc, gte, sql, lt, inArray, isNull, or } from "drizzle-orm";
 import { requireAdmin } from "../middleware/auth.js";
 import { audit } from "../lib/audit.js";
 import { CreateAdminBody, UpdateAdminBody, SendBroadcastBody } from "@workspace/api-zod";
@@ -90,7 +90,26 @@ router.post("/broadcasts", requireAdmin, async (req, res) => {
       ushersQuery = ushersQuery.where(and(eq(ushersTable.status, "active"), gte(ushersTable.avgRating, 4.5)));
       break;
     case "no_payment_method":
-      ushersQuery = ushersQuery.where(and(eq(ushersTable.status, "active"), isNull(ushersTable.paymentMethod)));
+      ushersQuery = ushersQuery.where(and(eq(ushersTable.status, "active"), or(isNull(ushersTable.paymentMethod), eq(ushersTable.paymentMethod, ""))));
+      break;
+    case "incomplete_profile":
+      ushersQuery = ushersQuery.where(
+        and(
+          eq(ushersTable.status, "active"),
+          or(
+            isNull(ushersTable.paymentMethod),
+            eq(ushersTable.paymentMethod, ""),
+            isNull(ushersTable.profilePhotoUrl),
+            eq(ushersTable.profilePhotoUrl, ""),
+            isNull(ushersTable.nationalIdDocUrl),
+            eq(ushersTable.nationalIdDocUrl, ""),
+            isNull(ushersTable.gender),
+            eq(ushersTable.gender, ""),
+            isNull(ushersTable.shoeSize),
+            eq(ushersTable.shoeSize, "")
+          )
+        )
+      );
       break;
     case "pending_payouts":
       ushersQuery = ushersQuery
