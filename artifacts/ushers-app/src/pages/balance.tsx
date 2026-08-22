@@ -3,12 +3,48 @@ import { useGetMyBalance, useListMyTransactions, BalanceTransaction } from '@wor
 import { Skeleton } from '@/components/ui/skeleton';
 import { Banknote, ArrowDownRight, ArrowUpRight } from 'lucide-react';
 import { format } from 'date-fns';
+import { useRequestMyPayout } from '@workspace/api-client-react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 
 export default function Balance() {
   const { data: balanceData, isLoading: isBalanceLoading } = useGetMyBalance();
   const { data: transactionsData, isLoading: isTransactionsLoading } = useListMyTransactions({});
 
   const balance = balanceData?.balance || 0;
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [amount, setAmount] = useState("");
+
+  const { mutate: requestPayout, isPending: isRequesting } = useRequestMyPayout({
+    mutation: {
+      onSuccess: () => {
+        toast({ title: "Payout Requested", description: "Your payout request has been submitted successfully." });
+        queryClient.invalidateQueries();
+        setOpen(false);
+        setAmount("");
+      },
+      onError: (err: any) => {
+        toast({ 
+          title: "Failed to request payout", 
+          description: err.response?.data?.error || err.message || "An unexpected error occurred", 
+          variant: "destructive" 
+        });
+      }
+    }
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!amount || isNaN(Number(amount)) || Number(amount) <= 0 || Number(amount) > balance) return;
+    requestPayout({ data: { amount: Number(amount) } });
+  };
   const transactions: BalanceTransaction[] = Array.isArray(transactionsData)
     ? transactionsData
     : (Array.isArray((transactionsData as any)?.data) ? (transactionsData as any).data : []);
@@ -27,12 +63,53 @@ export default function Balance() {
         {isBalanceLoading ? (
           <Skeleton className="h-12 w-48 bg-primary-foreground/20 rounded-xl relative z-10" />
         ) : (
-          <p className="brand-display text-5xl tracking-wide text-primary-foreground relative z-10">
-            <span className="text-2xl mr-2 text-primary-foreground/70">EGP</span>
-            {balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </p>
-        )}
-      </div>
+            <p className="brand-display text-5xl tracking-wide text-primary-foreground relative z-10">
+              <span className="text-2xl mr-2 text-primary-foreground/70">EGP</span>
+              {balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </p>
+          )}
+
+          {balance > 0 && (
+            <div className="mt-6 w-full max-w-[200px] relative z-10">
+              <Dialog open={open} onOpenChange={setOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="secondary" className="w-full bg-white text-primary hover:bg-slate-100 font-bold uppercase tracking-wider h-11">
+                    Request Payout
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Request Payout</DialogTitle>
+                    <DialogDescription>
+                      Enter the amount you would like to withdraw from your balance.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <form onSubmit={handleSubmit} className="space-y-4 py-2">
+                    <div className="space-y-2">
+                      <Label>Amount (EGP)</Label>
+                      <Input 
+                        type="number" 
+                        step="0.01" 
+                        min="0.01" 
+                        max={balance} 
+                        value={amount} 
+                        onChange={(e) => setAmount(e.target.value)} 
+                        placeholder={balance.toString()} 
+                        required 
+                      />
+                    </div>
+                    <DialogFooter>
+                      <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+                      <Button type="submit" disabled={isRequesting || !amount || Number(amount) <= 0 || Number(amount) > balance}>
+                        Submit Request
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
+          )}
+        </div>
 
       <div className="flex-1 relative z-10">
         <h2 className="brand-display text-xl mb-4 uppercase tracking-wide border-b border-border/50 pb-2">RECENT TRANSACTIONS</h2>

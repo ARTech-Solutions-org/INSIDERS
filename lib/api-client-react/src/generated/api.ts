@@ -77,8 +77,10 @@ import type {
   Rating,
   RatingInput,
   RemoveFromWaitlist200,
+  RequestPayoutInput,
   SmartAssignFilters,
   TransactionInput,
+  UpdateUsherDocumentStatusBody,
   UsherAvailability,
   UsherAvailabilityInput,
   UsherCandidate,
@@ -1308,6 +1310,80 @@ export function useListUsherDocuments<TData = Awaited<ReturnType<typeof listUshe
 
 
 
+
+export const getUpdateUsherDocumentStatusUrl = (id: number,
+    docId: number,) => {
+
+
+
+
+  return `/api/ushers/${id}/documents/${docId}/status`
+}
+
+/**
+ * @summary Approve or decline usher document (admin)
+ */
+export const updateUsherDocumentStatus = async (id: number,
+    docId: number,
+    updateUsherDocumentStatusBody: UpdateUsherDocumentStatusBody, options?: Parameters<typeof customFetch>[1]): Promise<UsherDocument> => {
+
+  return customFetch<UsherDocument>(getUpdateUsherDocumentStatusUrl(id,docId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(updateUsherDocumentStatusBody)
+  }
+);}
+
+
+
+
+
+export const getUpdateUsherDocumentStatusMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateUsherDocumentStatus>>, TError,{id: number;docId: number;data: BodyType<UpdateUsherDocumentStatusBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateUsherDocumentStatus>>, TError,{id: number;docId: number;data: BodyType<UpdateUsherDocumentStatusBody>}, TContext> => {
+
+const mutationKey = ['updateUsherDocumentStatus'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateUsherDocumentStatus>>, {id: number;docId: number;data: BodyType<UpdateUsherDocumentStatusBody>}> = (props) => {
+          const {id,docId,data} = props ?? {};
+
+          return  updateUsherDocumentStatus(id,docId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateUsherDocumentStatusMutationResult = NonNullable<Awaited<ReturnType<typeof updateUsherDocumentStatus>>>
+    export type UpdateUsherDocumentStatusMutationBody = BodyType<UpdateUsherDocumentStatusBody>
+    export type UpdateUsherDocumentStatusMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Approve or decline usher document (admin)
+ */
+export const useUpdateUsherDocumentStatus = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateUsherDocumentStatus>>, TError,{id: number;docId: number;data: BodyType<UpdateUsherDocumentStatusBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateUsherDocumentStatus>>,
+        TError,
+        {id: number;docId: number;data: BodyType<UpdateUsherDocumentStatusBody>},
+        TContext
+      > => {
+      return useMutation(getUpdateUsherDocumentStatusMutationOptions(options));
+    }
 
 export const getListMySkillsUrl = () => {
 
@@ -4609,6 +4685,77 @@ export function useListMyPayouts<TData = Awaited<ReturnType<typeof listMyPayouts
 
 
 
+
+export const getRequestMyPayoutUrl = () => {
+
+
+
+
+  return `/api/my/payouts`
+}
+
+/**
+ * @summary Request a payout for the authenticated usher
+ */
+export const requestMyPayout = async (requestPayoutInput: RequestPayoutInput, options?: Parameters<typeof customFetch>[1]): Promise<Payout> => {
+
+  return customFetch<Payout>(getRequestMyPayoutUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(requestPayoutInput)
+  }
+);}
+
+
+
+
+
+export const getRequestMyPayoutMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof requestMyPayout>>, TError,{data: BodyType<RequestPayoutInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof requestMyPayout>>, TError,{data: BodyType<RequestPayoutInput>}, TContext> => {
+
+const mutationKey = ['requestMyPayout'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof requestMyPayout>>, {data: BodyType<RequestPayoutInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  requestMyPayout(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RequestMyPayoutMutationResult = NonNullable<Awaited<ReturnType<typeof requestMyPayout>>>
+    export type RequestMyPayoutMutationBody = BodyType<RequestPayoutInput>
+    export type RequestMyPayoutMutationError = ErrorType<void>
+
+    /**
+ * @summary Request a payout for the authenticated usher
+ */
+export const useRequestMyPayout = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof requestMyPayout>>, TError,{data: BodyType<RequestPayoutInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof requestMyPayout>>,
+        TError,
+        {data: BodyType<RequestPayoutInput>},
+        TContext
+      > => {
+      return useMutation(getRequestMyPayoutMutationOptions(options));
+    }
 
 export const getCreateRatingUrl = () => {
 

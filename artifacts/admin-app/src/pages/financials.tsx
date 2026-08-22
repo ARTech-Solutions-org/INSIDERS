@@ -371,6 +371,7 @@ function PayoutsTab({ status }: { status: "pending" | "paid" }) {
 function PayoutActions({ payout }: { payout: any }) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [open, setOpen] = useState(false);
   const { mutate: updateStatus, isPending } = useUpdatePayoutStatus({
     mutation: {
       onSuccess: () => {
@@ -378,25 +379,86 @@ function PayoutActions({ payout }: { payout: any }) {
         queryClient.invalidateQueries({ queryKey: getListAllPayoutsQueryKey({ status: 'pending' }) as any });
         queryClient.invalidateQueries({ queryKey: getListAllPayoutsQueryKey({ status: 'paid' }) as any });
         queryClient.invalidateQueries({ queryKey: getListUshersQueryKey() as any });
+        setOpen(false);
       }
     }
   });
 
+  const method = payout.method || "cash";
+  const paymentMethodDetails = payout.usher?.paymentMethodDetails || "";
+
   return (
     <>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="text-blue-600 border-blue-200 hover:bg-blue-50"
+          >
+            Pay
+          </Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Process Payment</DialogTitle>
+            <DialogDescription>
+              Please transfer the requested amount to the usher.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-4">
+            <div className="flex flex-col items-center justify-center p-6 bg-slate-50 rounded-lg border border-slate-100 space-y-4">
+              <div className="text-center">
+                <p className="text-sm font-medium text-slate-500 mb-1">Amount to Transfer</p>
+                <p className="text-3xl font-bold text-slate-900">EGP {Number(payout.amount).toFixed(2)}</p>
+              </div>
+              
+              <div className="w-full h-px bg-slate-200"></div>
+              
+              <div className="text-center w-full">
+                <p className="text-sm font-medium text-slate-500 mb-2">Transfer to ({method})</p>
+                <div className="p-3 bg-white border border-slate-200 rounded-md font-mono text-lg font-semibold break-all">
+                  {paymentMethodDetails || "N/A"}
+                </div>
+              </div>
+
+              {method.toLowerCase() === 'instapay' && paymentMethodDetails && (
+                <div className="flex flex-col items-center justify-center mt-4">
+                  <QRCodeSVG 
+                    value={
+                      paymentMethodDetails.startsWith('http') 
+                        ? paymentMethodDetails 
+                        : `https://ipn.eg/S/${paymentMethodDetails}`
+                    } 
+                    size={160} 
+                    level="H" 
+                    includeMargin={true}
+                  />
+                  <p className="mt-3 text-xs font-medium text-center text-slate-500">
+                    Scan to pay via InstaPay
+                  </p>
+                </div>
+              )}
+            </div>
+            
+            <DialogFooter className="flex space-x-2">
+              <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+              <Button 
+                onClick={() => updateStatus({ id: payout.id, data: { status: 'paid', paidAt: new Date().toISOString() } })}
+                disabled={isPending}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                Confirm Paid
+              </Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
       <Button 
         variant="outline" 
         size="sm" 
-        className="text-green-600 border-green-200 hover:bg-green-50"
-        disabled={isPending}
-        onClick={() => updateStatus({ id: payout.id, data: { status: 'paid', paidAt: new Date().toISOString() } })}
-      >
-        Mark Paid
-      </Button>
-      <Button 
-        variant="outline" 
-        size="sm" 
-        className="text-red-600 border-red-200 hover:bg-red-50"
+        className="text-red-600 border-red-200 hover:bg-red-50 ml-2"
         disabled={isPending}
         onClick={() => updateStatus({ id: payout.id, data: { status: 'cancelled' } })}
       >

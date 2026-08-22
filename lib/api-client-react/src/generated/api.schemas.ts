@@ -604,6 +604,10 @@ export interface PayoutInput {
   method: string;
 }
 
+export interface RequestPayoutInput {
+  amount: number;
+}
+
 export interface PayoutStatusUpdate {
   status: string;
   /** @nullable */
@@ -728,6 +732,19 @@ status?: string;
 search?: string;
 page?: number;
 limit?: number;
+};
+
+export type UpdateUsherDocumentStatusBodyStatus = typeof UpdateUsherDocumentStatusBodyStatus[keyof typeof UpdateUsherDocumentStatusBodyStatus];
+
+
+export const UpdateUsherDocumentStatusBodyStatus = {
+  pending: 'pending',
+  approved: 'approved',
+  rejected: 'rejected',
+} as const;
+
+export type UpdateUsherDocumentStatusBody = {
+  status?: UpdateUsherDocumentStatusBodyStatus;
 };
 
 export type ListMyAvailabilityParams = {

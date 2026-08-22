@@ -6,7 +6,6 @@ import {
   DeclineAssignmentBody,
   UsherCheckinBody,
   CancelAssignmentBody,
-  GpsCheckinInput,
 } from "@workspace/api-zod";
 import { calculateAndApplyAutoRating } from "../lib/auto-rating-engine.js";
 

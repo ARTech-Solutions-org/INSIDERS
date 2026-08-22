@@ -9,7 +9,6 @@ import {
   UpdateEventBody,
   CreateDeductionRuleBody,
   AssignUsherToEventBody,
-  WaitlistInput,
   CreateEventTeamBody,
 } from "@workspace/api-zod";
 import { z } from "zod";

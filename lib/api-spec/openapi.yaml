@@ -1202,6 +1202,24 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Payout'
+    post:
+      operationId: requestMyPayout
+      summary: Request a payout for the authenticated usher
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestPayoutInput'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payout'
+        '400':
+          description: Bad request (insufficient balance or missing payment method)
   /ratings:
     post:
       operationId: createRating
@@ -2827,6 +2845,13 @@ components:
           type: number
         method:
           type: string
+    RequestPayoutInput:
+      type: object
+      required:
+      - amount
+      properties:
+        amount:
+          type: number
     PayoutStatusUpdate:
       type: object
       required:

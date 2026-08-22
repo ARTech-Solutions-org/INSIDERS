@@ -421,6 +421,29 @@ export const ListUsherDocumentsResponse = zod.array(ListUsherDocumentsResponseIt
 
 
 /**
+ * @summary Approve or decline usher document (admin)
+ */
+export const UpdateUsherDocumentStatusParams = zod.object({
+  "id": zod.coerce.number().int(),
+  "docId": zod.coerce.number().int()
+})
+
+export const UpdateUsherDocumentStatusBody = zod.object({
+  "status": zod.enum(['pending', 'approved', 'rejected']).optional()
+})
+
+export const UpdateUsherDocumentStatusResponse = zod.object({
+  "id": zod.int(),
+  "usherId": zod.int(),
+  "docType": zod.string(),
+  "fileUrl": zod.string(),
+  "fileKey": zod.string(),
+  "expiryDate": zod.string().nullish(),
+  "status": zod.string()
+})
+
+
+/**
  * @summary List skills for authenticated usher
  */
 export const ListMySkillsResponseItem = zod.object({
@@ -2094,6 +2117,23 @@ export const ListMyPayoutsResponseItem = zod.object({
   "paidAt": zod.string().nullish()
 })
 export const ListMyPayoutsResponse = zod.array(ListMyPayoutsResponseItem)
+
+
+/**
+ * @summary Request a payout for the authenticated usher
+ */
+export const RequestMyPayoutBody = zod.object({
+  "amount": zod.number()
+})
+
+export const RequestMyPayoutResponse = zod.object({
+  "id": zod.int(),
+  "usherId": zod.int(),
+  "amount": zod.number(),
+  "method": zod.string(),
+  "status": zod.string(),
+  "paidAt": zod.string().nullish()
+})
 
 
 /**

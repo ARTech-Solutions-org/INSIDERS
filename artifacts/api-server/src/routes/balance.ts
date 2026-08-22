@@ -3,7 +3,7 @@ import { db, ushersTable, balanceTransactionsTable, payoutsTable } from "@worksp
 import { eq, desc, and, sql } from "drizzle-orm";
 import { requireUsher, requireAdmin } from "../middleware/auth.js";
 import { audit } from "../lib/audit.js";
-import { CreateTransactionBody, CreatePayoutBody, UpdatePayoutStatusBody } from "@workspace/api-zod";
+import { CreateTransactionBody, CreatePayoutBody, UpdatePayoutStatusBody, RequestMyPayoutBody } from "@workspace/api-zod";
 
 const router = Router();
 
@@ -26,6 +26,46 @@ router.get("/my/transactions", requireUsher, async (req, res) => {
 router.get("/my/payouts", requireUsher, async (req, res) => {
   const payouts = await db.select().from(payoutsTable).where(eq(payoutsTable.usherId, req.user!.id)).orderBy(desc(payoutsTable.id));
   res.json(payouts);
+});
+
+// POST /my/payouts
+router.post("/my/payouts", requireUsher, async (req, res) => {
+  const parsed = RequestMyPayoutBody.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.flatten() }); return; }
+  
+  const [usher] = await db.select().from(ushersTable).where(eq(ushersTable.id, req.user!.id));
+  
+  if (!usher.paymentMethod) {
+    res.status(400).json({ error: "Please configure a payment method in your profile before requesting a payout." });
+    return;
+  }
+
+  if (parsed.data.amount <= 0 || parsed.data.amount > (usher.balance ?? 0)) {
+    res.status(400).json({ error: "Invalid payout amount. Must be greater than 0 and less than or equal to your current balance." });
+    return;
+  }
+
+  const [payout] = await db.insert(payoutsTable).values({
+    usherId: usher.id,
+    amount: parsed.data.amount,
+    method: usher.paymentMethod,
+    status: "pending"
+  }).returning();
+
+  // Deduct balance and create transaction
+  await db.update(ushersTable).set({
+    balance: sql`${ushersTable.balance} - ${parsed.data.amount}`
+  }).where(eq(ushersTable.id, usher.id));
+
+  await db.insert(balanceTransactionsTable).values({
+    usherId: usher.id,
+    amount: parsed.data.amount,
+    type: "debit",
+    reason: `Payout requested via ${usher.paymentMethod}`,
+  });
+
+  await audit(req.user!.id, "REQUEST_PAYOUT", "payouts", payout.id);
+  res.status(201).json(payout);
 });
 
 // GET /admin/transactions
@@ -54,7 +94,19 @@ router.post("/admin/transactions", requireAdmin, async (req, res) => {
 // GET /admin/payouts
 router.get("/admin/payouts", requireAdmin, async (req, res) => {
   const { status, usherId } = req.query as Record<string, string>;
-  let query = db.select().from(payoutsTable).$dynamic().orderBy(desc(payoutsTable.id));
+  let query = db.select({
+    id: payoutsTable.id,
+    usherId: payoutsTable.usherId,
+    amount: payoutsTable.amount,
+    method: payoutsTable.method,
+    status: payoutsTable.status,
+    paidAt: payoutsTable.paidAt,
+    usher: {
+      id: ushersTable.id,
+      fullName: ushersTable.fullName,
+      paymentMethodDetails: ushersTable.paymentMethodDetails
+    }
+  }).from(payoutsTable).leftJoin(ushersTable, eq(payoutsTable.usherId, ushersTable.id)).$dynamic().orderBy(desc(payoutsTable.id));
   if (status) query = query.where(eq(payoutsTable.status, status));
   if (usherId) query = query.where(and(eq(payoutsTable.usherId, parseInt(usherId))));
   res.json(await query);
