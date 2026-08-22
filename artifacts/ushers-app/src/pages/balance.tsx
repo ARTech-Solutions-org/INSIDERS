@@ -3,7 +3,7 @@ import { useGetMyBalance, useListMyTransactions, BalanceTransaction } from '@wor
 import { Skeleton } from '@/components/ui/skeleton';
 import { Banknote, ArrowDownRight, ArrowUpRight } from 'lucide-react';
 import { format } from 'date-fns';
-import { useRequestMyPayout } from '@workspace/api-client-react';
+import { useRequestMyPayout, useListMyPayouts } from '@workspace/api-client-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -15,8 +15,17 @@ import { useState } from 'react';
 export default function Balance() {
   const { data: balanceData, isLoading: isBalanceLoading } = useGetMyBalance();
   const { data: transactionsData, isLoading: isTransactionsLoading } = useListMyTransactions({});
+  const { data: payoutsData } = useListMyPayouts();
 
   const balance = balanceData?.balance || 0;
+  
+  const payouts = Array.isArray(payoutsData) 
+    ? payoutsData 
+    : (Array.isArray((payoutsData as any)?.data) ? (payoutsData as any).data : []);
+    
+  const pendingPayouts = payouts.filter((p: any) => p.status === 'pending');
+  const totalPending = pendingPayouts.reduce((acc: number, p: any) => acc + Number(p.amount), 0);
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -67,6 +76,12 @@ export default function Balance() {
               <span className="text-2xl mr-2 text-primary-foreground/70">EGP</span>
               {balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
+          )}
+
+          {totalPending > 0 && (
+            <div className="mt-4 bg-primary-foreground/10 border border-primary-foreground/20 text-primary-foreground/90 px-4 py-2 rounded-lg text-sm font-medium relative z-10 flex flex-col items-center">
+              <span>EGP {totalPending.toLocaleString(undefined, { minimumFractionDigits: 2 })} pending approval</span>
+            </div>
           )}
 
           {balance > 0 && (
