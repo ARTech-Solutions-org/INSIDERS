@@ -2,24 +2,29 @@ import { Router } from "express";
 import bcrypt from "bcryptjs";
 import { db, adminsTable, broadcastMessagesTable, auditLogTable, usherDocumentsTable, ushersTable, notificationsTable, eventsTable, eventAssignmentsTable, ratingsTable, payoutsTable } from "@workspace/db";
 import { eq, lte, and, desc, gte, sql, lt, inArray, isNull, or } from "drizzle-orm";
-import { requireAdmin } from "../middleware/auth.js";
+import { requireAdmin, requireSuperAdmin } from "../middleware/auth.js";
 import { audit } from "../lib/audit.js";
 import { CreateAdminBody, UpdateAdminBody, SendBroadcastBody } from "@workspace/api-zod";
 import { sendPushToUshers } from "../lib/fcm.js";
 
 const router = Router();
 
-// GET /admins
-router.get("/admins", requireAdmin, async (req, res) => {
+// GET /admins — super_admin only
+router.get("/admins", requireSuperAdmin, async (req, res) => {
   const admins = await db.select({ id: adminsTable.id, name: adminsTable.name, email: adminsTable.email, role: adminsTable.role, createdByAdminId: adminsTable.createdByAdminId, createdAt: adminsTable.createdAt }).from(adminsTable);
   res.json(admins);
 });
 
-// POST /admins
-router.post("/admins", requireAdmin, async (req, res) => {
+// POST /admins — super_admin only
+router.post("/admins", requireSuperAdmin, async (req, res) => {
   const parsed = CreateAdminBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.flatten() }); return; }
   const { name, email, password, role } = parsed.data;
+  // Only allow valid roles
+  if (!["admin", "super_admin"].includes(role)) {
+    res.status(400).json({ error: "Invalid role. Must be 'admin' or 'super_admin'." });
+    return;
+  }
   const passwordHash = await bcrypt.hash(password, 10);
   try {
     const [admin] = await db.insert(adminsTable).values({ name, email, passwordHash, role, createdByAdminId: req.user!.id }).returning();
@@ -32,8 +37,8 @@ router.post("/admins", requireAdmin, async (req, res) => {
   }
 });
 
-// PATCH /admins/:id
-router.patch("/admins/:id", requireAdmin, async (req, res) => {
+// PATCH /admins/:id — super_admin only
+router.patch("/admins/:id", requireSuperAdmin, async (req, res) => {
   const parsed = UpdateAdminBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.flatten() }); return; }
   const adminId = parseInt(req.params.id as string, 10);
@@ -44,8 +49,8 @@ router.patch("/admins/:id", requireAdmin, async (req, res) => {
   res.status(200).json(safe);
 });
 
-// DELETE /admins/:id
-router.delete("/admins/:id", requireAdmin, async (req, res) => {
+// DELETE /admins/:id — super_admin only
+router.delete("/admins/:id", requireSuperAdmin, async (req, res) => {
   const adminId = parseInt(req.params.id as string, 10);
   await db.delete(adminsTable).where(eq(adminsTable.id, adminId));
   await audit(req.user!.id, "DELETE_ADMIN", "admins", adminId);
@@ -183,8 +188,8 @@ router.get("/fcm-debug", async (req, res) => {
   }
 });
 
-// GET /audit-log
-router.get("/audit-log", requireAdmin, async (req, res) => {
+// GET /audit-log — super_admin only
+router.get("/audit-log", requireSuperAdmin, async (req, res) => {
   const { adminId, actionType, from, to, page = "1", limit = "50" } = req.query as Record<string, string>;
   const offset = (parseInt(page) - 1) * parseInt(limit);
   const rows = await db.select({ id: auditLogTable.id, adminId: auditLogTable.adminId, actionType: auditLogTable.actionType, targetTable: auditLogTable.targetTable, targetId: auditLogTable.targetId, details: auditLogTable.details, createdAt: auditLogTable.createdAt, adminName: adminsTable.name }).from(auditLogTable).leftJoin(adminsTable, eq(auditLogTable.adminId, adminsTable.id)).orderBy(desc(auditLogTable.createdAt)).limit(parseInt(limit)).offset(offset);
@@ -202,15 +207,13 @@ router.get("/admin/expiring-documents", requireAdmin, async (req, res) => {
   res.json(result);
 });
 
-// GET /admin/dashboard
+// GET /admin/dashboard — any admin; sensitive fields (balanceOwed, recentActivity) stripped for non-super_admin
 router.get("/admin/dashboard", requireAdmin, async (req, res) => {
   const [{ active }] = await db.select({ active: sql<number>`count(*)::int` }).from(ushersTable).where(eq(ushersTable.status, "active"));
   const [{ pending }] = await db.select({ pending: sql<number>`count(*)::int` }).from(ushersTable).where(eq(ushersTable.status, "pending"));
   const now = new Date();
   const weekEnd = new Date(now); weekEnd.setDate(weekEnd.getDate() + 7);
   const [{ upcoming }] = await db.select({ upcoming: sql<number>`count(*)::int` }).from(eventsTable).where(and(gte(eventsTable.startTime, now), lte(eventsTable.startTime, weekEnd)));
-  const [{ balanceOwed }] = await db.select({ balanceOwed: sql<number>`coalesce(sum(balance), 0)::float` }).from(ushersTable).where(gte(ushersTable.balance, 0));
-  const recentActivity = await db.select({ id: auditLogTable.id, adminId: auditLogTable.adminId, actionType: auditLogTable.actionType, targetTable: auditLogTable.targetTable, targetId: auditLogTable.targetId, details: auditLogTable.details, createdAt: auditLogTable.createdAt, adminName: adminsTable.name }).from(auditLogTable).leftJoin(adminsTable, eq(auditLogTable.adminId, adminsTable.id)).orderBy(desc(auditLogTable.createdAt)).limit(10);
   // last 6 months event trends
   const eventTrends: any[] = [];
   for (let i = 5; i >= 0; i--) {
@@ -221,7 +224,18 @@ router.get("/admin/dashboard", requireAdmin, async (req, res) => {
     const [{ done }] = await db.select({ done: sql<number>`count(*)::int` }).from(eventsTable).where(and(gte(eventsTable.startTime, monthStart), lte(eventsTable.startTime, monthEnd), eq(eventsTable.status, "completed")));
     eventTrends.push({ month: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`, eventCount: cnt, completedCount: done });
   }
-  res.json({ totalActiveUshers: active, pendingApprovals: pending, upcomingEventsThisWeek: upcoming, totalBalanceOwed: balanceOwed, recentActivity, eventTrends });
+
+  // Check if caller is super_admin to decide whether to include sensitive fields
+  const [callerAdmin] = await db.select({ role: adminsTable.role }).from(adminsTable).where(eq(adminsTable.id, req.user!.id));
+  const isSuperAdmin = callerAdmin?.role === "super_admin";
+
+  if (isSuperAdmin) {
+    const [{ balanceOwed }] = await db.select({ balanceOwed: sql<number>`coalesce(sum(balance), 0)::float` }).from(ushersTable).where(gte(ushersTable.balance, 0));
+    const recentActivity = await db.select({ id: auditLogTable.id, adminId: auditLogTable.adminId, actionType: auditLogTable.actionType, targetTable: auditLogTable.targetTable, targetId: auditLogTable.targetId, details: auditLogTable.details, createdAt: auditLogTable.createdAt, adminName: adminsTable.name }).from(auditLogTable).leftJoin(adminsTable, eq(auditLogTable.adminId, adminsTable.id)).orderBy(desc(auditLogTable.createdAt)).limit(10);
+    res.json({ totalActiveUshers: active, pendingApprovals: pending, upcomingEventsThisWeek: upcoming, totalBalanceOwed: balanceOwed, recentActivity, eventTrends });
+  } else {
+    res.json({ totalActiveUshers: active, pendingApprovals: pending, upcomingEventsThisWeek: upcoming, totalBalanceOwed: null, recentActivity: null, eventTrends });
+  }
 });
 
 // GET /admin/usher-stats/:id
@@ -274,15 +288,6 @@ router.get("/admin/event-stats/:id", requireAdmin, async (req, res) => {
   const punctualityRate = completedCount > 0 ? Math.round((onTimePunches.length / completedCount) * 100) : 0;
 
   res.json({ attendanceRate, punctualityRate, completedCount, cancelledCount, noShowCount, totalAssigned });
-});
-
-// GET /coordinator/today
-router.get("/coordinator/today", requireAdmin, async (req, res) => {
-  const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
-  const todayEnd = new Date(); todayEnd.setHours(23, 59, 59, 999);
-  const events = await db.select().from(eventsTable).where(and(gte(eventsTable.startTime, todayStart), lte(eventsTable.startTime, todayEnd)));
-  const result = await Promise.all(events.map(async e => ({ ...e, assignments: await db.select().from(ushersTable).innerJoin(adminsTable, eq(ushersTable.id, 0)).limit(0) })));
-  res.json(events);
 });
 
 export default router;

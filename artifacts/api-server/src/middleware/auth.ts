@@ -1,5 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import { verifyToken, type TokenPayload } from "../lib/auth.js";
+import { db, adminsTable } from "@workspace/db";
+import { eq } from "drizzle-orm";
 
 declare global {
   namespace Express {
@@ -40,5 +42,24 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction) {
       return;
     }
     next();
+  });
+}
+
+export function requireSuperAdmin(req: Request, res: Response, next: NextFunction) {
+  requireAuth(req, res, async () => {
+    if (req.user?.type !== "admin") {
+      res.status(403).json({ error: "Forbidden" });
+      return;
+    }
+    try {
+      const [admin] = await db.select({ role: adminsTable.role }).from(adminsTable).where(eq(adminsTable.id, req.user.id));
+      if (!admin || admin.role !== "super_admin") {
+        res.status(403).json({ error: "Forbidden: Super Admin access required" });
+        return;
+      }
+      next();
+    } catch {
+      res.status(500).json({ error: "Internal server error" });
+    }
   });
 }

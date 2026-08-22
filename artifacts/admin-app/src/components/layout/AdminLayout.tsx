@@ -45,15 +45,14 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   }
 
   const isSuper = user?.role === "super_admin";
-  const isCoordinator = user?.role === "coordinator";
 
   const navigation = [
-    { name: "Dashboard", href: "/", icon: LayoutDashboard, hide: isCoordinator },
+    { name: "Dashboard", href: "/", icon: LayoutDashboard },
     { name: "Events", href: "/events", icon: Calendar },
-    { name: "Ushers", href: "/ushers", icon: Users, hide: isCoordinator },
-    { name: "Broadcasts", href: "/broadcasts", icon: Megaphone, hide: isCoordinator },
-    { name: "Financials", href: "/financials", icon: Wallet, hide: isCoordinator },
-    { name: "Audit Log", href: "/audit-log", icon: ShieldAlert, hide: !isSuper && !user },
+    { name: "Ushers", href: "/ushers", icon: Users },
+    { name: "Broadcasts", href: "/broadcasts", icon: Megaphone },
+    { name: "Financials", href: "/financials", icon: Wallet, hide: !isSuper },
+    { name: "Audit Log", href: "/audit-log", icon: ShieldAlert, hide: !isSuper },
     { name: "Settings", href: "/settings", icon: Settings, hide: !isSuper },
   ].filter(item => !item.hide);
 

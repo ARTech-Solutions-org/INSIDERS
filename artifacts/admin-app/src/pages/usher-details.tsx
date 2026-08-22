@@ -7,7 +7,8 @@ import {
   useListUsherDocuments,
   getGetUsherQueryKey,
   getListUshersQueryKey,
-  getListUsherDocumentsQueryKey
+  getListUsherDocumentsQueryKey,
+  useGetMe
 } from "@workspace/api-client-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAuthToken } from "@/lib/auth";
@@ -74,6 +75,8 @@ export default function UsherDetails() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isInstaPayModalOpen, setIsInstaPayModalOpen] = useState(false);
+  const { data: me } = useGetMe();
+  const isSuper = me?.type === "admin" && me?.role === "super_admin";
 
   const { data: usher, isLoading, isError } = useGetUsher(usherId, {
     query: { enabled: !!usherId, queryKey: getGetUsherQueryKey(usherId) as any }
@@ -189,18 +192,20 @@ export default function UsherDetails() {
                 {isUpdating ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <CheckCircle className="w-4 h-4 mr-1" />}
                 Approve
               </Button>
-              <Button 
-                size="sm" 
-                variant="destructive"
-                disabled={isUpdating}
-                onClick={() => updateStatus({ id: usher.id, data: { status: "declined" } })}
-              >
-                {isUpdating ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <XCircle className="w-4 h-4 mr-1" />}
-                Decline
-              </Button>
+              {isSuper && (
+                <Button 
+                  size="sm" 
+                  variant="destructive"
+                  disabled={isUpdating}
+                  onClick={() => updateStatus({ id: usher.id, data: { status: "declined" } })}
+                >
+                  {isUpdating ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <XCircle className="w-4 h-4 mr-1" />}
+                  Decline
+                </Button>
+              )}
             </>
           )}
-          {usher.status === "active" && (
+          {usher.status === "active" && isSuper && (
             <Button 
               size="sm" 
               variant="outline" 

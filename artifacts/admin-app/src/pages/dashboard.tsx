@@ -1,4 +1,4 @@
-import { useGetAdminDashboard } from "@workspace/api-client-react";
+import { useGetAdminDashboard, useGetMe } from "@workspace/api-client-react";
 import { Users, Calendar, AlertTriangle, Activity, CheckCircle, Clock, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -6,6 +6,8 @@ import { format } from "date-fns";
 
 export default function Dashboard() {
   const { data, isLoading } = useGetAdminDashboard();
+  const { data: me } = useGetMe();
+  const isSuper = me?.type === "admin" && me?.role === "super_admin";
 
   if (isLoading) {
     return (
@@ -38,7 +40,7 @@ export default function Dashboard() {
         <p className="text-muted-foreground">Overview of system operations and upcoming events.</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className={`grid gap-4 md:grid-cols-2 ${isSuper ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Ushers</CardTitle>
@@ -46,7 +48,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{data?.totalActiveUshers || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">registered & approved</p>
+            <p className="text-xs text-muted-foreground mt-1">registered &amp; approved</p>
           </CardContent>
         </Card>
         
@@ -72,20 +74,23 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-primary">Balance Owed</CardTitle>
-            <TrendingUp className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">EGP {data?.totalBalanceOwed?.toLocaleString() || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">total usher balance</p>
-          </CardContent>
-        </Card>
+        {/* Balance Owed — super_admin only */}
+        {isSuper && (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-primary">Balance Owed</CardTitle>
+              <TrendingUp className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">EGP {data?.totalBalanceOwed?.toLocaleString() || 0}</div>
+              <p className="text-xs text-muted-foreground mt-1">total usher balance</p>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
+        <Card className={isSuper ? "col-span-4" : "col-span-7"}>
           <CardHeader>
             <CardTitle>Event Trends (Last 6 Months)</CardTitle>
             <CardDescription>
@@ -130,38 +135,40 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="col-span-3">
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Latest actions taken by admins.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {data?.recentActivity?.map((activity: any) => (
-                <div key={activity.id} className="flex items-start gap-4 text-sm">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                    <span className="text-xs font-bold text-primary">
-                      {activity.adminName?.charAt(0) || '?'}
-                    </span>
+        {/* Recent Activity — super_admin only */}
+        {isSuper && (
+          <Card className="col-span-3">
+            <CardHeader>
+              <CardTitle>Recent Activity</CardTitle>
+              <CardDescription>Latest actions taken by admins.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {data?.recentActivity?.map((activity: any) => (
+                  <div key={activity.id} className="flex items-start gap-4 text-sm">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                      <span className="text-xs font-bold text-primary">
+                        {activity.adminName?.charAt(0) || '?'}
+                      </span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-foreground">
+                        {activity.adminName} <span className="text-muted-foreground font-normal">performed {activity.actionType.toLowerCase().replace(/_/g, ' ')}</span>
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {activity.targetTable} #{activity.targetId} · {format(new Date(activity.createdAt), 'MMM d, h:mm a')}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-foreground">
-                      {activity.adminName} <span className="text-muted-foreground font-normal">performed {activity.actionType.toLowerCase().replace(/_/g, ' ')}</span>
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {activity.targetTable} #{activity.targetId} • {format(new Date(activity.createdAt), 'MMM d, h:mm a')}
-                    </p>
-                  </div>
-                </div>
-              ))}
-              {(!data?.recentActivity || data.recentActivity.length === 0) && (
-                <div className="text-sm text-muted-foreground text-center py-4">No recent activity.</div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+                ))}
+                {(!data?.recentActivity || data.recentActivity.length === 0) && (
+                  <div className="text-sm text-muted-foreground text-center py-4">No recent activity.</div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
 }
-

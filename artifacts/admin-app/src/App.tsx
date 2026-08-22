@@ -2,8 +2,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import NotFound from '@/pages/not-found';
-import { Route, Switch, Router as WouterRouter } from 'wouter';
+import { Route, Switch, Router as WouterRouter, useLocation } from 'wouter';
 import { AdminLayout } from '@/components/layout/AdminLayout';
+import { useEffect } from 'react';
+import { useGetMe } from '@workspace/api-client-react';
 
 // Pages
 import Login from '@/pages/login';
@@ -19,6 +21,23 @@ import Financials from '@/pages/financials';
 
 const queryClient = new QueryClient();
 
+/** Renders children only when the logged-in admin is a super_admin.
+ *  Otherwise redirects to "/" immediately. */
+function SuperAdminOnly({ children }: { children: React.ReactNode }) {
+  const { data: user, isLoading } = useGetMe();
+  const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    if (!isLoading && user && user.type === 'admin' && user.role !== 'super_admin') {
+      setLocation('/');
+    }
+  }, [isLoading, user, setLocation]);
+
+  if (isLoading) return null;
+  if (!user || user.type !== 'admin' || user.role !== 'super_admin') return null;
+  return <>{children}</>;
+}
+
 function ProtectedRoutes() {
   return (
     <AdminLayout>
@@ -30,9 +49,9 @@ function ProtectedRoutes() {
         <Route path="/ushers/:id" component={UsherDetails} />
         <Route path="/ushers" component={Ushers} />
         <Route path="/broadcasts" component={Broadcasts} />
-        <Route path="/audit-log" component={AuditLog} />
-        <Route path="/financials" component={Financials} />
-        <Route path="/settings" component={() => <div>Settings</div>} />
+        <Route path="/audit-log" component={() => <SuperAdminOnly><AuditLog /></SuperAdminOnly>} />
+        <Route path="/financials" component={() => <SuperAdminOnly><Financials /></SuperAdminOnly>} />
+        <Route path="/settings" component={() => <SuperAdminOnly><div>Settings</div></SuperAdminOnly>} />
         <Route component={NotFound} />
       </Switch>
     </AdminLayout>

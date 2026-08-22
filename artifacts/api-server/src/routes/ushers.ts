@@ -2,7 +2,7 @@ import { Router } from "express";
 import bcrypt from "bcryptjs";
 import { db, ushersTable, usherDocumentsTable, usherSkillsTable, usherAvailabilityTable, notificationsTable } from "@workspace/db";
 import { eq, and, ilike, or, gte, lte, sql } from "drizzle-orm";
-import { requireUsher, requireAdmin } from "../middleware/auth.js";
+import { requireUsher, requireAdmin, requireSuperAdmin } from "../middleware/auth.js";
 import { audit } from "../lib/audit.js";
 import { sendPushToUsher } from "../lib/fcm.js";
 import {
@@ -88,11 +88,22 @@ router.get("/ushers/:id", requireAdmin, async (req, res) => {
   res.json(safe);
 });
 
-// PATCH /ushers/:id/status - admin
+// PATCH /ushers/:id/status - admin (approve=any admin; decline/suspend=super_admin only)
 router.patch("/ushers/:id/status", requireAdmin, async (req, res) => {
   const parsed = UpdateUsherStatusBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.flatten() }); return; }
   const usherId = parseInt(req.params.id as string, 10);
+
+  // Suspend (set pending) and decline are super_admin-only actions
+  if (parsed.data.status === "pending" || parsed.data.status === "declined") {
+    const { adminsTable: adminsTbl } = await import("@workspace/db");
+    const { eq: eqFn } = await import("drizzle-orm");
+    const [caller] = await db.select({ role: adminsTbl.role }).from(adminsTbl).where(eqFn(adminsTbl.id, req.user!.id));
+    if (!caller || caller.role !== "super_admin") {
+      res.status(403).json({ error: "Forbidden: only Super Admin can suspend or decline ushers" });
+      return;
+    }
+  }
   const [usher] = await db.update(ushersTable).set({ status: parsed.data.status }).where(eq(ushersTable.id, usherId)).returning();
   if (!usher) { res.status(404).json({ error: "Not found" }); return; }
   await audit(req.user!.id, "UPDATE_STATUS", "ushers", usher.id, `status=${parsed.data.status}`);
