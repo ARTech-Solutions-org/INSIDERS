@@ -88,19 +88,19 @@ router.get("/ushers/:id", requireAdmin, async (req, res) => {
   res.json(safe);
 });
 
-// PATCH /ushers/:id/status - admin (approve=any admin; decline/suspend=super_admin only)
+// PATCH /ushers/:id/status - admin (approve+decline=any admin; suspend=super_admin only)
 router.patch("/ushers/:id/status", requireAdmin, async (req, res) => {
   const parsed = UpdateUsherStatusBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.flatten() }); return; }
   const usherId = parseInt(req.params.id as string, 10);
 
-  // Suspend (set pending) and decline are super_admin-only actions
-  if (parsed.data.status === "pending" || parsed.data.status === "declined") {
+  // Suspend (set back to pending) is a super_admin-only action
+  if (parsed.data.status === "pending") {
     const { adminsTable: adminsTbl } = await import("@workspace/db");
     const { eq: eqFn } = await import("drizzle-orm");
     const [caller] = await db.select({ role: adminsTbl.role }).from(adminsTbl).where(eqFn(adminsTbl.id, req.user!.id));
     if (!caller || caller.role !== "super_admin") {
-      res.status(403).json({ error: "Forbidden: only Super Admin can suspend or decline ushers" });
+      res.status(403).json({ error: "Forbidden: only Super Admin can suspend ushers" });
       return;
     }
   }

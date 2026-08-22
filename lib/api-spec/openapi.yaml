@@ -1614,19 +1614,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventStats'
-  /coordinator/today:
-    get:
-      operationId: getCoordinatorEvents
-      summary: Get today's events for coordinator
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/CoordinatorEvent'
+
 components:
   schemas:
     HealthStatus:
@@ -3119,29 +3107,4 @@ components:
                 type: integer
               completedCount:
                 type: integer
-    CoordinatorEvent:
-      type: object
-      required:
-      - id
-      - title
-      - startTime
-      - endTime
-      - status
-      - assignments
-      properties:
-        id:
-          type: integer
-        title:
-          type: string
-        startTime:
-          type: string
-          format: date-time
-        endTime:
-          type: string
-          format: date-time
-        status:
-          type: string
-        assignments:
-          type: array
-          items:
-            $ref: '#/components/schemas/EventAssignment'
+

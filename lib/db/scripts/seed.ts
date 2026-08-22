@@ -48,7 +48,7 @@ async function seed() {
     name: "Charlie Coordinator",
     email: "coordinator@artech.com",
     passwordHash,
-    role: "coordinator",
+    role: "admin", // changed from coordinator
     createdByAdminId: superAdmin.id,
   }).returning();
 

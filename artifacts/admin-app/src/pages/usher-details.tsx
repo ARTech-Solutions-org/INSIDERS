@@ -192,17 +192,15 @@ export default function UsherDetails() {
                 {isUpdating ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <CheckCircle className="w-4 h-4 mr-1" />}
                 Approve
               </Button>
-              {isSuper && (
-                <Button 
-                  size="sm" 
-                  variant="destructive"
-                  disabled={isUpdating}
-                  onClick={() => updateStatus({ id: usher.id, data: { status: "declined" } })}
-                >
-                  {isUpdating ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <XCircle className="w-4 h-4 mr-1" />}
-                  Decline
-                </Button>
-              )}
+              <Button 
+                size="sm" 
+                variant="destructive"
+                disabled={isUpdating}
+                onClick={() => updateStatus({ id: usher.id, data: { status: "declined" } })}
+              >
+                {isUpdating ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <XCircle className="w-4 h-4 mr-1" />}
+                Decline
+              </Button>
             </>
           )}
           {usher.status === "active" && isSuper && (
