@@ -78,6 +78,13 @@ export default function Broadcasts() {
                 >
                   <option value="all_ushers">All Active Ushers</option>
                   <option value="pending_ushers">Pending Ushers</option>
+                  <option value="suspended_ushers">Suspended Ushers</option>
+                  <option value="rejected_ushers">Rejected Ushers</option>
+                  <option value="male_ushers">Male Ushers (Active)</option>
+                  <option value="female_ushers">Female Ushers (Active)</option>
+                  <option value="high_rating">Top Rated (≥4.5)</option>
+                  <option value="no_payment_method">No Payment Method Configured</option>
+                  <option value="pending_payouts">Ushers with Pending Payouts</option>
                 </select>
               </div>
               <div className="space-y-2">

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
-import { db, adminsTable, broadcastMessagesTable, auditLogTable, usherDocumentsTable, ushersTable, notificationsTable, eventsTable, eventAssignmentsTable, ratingsTable } from "@workspace/db";
-import { eq, lte, and, desc, gte, sql, lt, inArray } from "drizzle-orm";
+import { db, adminsTable, broadcastMessagesTable, auditLogTable, usherDocumentsTable, ushersTable, notificationsTable, eventsTable, eventAssignmentsTable, ratingsTable, payoutsTable } from "@workspace/db";
+import { eq, lte, and, desc, gte, sql, lt, inArray, isNull } from "drizzle-orm";
 import { requireAdmin } from "../middleware/auth.js";
 import { audit } from "../lib/audit.js";
 import { CreateAdminBody, UpdateAdminBody, SendBroadcastBody } from "@workspace/api-zod";
@@ -67,8 +67,43 @@ router.post("/broadcasts", requireAdmin, async (req, res) => {
   const parsed = SendBroadcastBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.flatten() }); return; }
   const [broadcast] = await db.insert(broadcastMessagesTable).values({ ...parsed.data, sentByAdminId: req.user!.id }).returning();
-  // Create notifications for all active ushers
-  const ushers = await db.select({ id: ushersTable.id }).from(ushersTable).where(eq(ushersTable.status, "active"));
+  // Construct query based on target filter
+  let ushersQuery = db.select({ id: ushersTable.id }).from(ushersTable).$dynamic();
+  
+  switch (parsed.data.targetFilter) {
+    case "pending_ushers":
+      ushersQuery = ushersQuery.where(eq(ushersTable.status, "pending"));
+      break;
+    case "suspended_ushers":
+      ushersQuery = ushersQuery.where(eq(ushersTable.status, "suspended"));
+      break;
+    case "rejected_ushers":
+      ushersQuery = ushersQuery.where(eq(ushersTable.status, "rejected"));
+      break;
+    case "male_ushers":
+      ushersQuery = ushersQuery.where(and(eq(ushersTable.status, "active"), eq(ushersTable.gender, "Male")));
+      break;
+    case "female_ushers":
+      ushersQuery = ushersQuery.where(and(eq(ushersTable.status, "active"), eq(ushersTable.gender, "Female")));
+      break;
+    case "high_rating":
+      ushersQuery = ushersQuery.where(and(eq(ushersTable.status, "active"), gte(ushersTable.avgRating, 4.5)));
+      break;
+    case "no_payment_method":
+      ushersQuery = ushersQuery.where(and(eq(ushersTable.status, "active"), isNull(ushersTable.paymentMethod)));
+      break;
+    case "pending_payouts":
+      ushersQuery = ushersQuery
+        .leftJoin(payoutsTable, eq(payoutsTable.usherId, ushersTable.id))
+        .where(and(eq(ushersTable.status, "active"), eq(payoutsTable.status, "pending")));
+      break;
+    case "all_ushers":
+    default:
+      ushersQuery = ushersQuery.where(eq(ushersTable.status, "active"));
+      break;
+  }
+
+  const ushers = await ushersQuery;
   if (ushers.length) {
     await db.insert(notificationsTable).values(ushers.map(u => ({ recipientType: "usher", recipientId: u.id, type: "broadcast", message: parsed.data.message })));
 
