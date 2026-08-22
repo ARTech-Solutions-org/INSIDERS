@@ -192,6 +192,7 @@ function AdjustBalanceDialog({ usher }: { usher: any }) {
 function CreatePayoutDialog({ usher }: { usher: any }) {
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState(usher.balance > 0 ? usher.balance.toString() : "");
+  const [step, setStep] = useState<"form" | "success">("form");
   const method = usher.paymentMethod || "cash";
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -203,7 +204,7 @@ function CreatePayoutDialog({ usher }: { usher: any }) {
         queryClient.invalidateQueries({ queryKey: getListAllPayoutsQueryKey({ status: 'pending' }) as any });
         queryClient.invalidateQueries({ queryKey: getListAllPayoutsQueryKey({ status: 'paid' }) as any });
         queryClient.invalidateQueries({ queryKey: getListUshersQueryKey() as any });
-        setOpen(false);
+        setStep("success");
       },
       onError: (err: any) => {
         toast({ title: "Failed to create payout", description: err.message, variant: "destructive" });
@@ -223,56 +224,91 @@ function CreatePayoutDialog({ usher }: { usher: any }) {
     });
   };
 
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen);
+    if (!newOpen) {
+      setTimeout(() => {
+        setStep("form");
+        setAmount(usher.balance > 0 ? usher.balance.toString() : "");
+      }, 300);
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button size="sm">Payout</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create Payout</DialogTitle>
+          <DialogTitle>{step === "form" ? "Create Payout" : "Payment Details"}</DialogTitle>
           <DialogDescription>
-            Record a payout for {usher.fullName}. This will automatically deduct from their balance.
+            {step === "form" 
+              ? `Record a payout for ${usher.fullName}. This will automatically deduct from their balance.`
+              : `Please transfer the following amount to ${usher.fullName}.`}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label>Current Balance</Label>
-            <div className="text-xl font-bold">EGP {usher.balance.toFixed(2)}</div>
-          </div>
-          <div className="space-y-2">
-            <Label>Payment Method</Label>
-            <Input value={method} readOnly className="capitalize bg-muted" />
-            <p className="text-xs text-muted-foreground">{usher.paymentMethodDetails}</p>
-            
-            {method.toLowerCase() === 'instapay' && usher.paymentMethodDetails && amount && !isNaN(Number(amount)) && Number(amount) > 0 && (
-              <div className="flex flex-col items-center justify-center p-4 mt-2 bg-slate-50 rounded-lg border border-slate-100">
-                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">EGP {Number(amount).toFixed(2)} — Scan to pay</p>
-                <QRCodeSVG 
-                  value={
-                    usher.paymentMethodDetails.startsWith('http') 
-                      ? usher.paymentMethodDetails 
-                      : `https://ipn.eg/S/${usher.paymentMethodDetails}`
-                  } 
-                  size={160} 
-                  level="H" 
-                  includeMargin={true}
-                />
-                <p className="mt-3 text-xs font-medium text-center text-slate-500">
-                  Scan this code using the InstaPay app to complete the payment.
-                </p>
+        
+        {step === "form" ? (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Current Balance</Label>
+              <div className="text-xl font-bold">EGP {usher.balance.toFixed(2)}</div>
+            </div>
+            <div className="space-y-2">
+              <Label>Payment Method</Label>
+              <Input value={method} readOnly className="capitalize bg-muted" />
+              <p className="text-xs text-muted-foreground">{usher.paymentMethodDetails}</p>
+            </div>
+            <div className="space-y-2">
+              <Label>Payout Amount (EGP)</Label>
+              <Input type="number" step="0.01" min="0.01" max={Math.max(usher.balance, 0.01)} value={amount} onChange={(e) => setAmount(e.target.value)} required />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>Cancel</Button>
+              <Button type="submit" disabled={isPending || usher.balance <= 0}>Confirm Payout</Button>
+            </DialogFooter>
+          </form>
+        ) : (
+          <div className="space-y-6 py-4">
+            <div className="flex flex-col items-center justify-center p-6 bg-slate-50 rounded-lg border border-slate-100 space-y-4">
+              <div className="text-center">
+                <p className="text-sm font-medium text-slate-500 mb-1">Amount to Transfer</p>
+                <p className="text-3xl font-bold text-slate-900">EGP {Number(amount).toFixed(2)}</p>
               </div>
-            )}
+              
+              <div className="w-full h-px bg-slate-200"></div>
+              
+              <div className="text-center w-full">
+                <p className="text-sm font-medium text-slate-500 mb-2">Transfer to ({method})</p>
+                <div className="p-3 bg-white border border-slate-200 rounded-md font-mono text-lg font-semibold break-all">
+                  {usher.paymentMethodDetails || "N/A"}
+                </div>
+              </div>
+
+              {method.toLowerCase() === 'instapay' && usher.paymentMethodDetails && (
+                <div className="flex flex-col items-center justify-center mt-4">
+                  <QRCodeSVG 
+                    value={
+                      usher.paymentMethodDetails.startsWith('http') 
+                        ? usher.paymentMethodDetails 
+                        : `https://ipn.eg/S/${usher.paymentMethodDetails}`
+                    } 
+                    size={160} 
+                    level="H" 
+                    includeMargin={true}
+                  />
+                  <p className="mt-3 text-xs font-medium text-center text-slate-500">
+                    Scan to pay via InstaPay
+                  </p>
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button type="button" className="w-full" onClick={() => handleOpenChange(false)}>Done</Button>
+            </DialogFooter>
           </div>
-          <div className="space-y-2">
-            <Label>Payout Amount (EGP)</Label>
-            <Input type="number" step="0.01" min="0.01" max={Math.max(usher.balance, 0.01)} value={amount} onChange={(e) => setAmount(e.target.value)} required />
-          </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button type="submit" disabled={isPending || usher.balance <= 0}>Confirm Payout</Button>
-          </DialogFooter>
-        </form>
+        )}
       </DialogContent>
     </Dialog>
   );
