@@ -17,6 +17,8 @@ import { Wallet, ArrowUpRight, ArrowDownRight, CreditCard, History, Coins } from
 
 export default function Financials() {
   const [activeTab, setActiveTab] = useState("balances");
+  const { data: pendingPayouts } = useListAllPayouts({ status: "pending" }, { query: { refetchInterval: 5000 } as any });
+  const pendingCount = pendingPayouts?.length || 0;
 
   return (
     <div className="space-y-6">
@@ -28,7 +30,15 @@ export default function Financials() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="grid w-full grid-cols-4 lg:w-[600px]">
           <TabsTrigger value="balances" className="gap-2"><Wallet className="w-4 h-4 hidden sm:block" /> Balances</TabsTrigger>
-          <TabsTrigger value="payouts" className="gap-2"><CreditCard className="w-4 h-4 hidden sm:block" /> Payouts</TabsTrigger>
+          <TabsTrigger value="payouts" className="gap-2 relative">
+            <CreditCard className="w-4 h-4 hidden sm:block" /> 
+            Payouts
+            {pendingCount > 0 && (
+              <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-background">
+                {pendingCount}
+              </span>
+            )}
+          </TabsTrigger>
           <TabsTrigger value="history" className="gap-2"><History className="w-4 h-4 hidden sm:block" /> Payment History</TabsTrigger>
           <TabsTrigger value="transactions" className="gap-2"><Coins className="w-4 h-4 hidden sm:block" /> Transactions</TabsTrigger>
         </TabsList>
