@@ -13,9 +13,9 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 
 export default function Balance() {
-  const { data: balanceData, isLoading: isBalanceLoading } = useGetMyBalance();
-  const { data: transactionsData, isLoading: isTransactionsLoading } = useListMyTransactions({});
-  const { data: payoutsData } = useListMyPayouts();
+  const { data: balanceData, isLoading: isBalanceLoading } = useGetMyBalance({ query: { refetchInterval: 5000 } as any });
+  const { data: transactionsData, isLoading: isTransactionsLoading } = useListMyTransactions({}, { query: { refetchInterval: 5000 } as any });
+  const { data: payoutsData } = useListMyPayouts({ query: { refetchInterval: 5000 } as any } as any);
 
   const balance = balanceData?.balance || 0;
   

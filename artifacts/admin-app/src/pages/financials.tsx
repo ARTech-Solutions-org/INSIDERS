@@ -54,7 +54,7 @@ export default function Financials() {
 }
 
 function BalancesTab() {
-  const { data: ushersResponse, isLoading } = useListUshers({ limit: 100 } as any);
+  const { data: ushersResponse, isLoading } = useListUshers({ limit: 100 } as any, { query: { refetchInterval: 5000 } as any });
   
   if (isLoading) return <Skeleton className="w-full h-64" />;
   
@@ -315,7 +315,7 @@ function CreatePayoutDialog({ usher }: { usher: any }) {
 }
 
 function PayoutsTab({ status }: { status: "pending" | "paid" }) {
-  const { data: payouts, isLoading } = useListAllPayouts({ status });
+  const { data: payouts, isLoading } = useListAllPayouts({ status }, { query: { refetchInterval: 5000 } as any });
 
   if (isLoading) return <Skeleton className="w-full h-64" />;
 
@@ -469,7 +469,7 @@ function PayoutActions({ payout }: { payout: any }) {
 }
 
 function TransactionsTab() {
-  const { data: transactions, isLoading } = useListAllTransactions({});
+  const { data: transactions, isLoading } = useListAllTransactions({}, { query: { refetchInterval: 5000 } as any });
 
   if (isLoading) return <Skeleton className="w-full h-64" />;
 
