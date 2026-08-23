@@ -78,7 +78,7 @@ router.post("/feedback/:token", async (req, res) => {
   if (!parsed.success) { res.status(400).json({ error: parsed.error.flatten() }); return; }
 
   try {
-    const success = await db.transaction(async (tx) => {
+    const eventId = await db.transaction(async (tx) => {
       // Use FOR UPDATE to lock the row and prevent race conditions (double submission)
       // Drizzle ORM does not directly expose FOR UPDATE on select easily without raw sql or specific dialect features,
       // but we can check and update atomically.
@@ -107,18 +107,23 @@ router.post("/feedback/:token", async (req, res) => {
         usherOverrides: parsed.data.usherOverrides ? JSON.stringify(parsed.data.usherOverrides) : null
       });
 
-      return true;
+      return updatedLink.eventId;
     });
 
-    // Fire-and-forget: recalculate composite rating for all ushers in usherOverrides
-    if (parsed.data.usherOverrides && parsed.data.usherOverrides.length > 0) {
-      const usherIds = [...new Set(parsed.data.usherOverrides.map((o: any) => o.usherId))];
-      for (const uid of usherIds) {
-        recalculateUsherCompositeRating(uid).catch(() => {});
-      }
-    }
+    // Fire-and-forget: recalculate composite rating for all ushers assigned to this event
+    // since team ratings could affect ushers who weren't explicitly overridden.
+    db.select({ usherId: eventAssignmentsTable.usherId })
+      .from(eventAssignmentsTable)
+      .where(eq(eventAssignmentsTable.eventId, eventId))
+      .then((assignments) => {
+        const usherIds = [...new Set(assignments.map((a) => a.usherId))];
+        for (const uid of usherIds) {
+          recalculateUsherCompositeRating(uid).catch(() => {});
+        }
+      })
+      .catch(() => {});
 
-    res.json({ success });
+    res.json({ success: true });
   } catch (err: any) {
     if (err.message === "Link is invalid or already submitted") {
       res.status(400).json({ error: err.message });
