@@ -33,7 +33,7 @@ export const RegisterUsherBody = zod.object({
   "pantsSize": zod.string().nullish(),
   "shortsSize": zod.string().nullish(),
   "phone": zod.string(),
-  "email": zod.string().email(),
+  "email": zod.email(),
   "nationalIdNumber": zod.string(),
   "password": zod.string(),
   "nationalIdDocUrl": zod.string().nullish(),
@@ -80,7 +80,7 @@ export const RegisterUsherResponse = zod.object({
  * @summary Usher login
  */
 export const LoginUsherBody = zod.object({
-  "email": zod.string().email(),
+  "email": zod.email(),
   "password": zod.string()
 })
 
@@ -117,7 +117,7 @@ export const LoginUsherResponse = zod.object({
  * @summary Admin login
  */
 export const LoginAdminBody = zod.object({
-  "email": zod.string().email(),
+  "email": zod.email(),
   "password": zod.string()
 })
 
@@ -2677,6 +2677,51 @@ export const UpdatePayoutStatusResponse = zod.object({
 
 
 /**
+ * @summary Super admin creates an invitation link for a new admin
+ */
+export const CreateAdminInvitationResponse = zod.object({
+  "link": zod.string(),
+  "token": zod.string()
+})
+
+
+/**
+ * @summary Verify if an invitation token is valid
+ */
+export const VerifyAdminInvitationQueryParams = zod.object({
+  "token": zod.coerce.string()
+})
+
+export const VerifyAdminInvitationResponse = zod.object({
+  "valid": zod.boolean().optional()
+})
+
+
+/**
+ * @summary Register a new admin using an invitation token
+ */
+export const registerAdminBodyPasswordMin = 6;
+
+
+
+export const RegisterAdminBody = zod.object({
+  "token": zod.string(),
+  "name": zod.string(),
+  "email": zod.string(),
+  "password": zod.string().min(registerAdminBodyPasswordMin)
+})
+
+export const RegisterAdminResponse = zod.object({
+  "id": zod.number().int(),
+  "name": zod.string(),
+  "email": zod.string(),
+  "role": zod.string(),
+  "createdByAdminId": zod.number().int().nullish(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
  * @summary List all admin accounts (super admin)
  */
 export const ListAdminsResponseItem = zod.object({
@@ -2695,7 +2740,7 @@ export const ListAdminsResponse = zod.array(ListAdminsResponseItem)
  */
 export const CreateAdminBody = zod.object({
   "name": zod.string(),
-  "email": zod.string().email(),
+  "email": zod.email(),
   "password": zod.string(),
   "role": zod.string()
 })
@@ -2790,6 +2835,9 @@ export const ListAuditLogResponseItem = zod.object({
   "actionType": zod.string(),
   "targetTable": zod.string(),
   "targetId": zod.number().int().nullish(),
+  "targetName": zod.string().nullish(),
+  "ipAddress": zod.string().nullish(),
+  "userAgent": zod.string().nullish(),
   "details": zod.string().nullish(),
   "createdAt": zod.coerce.date(),
   "adminName": zod.string().nullish()
@@ -2832,6 +2880,9 @@ export const GetAdminDashboardResponse = zod.object({
   "actionType": zod.string(),
   "targetTable": zod.string(),
   "targetId": zod.number().int().nullish(),
+  "targetName": zod.string().nullish(),
+  "ipAddress": zod.string().nullish(),
+  "userAgent": zod.string().nullish(),
   "details": zod.string().nullish(),
   "createdAt": zod.coerce.date(),
   "adminName": zod.string().nullish()

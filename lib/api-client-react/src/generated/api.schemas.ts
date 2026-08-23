@@ -4,6 +4,28 @@
  * Api
  * OpenAPI spec version: 1.0.0
  */
+export interface AdminInvitation {
+  id: number;
+  token: string;
+  createdByAdminId: number;
+  /** @nullable */
+  usedAt?: string | null;
+  createdAt: string;
+}
+
+export interface CreateAdminInvitationResponse {
+  link: string;
+  token: string;
+}
+
+export interface AdminRegistrationBody {
+  token: string;
+  name: string;
+  email: string;
+  /** @minLength 6 */
+  password: string;
+}
+
 export interface EventFeedbackLink {
   id: number;
   eventId: number;
@@ -800,6 +822,12 @@ export interface AuditLogEntry {
   /** @nullable */
   targetId?: number | null;
   /** @nullable */
+  targetName?: string | null;
+  /** @nullable */
+  ipAddress?: string | null;
+  /** @nullable */
+  userAgent?: string | null;
+  /** @nullable */
   details?: string | null;
   createdAt: string;
   /** @nullable */
@@ -907,6 +935,14 @@ page?: number;
 export type ListAllPayoutsParams = {
 status?: string;
 usherId?: number;
+};
+
+export type VerifyAdminInvitationParams = {
+token: string;
+};
+
+export type VerifyAdminInvitation200 = {
+  valid?: boolean;
 };
 
 export type ListAuditLogParams = {

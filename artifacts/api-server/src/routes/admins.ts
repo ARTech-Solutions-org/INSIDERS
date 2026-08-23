@@ -1,6 +1,6 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
-import { db, adminsTable, broadcastMessagesTable, auditLogTable, usherDocumentsTable, ushersTable, notificationsTable, eventsTable, eventAssignmentsTable, ratingsTable, payoutsTable, systemSettingsTable, DEFAULT_RATING_CONFIG } from "@workspace/db";
+import { db, adminsTable, adminInvitationsTable, broadcastMessagesTable, auditLogTable, usherDocumentsTable, ushersTable, notificationsTable, eventsTable, eventAssignmentsTable, ratingsTable, payoutsTable, systemSettingsTable, DEFAULT_RATING_CONFIG } from "@workspace/db";
 import { eq, lte, and, desc, gte, sql, lt, inArray, isNull, or } from "drizzle-orm";
 import { requireAdmin, requireSuperAdmin } from "../middleware/auth.js";
 import { audit } from "../lib/audit.js";
@@ -30,6 +30,43 @@ router.post("/admins", requireSuperAdmin, async (req, res) => {
   try {
     const [admin] = await db.insert(adminsTable).values({ name, email, passwordHash, role, createdByAdminId: req.user!.id }).returning();
     await audit(req.user!.id, "CREATE_ADMIN", "admins", admin.id);
+    const { passwordHash: _ph, ...safe } = admin;
+    res.status(201).json(safe);
+  } catch (e: any) {
+    if (e?.code === "23505") { res.status(400).json({ error: "Email already in use" }); return; }
+    throw e;
+  }
+});
+
+// POST /admins/register - public but requires valid token
+router.post("/admins/register", async (req, res) => {
+  const { token, name, email, password } = req.body;
+  if (!token || !name || !email || !password || password.length < 6) {
+    res.status(400).json({ error: "Missing or invalid fields" });
+    return;
+  }
+
+  const [invitation] = await db.select().from(adminInvitationsTable).where(eq(adminInvitationsTable.token, token));
+  if (!invitation || invitation.usedAt) {
+    res.status(400).json({ error: "Invalid or used token" });
+    return;
+  }
+
+  const passwordHash = await bcrypt.hash(password, 10);
+  try {
+    const [admin] = await db.insert(adminsTable).values({
+      name,
+      email,
+      passwordHash,
+      role: "admin",
+      createdByAdminId: invitation.createdByAdminId,
+    }).returning();
+
+    // Mark token as used
+    await db.update(adminInvitationsTable).set({ usedAt: new Date() }).where(eq(adminInvitationsTable.id, invitation.id));
+
+    await audit(admin.id, "ADMIN_REGISTERED", "admins", admin.id, `Used invitation token ${token.substring(0, 8)}...`);
+
     const { passwordHash: _ph, ...safe } = admin;
     res.status(201).json(safe);
   } catch (e: any) {
@@ -193,7 +230,7 @@ router.get("/fcm-debug", async (req, res) => {
 router.get("/audit-log", requireSuperAdmin, async (req, res) => {
   const { adminId, actionType, from, to, page = "1", limit = "50" } = req.query as Record<string, string>;
   const offset = (parseInt(page) - 1) * parseInt(limit);
-  const rows = await db.select({ id: auditLogTable.id, adminId: auditLogTable.adminId, actionType: auditLogTable.actionType, targetTable: auditLogTable.targetTable, targetId: auditLogTable.targetId, details: auditLogTable.details, createdAt: auditLogTable.createdAt, adminName: adminsTable.name }).from(auditLogTable).leftJoin(adminsTable, eq(auditLogTable.adminId, adminsTable.id)).orderBy(desc(auditLogTable.createdAt)).limit(parseInt(limit)).offset(offset);
+  const rows = await db.select({ id: auditLogTable.id, adminId: auditLogTable.adminId, actionType: auditLogTable.actionType, targetTable: auditLogTable.targetTable, targetId: auditLogTable.targetId, details: auditLogTable.details, createdAt: auditLogTable.createdAt, adminName: adminsTable.name }).from(auditLogTable).leftJoin(adminsTable, adminInvitationsTable, eq(auditLogTable.adminId, adminsTable.id)).orderBy(desc(auditLogTable.createdAt)).limit(parseInt(limit)).offset(offset);
   res.json(rows);
 });
 
@@ -232,7 +269,7 @@ router.get("/admin/dashboard", requireAdmin, async (req, res) => {
 
   if (isSuperAdmin) {
     const [{ balanceOwed }] = await db.select({ balanceOwed: sql<number>`coalesce(sum(balance), 0)::float` }).from(ushersTable).where(gte(ushersTable.balance, 0));
-    const recentActivity = await db.select({ id: auditLogTable.id, adminId: auditLogTable.adminId, actionType: auditLogTable.actionType, targetTable: auditLogTable.targetTable, targetId: auditLogTable.targetId, details: auditLogTable.details, createdAt: auditLogTable.createdAt, adminName: adminsTable.name }).from(auditLogTable).leftJoin(adminsTable, eq(auditLogTable.adminId, adminsTable.id)).orderBy(desc(auditLogTable.createdAt)).limit(10);
+    const recentActivity = await db.select({ id: auditLogTable.id, adminId: auditLogTable.adminId, actionType: auditLogTable.actionType, targetTable: auditLogTable.targetTable, targetId: auditLogTable.targetId, details: auditLogTable.details, createdAt: auditLogTable.createdAt, adminName: adminsTable.name }).from(auditLogTable).leftJoin(adminsTable, adminInvitationsTable, eq(auditLogTable.adminId, adminsTable.id)).orderBy(desc(auditLogTable.createdAt)).limit(10);
     res.json({ totalActiveUshers: active, pendingApprovals: pending, upcomingEventsThisWeek: upcoming, totalBalanceOwed: balanceOwed, recentActivity, eventTrends });
   } else {
     res.json({ totalActiveUshers: active, pendingApprovals: pending, upcomingEventsThisWeek: upcoming, totalBalanceOwed: null, recentActivity: null, eventTrends });

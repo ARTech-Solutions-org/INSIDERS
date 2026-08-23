@@ -1528,6 +1528,64 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Payout'
+  /admin-invitations:
+    post:
+      operationId: createAdminInvitation
+      summary: Super admin creates an invitation link for a new admin
+      tags:
+      - admins
+      responses:
+        '201':
+          description: Invitation link generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateAdminInvitationResponse'
+  /admin-invitations/verify:
+    get:
+      operationId: verifyAdminInvitation
+      summary: Verify if an invitation token is valid
+      tags:
+      - admins
+      parameters:
+      - name: token
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Token is valid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+        '404':
+          description: Token invalid or already used
+  /admins/register:
+    post:
+      operationId: registerAdmin
+      summary: Register a new admin using an invitation token
+      tags:
+      - admins
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminRegistrationBody'
+      responses:
+        '201':
+          description: Admin registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminProfile'
+        '400':
+          description: Invalid or used token, or validation error
   /admins:
     get:
       operationId: listAdmins
@@ -1773,6 +1831,55 @@ paths:
 
 components:
   schemas:
+    AdminInvitation:
+      type: object
+      required:
+      - id
+      - token
+      - createdByAdminId
+      - createdAt
+      properties:
+        id:
+          type: integer
+        token:
+          type: string
+        createdByAdminId:
+          type: integer
+        usedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+    CreateAdminInvitationResponse:
+      type: object
+      required:
+      - link
+      - token
+      properties:
+        link:
+          type: string
+        token:
+          type: string
+    AdminRegistrationBody:
+      type: object
+      required:
+      - token
+      - name
+      - email
+      - password
+      properties:
+        token:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+          minLength: 6
 
     EventFeedbackLink:
       type: object
@@ -3439,6 +3546,18 @@ components:
         targetId:
           type:
           - integer
+          - 'null'
+        targetName:
+          type:
+          - string
+          - 'null'
+        ipAddress:
+          type:
+          - string
+          - 'null'
+        userAgent:
+          type:
+          - string
           - 'null'
         details:
           type:

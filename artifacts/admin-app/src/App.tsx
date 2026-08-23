@@ -10,6 +10,7 @@ import { useRealtimeSync } from '@/hooks/useRealtimeSync';
 
 // Pages
 import Login from '@/pages/login';
+import RegisterAdmin from '@/pages/register-admin';
 import Dashboard from '@/pages/dashboard';
 import Ushers from '@/pages/ushers';
 import UsherDetails from '@/pages/usher-details';
@@ -21,6 +22,7 @@ import AuditLog from '@/pages/audit-log';
 import Financials from '@/pages/financials';
 import PublicFeedback from '@/pages/public-feedback';
 import Settings from '@/pages/settings';
+import RegisterAdmin from '@/pages/register-admin';
 
 const queryClient = new QueryClient();
 
@@ -70,6 +72,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/login" component={Login} />
+      <Route path="/register-admin" component={RegisterAdmin} />
       <Route path="/feedback/:token" component={PublicFeedback} />
       <Route path="*">
         <ProtectedRoutes />

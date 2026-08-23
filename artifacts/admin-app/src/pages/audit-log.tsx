@@ -51,18 +51,20 @@ export default function AuditLog() {
                 <TableHead>Admin</TableHead>
                 <TableHead>Action</TableHead>
                 <TableHead>Target</TableHead>
+                <TableHead>Client</TableHead>
+                <TableHead className="max-w-[300px]">Details</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
                     Loading audit logs...
                   </TableCell>
                 </TableRow>
               ) : data?.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
                     No audit logs found.
                   </TableCell>
                 </TableRow>
@@ -91,8 +93,28 @@ export default function AuditLog() {
                       </div>
                     </TableCell>
                     <TableCell className="text-sm">
-                      <span className="text-muted-foreground">{log.targetTable}</span>
-                      <span className="ml-1 font-mono text-xs">#{log.targetId}</span>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{log.targetName || log.targetTable}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {log.targetName ? log.targetTable : ''} <span className="font-mono">#{log.targetId}</span>
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      <div className="flex flex-col">
+                        <span>{log.ipAddress || 'Unknown IP'}</span>
+                        <span className="text-[10px] truncate max-w-[150px]" title={log.userAgent || ''}>{log.userAgent || 'Unknown Agent'}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground max-w-[300px] truncate" title={log.details || ''}>
+                      {log.details ? (
+                         (() => {
+                           try {
+                             const parsed = JSON.parse(log.details);
+                             return parsed.message || log.details;
+                           } catch { return log.details; }
+                         })()
+                      ) : '-'}
                     </TableCell>
                   </TableRow>
                 ))

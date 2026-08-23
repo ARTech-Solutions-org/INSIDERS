@@ -1,0 +1,1 @@
+ALTER TABLE "audit_log" ALTER COLUMN "details" SET DATA TYPE text;

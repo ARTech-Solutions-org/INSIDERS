@@ -1,16 +1,17 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useGetRatingConfig, useUpdateRatingConfig, getGetRatingConfigQueryKey } from '@workspace/api-client-react';
+import { useGetRatingConfig, useUpdateRatingConfig, getGetRatingConfigQueryKey, useListAdmins, useCreateAdminInvitation } from '@workspace/api-client-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Loader2, Settings2, Save, AlertTriangle } from 'lucide-react';
+import { Loader2, Settings2, Save, AlertTriangle, Users, Copy, Plus } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 
 const formSchema = z.object({
   clientRatingWeight: z.coerce.number().min(0).max(1),
@@ -33,6 +34,7 @@ const formSchema = z.object({
 });
 
 export default function Settings() {
+  const [activeTab, setActiveTab] = useState<'rating' | 'admins'>('rating');
   const { data: config, isLoading } = useGetRatingConfig();
   const { mutateAsync: updateConfig, isPending: isUpdating } = useUpdateRatingConfig();
   const queryClient = useQueryClient();
@@ -107,6 +109,26 @@ export default function Settings() {
         <h2 className="text-3xl font-bold tracking-tight">System Settings</h2>
       </div>
 
+      <div className="flex gap-4 border-b">
+        <Button 
+          variant={activeTab === 'rating' ? 'default' : 'ghost'} 
+          className="rounded-none rounded-t-lg"
+          onClick={() => setActiveTab('rating')}
+        >
+          <Settings2 className="w-4 h-4 mr-2" />
+          Rating Engine
+        </Button>
+        <Button 
+          variant={activeTab === 'admins' ? 'default' : 'ghost'} 
+          className="rounded-none rounded-t-lg"
+          onClick={() => setActiveTab('admins')}
+        >
+          <Users className="w-4 h-4 mr-2" />
+          Admins Management
+        </Button>
+      </div>
+
+      {activeTab === 'rating' && (
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2">
@@ -329,6 +351,78 @@ export default function Settings() {
           </div>
         </form>
       </Form>
+      )}
+
+      {activeTab === 'admins' && <AdminsManagement />}
+    </div>
+  );
+}
+
+function AdminsManagement() {
+  const { data: admins, isLoading } = useListAdmins();
+  const { mutateAsync: createInvite, isPending: isInviting } = useCreateAdminInvitation();
+  const { toast } = useToast();
+
+  const handleInvite = async () => {
+    try {
+      const res = await createInvite();
+      navigator.clipboard.writeText(res.link);
+      toast({
+        title: "Invitation Created",
+        description: "The invitation link has been copied to your clipboard.",
+      });
+    } catch (e) {
+      toast({
+        title: "Error",
+        description: "Failed to create invitation link.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (isLoading) {
+    return <div className="flex justify-center p-8"><Loader2 className="animate-spin text-muted-foreground w-6 h-6" /></div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <div className="space-y-1">
+            <CardTitle>Admins</CardTitle>
+            <CardDescription>Manage administrators who have access to the dashboard.</CardDescription>
+          </div>
+          <Button onClick={handleInvite} disabled={isInviting}>
+            {isInviting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
+            Create Invite Link
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border mt-4">
+            <div className="grid grid-cols-3 gap-4 p-4 font-medium border-b bg-muted/50">
+              <div>Name</div>
+              <div>Email</div>
+              <div>Role</div>
+            </div>
+            <div className="divide-y">
+              {admins?.map((admin) => (
+                <div key={admin.id} className="grid grid-cols-3 gap-4 p-4 items-center">
+                  <div>{admin.name}</div>
+                  <div className="text-muted-foreground">{admin.email}</div>
+                  <div>
+                    <Badge variant={admin.role === 'super_admin' ? 'default' : 'secondary'}>
+                      {admin.role}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+              {!admins?.length && (
+                <div className="p-4 text-center text-muted-foreground">No admins found</div>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

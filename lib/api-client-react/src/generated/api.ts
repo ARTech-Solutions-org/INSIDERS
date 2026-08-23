@@ -23,6 +23,7 @@ import type {
   AdminDashboard,
   AdminInput,
   AdminProfile,
+  AdminRegistrationBody,
   AdminUpdate,
   AssignmentInput,
   AssignmentWithUsher,
@@ -34,6 +35,7 @@ import type {
   BroadcastMessage,
   CancelInput,
   CancellationResult,
+  CreateAdminInvitationResponse,
   CurrentUser,
   DeclineInput,
   DeductionRule,
@@ -99,6 +101,8 @@ import type {
   UsherStats,
   UsherStatusUpdate,
   UsherUpdate,
+  VerifyAdminInvitation200,
+  VerifyAdminInvitationParams,
   WaitlistEntry,
   WaitlistInput
 } from './api.schemas';
@@ -5957,6 +5961,232 @@ export const useUpdatePayoutStatus = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getUpdatePayoutStatusMutationOptions(options));
+    }
+
+export const getCreateAdminInvitationUrl = () => {
+
+
+
+
+  return `/api/admin-invitations`
+}
+
+/**
+ * @summary Super admin creates an invitation link for a new admin
+ */
+export const createAdminInvitation = async ( options?: Parameters<typeof customFetch>[1]): Promise<CreateAdminInvitationResponse> => {
+
+  return customFetch<CreateAdminInvitationResponse>(getCreateAdminInvitationUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getCreateAdminInvitationMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdminInvitation>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createAdminInvitation>>, TError,void, TContext> => {
+
+const mutationKey = ['createAdminInvitation'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createAdminInvitation>>, void> = () => {
+
+
+          return  createAdminInvitation(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateAdminInvitationMutationResult = NonNullable<Awaited<ReturnType<typeof createAdminInvitation>>>
+
+    export type CreateAdminInvitationMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Super admin creates an invitation link for a new admin
+ */
+export const useCreateAdminInvitation = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdminInvitation>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createAdminInvitation>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getCreateAdminInvitationMutationOptions(options));
+    }
+
+export const getVerifyAdminInvitationUrl = (params: VerifyAdminInvitationParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/admin-invitations/verify?${stringifiedParams}` : `/api/admin-invitations/verify`
+}
+
+/**
+ * @summary Verify if an invitation token is valid
+ */
+export const verifyAdminInvitation = async (params: VerifyAdminInvitationParams, options?: Parameters<typeof customFetch>[1]): Promise<VerifyAdminInvitation200> => {
+
+  return customFetch<VerifyAdminInvitation200>(getVerifyAdminInvitationUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getVerifyAdminInvitationQueryKey = (params?: VerifyAdminInvitationParams,) => {
+    return [
+    `/api/admin-invitations/verify`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getVerifyAdminInvitationQueryOptions = <TData = Awaited<ReturnType<typeof verifyAdminInvitation>>, TError = ErrorType<void>>(params: VerifyAdminInvitationParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof verifyAdminInvitation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getVerifyAdminInvitationQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof verifyAdminInvitation>>> = ({ signal }) => verifyAdminInvitation(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof verifyAdminInvitation>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type VerifyAdminInvitationQueryResult = NonNullable<Awaited<ReturnType<typeof verifyAdminInvitation>>>
+export type VerifyAdminInvitationQueryError = ErrorType<void>
+
+
+/**
+ * @summary Verify if an invitation token is valid
+ */
+
+export function useVerifyAdminInvitation<TData = Awaited<ReturnType<typeof verifyAdminInvitation>>, TError = ErrorType<void>>(
+ params: VerifyAdminInvitationParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof verifyAdminInvitation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getVerifyAdminInvitationQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getRegisterAdminUrl = () => {
+
+
+
+
+  return `/api/admins/register`
+}
+
+/**
+ * @summary Register a new admin using an invitation token
+ */
+export const registerAdmin = async (adminRegistrationBody: AdminRegistrationBody, options?: Parameters<typeof customFetch>[1]): Promise<AdminProfile> => {
+
+  return customFetch<AdminProfile>(getRegisterAdminUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(adminRegistrationBody)
+  }
+);}
+
+
+
+
+
+export const getRegisterAdminMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof registerAdmin>>, TError,{data: BodyType<AdminRegistrationBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof registerAdmin>>, TError,{data: BodyType<AdminRegistrationBody>}, TContext> => {
+
+const mutationKey = ['registerAdmin'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof registerAdmin>>, {data: BodyType<AdminRegistrationBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  registerAdmin(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RegisterAdminMutationResult = NonNullable<Awaited<ReturnType<typeof registerAdmin>>>
+    export type RegisterAdminMutationBody = BodyType<AdminRegistrationBody>
+    export type RegisterAdminMutationError = ErrorType<void>
+
+    /**
+ * @summary Register a new admin using an invitation token
+ */
+export const useRegisterAdmin = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof registerAdmin>>, TError,{data: BodyType<AdminRegistrationBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof registerAdmin>>,
+        TError,
+        {data: BodyType<AdminRegistrationBody>},
+        TContext
+      > => {
+      return useMutation(getRegisterAdminMutationOptions(options));
     }
 
 export const getListAdminsUrl = () => {

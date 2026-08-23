@@ -43,6 +43,20 @@
       "when": 1787493456907,
       "tag": "0005_foamy_micromacro",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1787495736537,
+      "tag": "0006_colossal_venom",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1787495787126,
+      "tag": "0007_sweet_callisto",
+      "breakpoints": true
     }
   ]
 }
