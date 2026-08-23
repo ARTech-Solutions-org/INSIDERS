@@ -116,8 +116,8 @@ export default function PublicFeedback() {
     }
 
     const payload: PublicFeedbackSubmitBody = {
-      generalRating,
-      generalComments: generalComments.trim() || undefined,
+      overallRating: generalRating,
+      comment: generalComments.trim() || undefined,
       teamRatings: Object.entries(teamRatings).filter(([_, data]) => data.rating > 0).map(([teamId, data]) => ({
         teamId: Number(teamId),
         rating: data.rating,
