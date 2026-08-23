@@ -34,7 +34,6 @@ import type {
   BroadcastMessage,
   CancelInput,
   CancellationResult,
-  CoordinatorEvent,
   CurrentUser,
   DeclineInput,
   DeductionRule,
@@ -6411,83 +6410,6 @@ export function useGetEventStats<TData = Awaited<ReturnType<typeof getEventStats
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetEventStatsQueryOptions(id,options)
-
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const getGetCoordinatorEventsUrl = () => {
-
-
-
-
-  return `/api/coordinator/today`
-}
-
-/**
- * @summary Get today's events for coordinator
- */
-export const getCoordinatorEvents = async ( options?: Parameters<typeof customFetch>[1]): Promise<CoordinatorEvent[]> => {
-
-  return customFetch<CoordinatorEvent[]>(getGetCoordinatorEventsUrl(),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getGetCoordinatorEventsQueryKey = () => {
-    return [
-    `/api/coordinator/today`
-    ] as const;
-    }
-
-
-export const getGetCoordinatorEventsQueryOptions = <TData = Awaited<ReturnType<typeof getCoordinatorEvents>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCoordinatorEvents>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetCoordinatorEventsQueryKey();
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCoordinatorEvents>>> = ({ signal }) => getCoordinatorEvents({ signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCoordinatorEvents>>, TError, TData> & { queryKey: QueryKey }
-}
-
-export type GetCoordinatorEventsQueryResult = NonNullable<Awaited<ReturnType<typeof getCoordinatorEvents>>>
-export type GetCoordinatorEventsQueryError = ErrorType<unknown>
-
-
-/**
- * @summary Get today's events for coordinator
- */
-
-export function useGetCoordinatorEvents<TData = Awaited<ReturnType<typeof getCoordinatorEvents>>, TError = ErrorType<unknown>>(
-  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCoordinatorEvents>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
-
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-
-  const queryOptions = getGetCoordinatorEventsQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

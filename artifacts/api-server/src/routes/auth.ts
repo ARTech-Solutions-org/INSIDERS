@@ -13,6 +13,15 @@ import {
   LoginUsherBody,
   LoginAdminBody,
 } from "@workspace/api-zod";
+import rateLimit from "express-rate-limit";
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // Limit each IP to 10 login requests per `window`
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many login attempts, please try again after 15 minutes" },
+});
 
 const router = Router();
 
@@ -142,7 +151,7 @@ router.post("/auth/usher/register", async (req, res) => {
 });
 
 // POST /auth/usher/login
-router.post("/auth/usher/login", async (req, res) => {
+router.post("/auth/usher/login", loginLimiter, async (req, res) => {
   console.log("[DEBUG USHER LOGIN] Received login request body:", req.body);
   const parsed = LoginUsherBody.safeParse(req.body);
   if (!parsed.success) {
@@ -168,11 +177,17 @@ router.post("/auth/usher/login", async (req, res) => {
     return;
   }
   const token = signToken({ type: "usher", id: usher.id });
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
+  });
   res.json({ token, usher });
 });
 
 // POST /auth/admin/login
-router.post("/auth/admin/login", async (req, res) => {
+router.post("/auth/admin/login", loginLimiter, async (req, res) => {
   console.log("[DEBUG LOGIN] Received login request body:", req.body);
   const parsed = LoginAdminBody.safeParse(req.body);
   if (!parsed.success) {
@@ -198,6 +213,12 @@ router.post("/auth/admin/login", async (req, res) => {
   }
   const { passwordHash: _ph, ...adminSafe } = admin;
   const token = signToken({ type: "admin", id: admin.id });
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
+  });
   res.json({ token, admin: adminSafe });
 });
 
@@ -217,6 +238,11 @@ router.get("/auth/me", requireAuth, async (req, res) => {
 
 // POST /auth/logout
 router.post("/auth/logout", (_req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+  });
   res.json({ ok: true });
 });
 

@@ -12,13 +12,21 @@ declare global {
 }
 
 export function requireAuth(req: Request, res: Response, next: NextFunction) {
-  const header = req.headers.authorization;
-  if (!header?.startsWith("Bearer ")) {
+  let token = req.cookies?.token;
+  if (!token) {
+    const header = req.headers.authorization;
+    if (header?.startsWith("Bearer ")) {
+      token = header.slice(7);
+    }
+  }
+
+  if (!token) {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
+  
   try {
-    req.user = verifyToken(header.slice(7));
+    req.user = verifyToken(token);
     next();
   } catch {
     res.status(401).json({ error: "Invalid token" });

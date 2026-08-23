@@ -1823,6 +1823,8 @@ components:
         createdAt:
           type: string
           format: date-time
+        version:
+          type: integer
         paymentMethod:
           type:
           - string
@@ -1875,6 +1877,8 @@ components:
       properties:
         status:
           type: string
+        version:
+          type: integer
     UsherListResponse:
       type: object
       required:
@@ -2100,6 +2104,8 @@ components:
           - 'null'
         status:
           type: string
+        version:
+          type: integer
         createdByAdminId:
           type:
           - integer
@@ -2170,6 +2176,8 @@ components:
           - 'null'
         status:
           type: string
+        version:
+          type: integer
         createdByAdminId:
           type:
           - integer
@@ -2250,6 +2258,8 @@ components:
     EventUpdate:
       type: object
       properties:
+        version:
+          type: integer
         title:
           type: string
         eventLocName:

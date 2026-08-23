@@ -6,6 +6,7 @@
  */
 
 export interface EventUpdate {
+  version?: number;
   title?: string;
   /** @nullable */
   eventLocName?: string | null;

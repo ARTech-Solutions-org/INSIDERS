@@ -4,6 +4,8 @@ import { db, eventsTable, eventAssignmentsTable, deductionRulesTable, eventHolde
 import { eq, and, gte, sql, desc, lt, gt, ne, inArray, lte } from "drizzle-orm";
 import { requireAdmin, requireAuth } from "../middleware/auth.js";
 import { audit } from "../lib/audit.js";
+import { sseManager } from "../lib/sse.js";
+
 import {
   CreateEventBody,
   UpdateEventBody,
@@ -87,17 +89,36 @@ router.patch("/events/:id", requireAdmin, async (req, res) => {
   if (!parsed.success) { res.status(400).json({ error: parsed.error.flatten() }); return; }
   const eventId = parseInt(req.params.id as string, 10);
   
-  const [existing] = await db.select().from(eventsTable).where(eq(eventsTable.id, eventId));
-  if (!existing) { res.status(404).json({ error: "Not found" }); return; }
-  if (existing.status === "completed" || new Date(existing.endTime) < new Date()) {
-    res.status(400).json({ error: "Cannot edit a completed event." });
-    return;
+  try {
+    const event = await db.transaction(async (tx) => {
+      const [existing] = await tx.select().from(eventsTable).where(eq(eventsTable.id, eventId));
+      if (!existing) throw new Error("Not found");
+      if (existing.status === "completed" || new Date(existing.endTime) < new Date()) {
+        throw new Error("Cannot edit a completed event.");
+      }
+      // Check version if provided
+      if (parsed.data.version !== undefined && existing.version !== parsed.data.version) {
+        throw new Error("Conflict");
+      }
+      
+      const newVersion = existing.version + 1;
+      const [updated] = await tx.update(eventsTable)
+        .set({ ...parsed.data, version: newVersion })
+        .where(and(eq(eventsTable.id, eventId), eq(eventsTable.version, existing.version)))
+        .returning();
+      
+      if (!updated) throw new Error("Conflict"); // If version changed between select and update
+      await audit(req.user!.id, "UPDATE_EVENT", "events", updated.id);
+      return updated;
+    });
+    
+    sseManager.broadcast("EVENT_UPDATED", { id: event.id });
+    res.json(event);
+  } catch (err: any) {
+    if (err.message === "Not found") res.status(404).json({ error: "Not found" });
+    else if (err.message === "Conflict") res.status(409).json({ error: "This record was just changed by someone else, please refresh" });
+    else res.status(400).json({ error: err.message });
   }
-
-  const [event] = await db.update(eventsTable).set(parsed.data).where(eq(eventsTable.id, eventId)).returning();
-  if (!event) { res.status(404).json({ error: "Not found" }); return; }
-  await audit(req.user!.id, "UPDATE_EVENT", "events", event.id);
-  res.json(event);
 });
 
 // DELETE /events/:id
@@ -299,17 +320,26 @@ router.post("/events/:id/assignments", requireAdmin, async (req, res) => {
     return;
   }
 
-  const [assignment] = await db.insert(eventAssignmentsTable).values({ eventId, usherId: parsed.data.usherId, eventTeamId: parsed.data.eventTeamId, isTeamLead: parsed.data.isTeamLead ?? false, status: "assigned" }).returning();
-  await audit(req.user!.id, "ASSIGN_USHER", "event_assignments", assignment.id);
+  try {
+    const [assignment] = await db.insert(eventAssignmentsTable).values({ eventId, usherId: parsed.data.usherId, eventTeamId: parsed.data.eventTeamId, isTeamLead: parsed.data.isTeamLead ?? false, status: "assigned" }).returning();
+    await audit(req.user!.id, "ASSIGN_USHER", "event_assignments", assignment.id);
 
-  // Send push notification to the assigned usher
-  await sendPushToUsher(parsed.data.usherId, {
-    title: "You are Assigned 🎉",
-    body: `You have been assigned to the event "${existing.title}". Check event details.`,
-    data: { eventId: String(eventId), type: "assignment" },
-  });
+    // Send push notification to the assigned usher
+    await sendPushToUsher(parsed.data.usherId, {
+      title: "You are Assigned 🎉",
+      body: `You have been assigned to the event "${existing.title}". Check event details.`,
+      data: { eventId: String(eventId), type: "assignment" },
+    });
 
-  res.status(201).json(assignment);
+    sseManager.broadcast("ASSIGNMENT_CREATED", { id: assignment.id, eventId });
+    res.status(201).json(assignment);
+  } catch (err: any) {
+    if (err.code === "23505") { // unique violation
+      res.status(409).json({ error: "This usher is already assigned to this event." });
+    } else {
+      res.status(500).json({ error: "Failed to assign usher." });
+    }
+  }
 });
 
 // PATCH /events/:id/assignments/:assignmentId

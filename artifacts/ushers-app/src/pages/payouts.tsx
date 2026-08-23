@@ -6,7 +6,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Payouts() {
   const { data: payouts, isLoading } = useListMyPayouts();
-  const safePayouts = Array.isArray(payouts) ? payouts : [];
+  const safePayouts = Array.isArray(payouts) 
+    ? payouts 
+    : (Array.isArray((payouts as any)?.data) ? (payouts as any).data : []);
 
   return (
     <div className="p-5 flex flex-col h-full relative min-h-screen">
@@ -26,7 +28,7 @@ export default function Payouts() {
         </div>
       ) : (
         <div className="space-y-3 pb-safe relative z-10">
-          {safePayouts.map(payout => {
+          {safePayouts.map((payout: any) => {
             const isCompleted = payout.status === 'completed';
 
             return (

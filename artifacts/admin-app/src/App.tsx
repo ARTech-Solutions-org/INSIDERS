@@ -6,6 +6,7 @@ import { Route, Switch, Router as WouterRouter, useLocation } from 'wouter';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { useEffect } from 'react';
 import { useGetMe } from '@workspace/api-client-react';
+import { useRealtimeSync } from '@/hooks/useRealtimeSync';
 
 // Pages
 import Login from '@/pages/login';
@@ -20,6 +21,11 @@ import AuditLog from '@/pages/audit-log';
 import Financials from '@/pages/financials';
 
 const queryClient = new QueryClient();
+
+function RealtimeSyncManager() {
+  useRealtimeSync();
+  return null;
+}
 
 /** Renders children only when the logged-in admin is a super_admin.
  *  Otherwise redirects to "/" immediately. */
@@ -79,6 +85,7 @@ function App() {
           </WouterRouter>
         </div>
         <Toaster />
+        <RealtimeSyncManager />
       </TooltipProvider>
     </QueryClientProvider>
   );

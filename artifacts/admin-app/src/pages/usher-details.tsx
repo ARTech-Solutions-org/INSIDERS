@@ -187,7 +187,7 @@ export default function UsherDetails() {
                 size="sm" 
                 className="bg-green-600 hover:bg-green-700 text-white" 
                 disabled={isUpdating}
-                onClick={() => updateStatus({ id: usher.id, data: { status: "active" } })}
+                onClick={() => updateStatus({ id: usher.id, data: { status: "active", version: usher.version } })}
               >
                 {isUpdating ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <CheckCircle className="w-4 h-4 mr-1" />}
                 Approve
@@ -196,7 +196,7 @@ export default function UsherDetails() {
                 size="sm" 
                 variant="destructive"
                 disabled={isUpdating}
-                onClick={() => updateStatus({ id: usher.id, data: { status: "declined" } })}
+                onClick={() => updateStatus({ id: usher.id, data: { status: "declined", version: usher.version } })}
               >
                 {isUpdating ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <XCircle className="w-4 h-4 mr-1" />}
                 Decline
@@ -209,7 +209,7 @@ export default function UsherDetails() {
               variant="outline" 
               className="text-amber-600 border-amber-300 hover:bg-amber-50"
               disabled={isUpdating}
-              onClick={() => updateStatus({ id: usher.id, data: { status: "pending" } })}
+              onClick={() => updateStatus({ id: usher.id, data: { status: "pending", version: usher.version } })}
             >
               Suspend (Set Pending)
             </Button>
@@ -219,7 +219,7 @@ export default function UsherDetails() {
               size="sm" 
               className="bg-green-600 hover:bg-green-700 text-white"
               disabled={isUpdating}
-              onClick={() => updateStatus({ id: usher.id, data: { status: "active" } })}
+              onClick={() => updateStatus({ id: usher.id, data: { status: "active", version: usher.version } })}
             >
               Re-Approve
             </Button>

@@ -92,6 +92,7 @@ export interface UsherProfile {
   avgRating: number;
   balance: number;
   createdAt: string;
+  version?: number;
   /** @nullable */
   paymentMethod?: string | null;
   /** @nullable */
@@ -151,6 +152,7 @@ export interface UsherUpdate {
 
 export interface UsherStatusUpdate {
   status: string;
+  version?: number;
 }
 
 export interface UsherListResponse {
@@ -251,6 +253,7 @@ export interface Event {
   /** @nullable */
   contactPhone?: string | null;
   status: string;
+  version?: number;
   /** @nullable */
   createdByAdminId?: number | null;
 }
@@ -315,6 +318,7 @@ export interface EventDetail {
   /** @nullable */
   contactPhone?: string | null;
   status: string;
+  version?: number;
   /** @nullable */
   createdByAdminId?: number | null;
   assignments: EventAssignment[];
@@ -353,6 +357,7 @@ export interface EventInput {
 }
 
 export interface EventUpdate {
+  version?: number;
   title?: string;
   /** @nullable */
   eventLocName?: string | null;
@@ -716,15 +721,6 @@ export interface AdminDashboard {
   expiringDocumentCount?: number;
   recentActivity: AuditLogEntry[];
   eventTrends: AdminDashboardEventTrendsItem[];
-}
-
-export interface CoordinatorEvent {
-  id: number;
-  title: string;
-  startTime: string;
-  endTime: string;
-  status: string;
-  assignments: EventAssignment[];
 }
 
 export type ListUshersParams = {

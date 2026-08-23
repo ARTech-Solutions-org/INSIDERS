@@ -351,7 +351,8 @@ export default function EventDetails() {
         endTime: endDateTime.toISOString(),
         dressCode: formData.dressCode || undefined,
         instructions: formData.instructions || undefined,
-        eventBudget: formData.eventBudget ? parseInt(formData.eventBudget, 10) : undefined,
+        eventBudget: formData.eventBudget ? parseFloat(formData.eventBudget) : undefined,
+        version: event?.version
       }
     });
   };
@@ -360,7 +361,7 @@ export default function EventDetails() {
     const newStatus = event?.status === "published" ? "draft" : "published";
     updateEvent({
       id: eventId,
-      data: { status: newStatus as any }
+      data: { status: newStatus as any, version: event?.version }
     });
   };
 

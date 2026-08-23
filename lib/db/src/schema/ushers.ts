@@ -35,6 +35,7 @@ export const ushersTable = pgTable("ushers", {
   paymentMethod: varchar("payment_method", { length: 50 }),
   paymentMethodDetails: varchar("payment_method_details", { length: 255 }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  version: integer("version").notNull().default(1),
 });
 
 export const insertUsherSchema = createInsertSchema(ushersTable).omit({ id: true, createdAt: true, avgRating: true, balance: true, status: true });

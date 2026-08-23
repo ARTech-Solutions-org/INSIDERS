@@ -22,6 +22,7 @@ export const eventsTable = pgTable("events", {
   contactName: varchar("contact_name", { length: 255 }),
   contactPhone: varchar("contact_phone", { length: 50 }),
   status: varchar("status", { length: 50 }).default("draft"),
+  version: integer("version").notNull().default(1),
   createdByAdminId: integer("created_by_admin_id").references(() => adminsTable.id, { onDelete: "set null" }),
 });
 

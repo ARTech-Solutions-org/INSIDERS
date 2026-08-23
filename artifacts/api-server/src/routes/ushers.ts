@@ -5,6 +5,7 @@ import { eq, and, ilike, or, gte, lte, sql } from "drizzle-orm";
 import { requireUsher, requireAdmin, requireSuperAdmin } from "../middleware/auth.js";
 import { audit } from "../lib/audit.js";
 import { sendPushToUsher } from "../lib/fcm.js";
+import { sseManager } from "../lib/sse.js";
 import {
   UpdateMyUsherProfileBody,
   UpdateUsherStatusBody,
@@ -104,34 +105,57 @@ router.patch("/ushers/:id/status", requireAdmin, async (req, res) => {
       return;
     }
   }
-  const [usher] = await db.update(ushersTable).set({ status: parsed.data.status }).where(eq(ushersTable.id, usherId)).returning();
-  if (!usher) { res.status(404).json({ error: "Not found" }); return; }
-  await audit(req.user!.id, "UPDATE_STATUS", "ushers", usher.id, `status=${parsed.data.status}`);
-  
-  if (parsed.data.status === 'active') {
-    const title = "Account Approved!";
-    const body = "Congratulations, your usher account has been approved.";
-    await db.insert(notificationsTable).values({
-      recipientType: "usher",
-      recipientId: usher.id,
-      type: "status_update",
-      message: body,
-    });
-    await sendPushToUsher(usher.id, { title, body, data: { url: "/profile" } });
-  } else if (parsed.data.status === 'declined') {
-    const title = "Account Declined";
-    const body = "We're sorry, but your usher account application has been declined.";
-    await db.insert(notificationsTable).values({
-      recipientType: "usher",
-      recipientId: usher.id,
-      type: "status_update",
-      message: body,
-    });
-    await sendPushToUsher(usher.id, { title, body });
-  }
+  try {
+    const usher = await db.transaction(async (tx) => {
+      const [existing] = await tx.select().from(ushersTable).where(eq(ushersTable.id, usherId));
+      if (!existing) throw new Error("Not found");
+      
+      if ((parsed.data as any).version !== undefined && existing.version !== (parsed.data as any).version) {
+        throw new Error("Conflict");
+      }
 
-  const { passwordHash: _ph, ...safe } = usher;
-  res.json(safe);
+      const newVersion = existing.version + 1;
+      const [updated] = await tx.update(ushersTable)
+        .set({ status: parsed.data.status, version: newVersion })
+        .where(and(eq(ushersTable.id, usherId), eq(ushersTable.version, existing.version)))
+        .returning();
+      
+      if (!updated) throw new Error("Conflict");
+      await audit(req.user!.id, "UPDATE_STATUS", "ushers", updated.id, `status=${parsed.data.status}`);
+      return updated;
+    });
+
+    sseManager.broadcast("USHER_UPDATED", { id: usher.id });
+
+    if (parsed.data.status === 'active') {
+      const title = "Account Approved!";
+      const body = "Congratulations, your usher account has been approved.";
+      await db.insert(notificationsTable).values({
+        recipientType: "usher",
+        recipientId: usher.id,
+        type: "status_update",
+        message: body,
+      });
+      await sendPushToUsher(usher.id, { title, body, data: { url: "/profile" } });
+    } else if (parsed.data.status === 'declined') {
+      const title = "Account Declined";
+      const body = "We're sorry, but your usher account application has been declined.";
+      await db.insert(notificationsTable).values({
+        recipientType: "usher",
+        recipientId: usher.id,
+        type: "status_update",
+        message: body,
+      });
+      await sendPushToUsher(usher.id, { title, body });
+    }
+
+    const { passwordHash: _ph, ...safe } = usher;
+    res.json(safe);
+  } catch (err: any) {
+    if (err.message === "Not found") res.status(404).json({ error: "Not found" });
+    else if (err.message === "Conflict") res.status(409).json({ error: "This record was just changed by someone else, please refresh" });
+    else res.status(500).json({ error: "Internal server error" });
+  }
 });
 
 // GET /ushers/me/documents

@@ -7,4 +7,5 @@
 
 export interface UsherStatusUpdate {
   status: string;
+  version?: number;
 }

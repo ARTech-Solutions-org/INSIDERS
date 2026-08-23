@@ -35,6 +35,7 @@ export interface EventDetail {
   /** @nullable */
   contactPhone?: string | null;
   status: string;
+  version?: number;
   /** @nullable */
   createdByAdminId?: number | null;
   assignments: EventAssignment[];
