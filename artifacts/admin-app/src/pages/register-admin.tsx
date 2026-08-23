@@ -3,7 +3,7 @@ import { useLocation, useRoute } from 'wouter';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useVerifyAdminInvitation, useRegisterAdmin } from '@workspace/api-client-react';
+import { useVerifyAdminInvitation, useRegisterAdmin, getVerifyAdminInvitationQueryKey } from '@workspace/api-client-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -23,7 +23,7 @@ export default function RegisterAdmin() {
   const searchParams = new URLSearchParams(window.location.search);
   const token = searchParams.get('token');
   
-  const { data: verification, isLoading: isVerifying, error: verificationError } = useVerifyAdminInvitation({ token: token || '' }, { query: { enabled: !!token, retry: false } });
+  const { data: verification, isLoading: isVerifying, error: verificationError } = useVerifyAdminInvitation({ token: token || '' }, { query: { queryKey: getVerifyAdminInvitationQueryKey({ token: token || '' }), enabled: !!token, retry: false } });
   const { mutateAsync: registerAdmin, isPending: isRegistering } = useRegisterAdmin();
   const { toast } = useToast();
 

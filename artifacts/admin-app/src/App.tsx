@@ -22,7 +22,6 @@ import AuditLog from '@/pages/audit-log';
 import Financials from '@/pages/financials';
 import PublicFeedback from '@/pages/public-feedback';
 import Settings from '@/pages/settings';
-import RegisterAdmin from '@/pages/register-admin';
 
 const queryClient = new QueryClient();
 
