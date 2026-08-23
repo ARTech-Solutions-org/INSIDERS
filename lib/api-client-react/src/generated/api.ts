@@ -42,6 +42,7 @@ import type {
   Event,
   EventAssignment,
   EventDetail,
+  EventFeedbackLink,
   EventHolderLink,
   EventHolderView,
   EventInput,
@@ -73,11 +74,14 @@ import type {
   PayoutInput,
   PayoutStatusUpdate,
   PromoteWaitlistBody,
+  PublicEventFeedbackDetails,
+  PublicFeedbackSubmitBody,
   Rating,
   RatingInput,
   RemoveFromWaitlist200,
   RequestPayoutInput,
   SmartAssignFilters,
+  SubmitPublicEventFeedback200,
   TransactionInput,
   UpdateUsherDocumentStatusBody,
   UsherAvailability,
@@ -2424,6 +2428,303 @@ export const useDeleteDeductionRule = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getDeleteDeductionRuleMutationOptions(options));
+    }
+
+export const getGetEventFeedbackLinkUrl = (id: number,) => {
+
+
+
+
+  return `/api/events/${id}/feedback-link`
+}
+
+/**
+ * @summary Get active event feedback link
+ */
+export const getEventFeedbackLink = async (id: number, options?: Parameters<typeof customFetch>[1]): Promise<EventFeedbackLink> => {
+
+  return customFetch<EventFeedbackLink>(getGetEventFeedbackLinkUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetEventFeedbackLinkQueryKey = (id: number,) => {
+    return [
+    `/api/events/${id}/feedback-link`
+    ] as const;
+    }
+
+
+export const getGetEventFeedbackLinkQueryOptions = <TData = Awaited<ReturnType<typeof getEventFeedbackLink>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getEventFeedbackLink>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEventFeedbackLinkQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEventFeedbackLink>>> = ({ signal }) => getEventFeedbackLink(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEventFeedbackLink>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetEventFeedbackLinkQueryResult = NonNullable<Awaited<ReturnType<typeof getEventFeedbackLink>>>
+export type GetEventFeedbackLinkQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get active event feedback link
+ */
+
+export function useGetEventFeedbackLink<TData = Awaited<ReturnType<typeof getEventFeedbackLink>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getEventFeedbackLink>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetEventFeedbackLinkQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateEventFeedbackLinkUrl = (id: number,) => {
+
+
+
+
+  return `/api/events/${id}/feedback-link`
+}
+
+/**
+ * @summary Generate a new event feedback link (invalidates old ones)
+ */
+export const createEventFeedbackLink = async (id: number, options?: Parameters<typeof customFetch>[1]): Promise<EventFeedbackLink> => {
+
+  return customFetch<EventFeedbackLink>(getCreateEventFeedbackLinkUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getCreateEventFeedbackLinkMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createEventFeedbackLink>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createEventFeedbackLink>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['createEventFeedbackLink'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createEventFeedbackLink>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  createEventFeedbackLink(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateEventFeedbackLinkMutationResult = NonNullable<Awaited<ReturnType<typeof createEventFeedbackLink>>>
+
+    export type CreateEventFeedbackLinkMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Generate a new event feedback link (invalidates old ones)
+ */
+export const useCreateEventFeedbackLink = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createEventFeedbackLink>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createEventFeedbackLink>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getCreateEventFeedbackLinkMutationOptions(options));
+    }
+
+export const getGetPublicEventFeedbackUrl = (token: string,) => {
+
+
+
+
+  return `/api/public/feedback/${token}`
+}
+
+/**
+ * @summary Get safe event details for public feedback
+ */
+export const getPublicEventFeedback = async (token: string, options?: Parameters<typeof customFetch>[1]): Promise<PublicEventFeedbackDetails> => {
+
+  return customFetch<PublicEventFeedbackDetails>(getGetPublicEventFeedbackUrl(token),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPublicEventFeedbackQueryKey = (token: string,) => {
+    return [
+    `/api/public/feedback/${token}`
+    ] as const;
+    }
+
+
+export const getGetPublicEventFeedbackQueryOptions = <TData = Awaited<ReturnType<typeof getPublicEventFeedback>>, TError = ErrorType<void>>(token: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPublicEventFeedback>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPublicEventFeedbackQueryKey(token);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPublicEventFeedback>>> = ({ signal }) => getPublicEventFeedback(token, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: token !== null && token !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPublicEventFeedback>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPublicEventFeedbackQueryResult = NonNullable<Awaited<ReturnType<typeof getPublicEventFeedback>>>
+export type GetPublicEventFeedbackQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get safe event details for public feedback
+ */
+
+export function useGetPublicEventFeedback<TData = Awaited<ReturnType<typeof getPublicEventFeedback>>, TError = ErrorType<void>>(
+ token: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPublicEventFeedback>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPublicEventFeedbackQueryOptions(token,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSubmitPublicEventFeedbackUrl = (token: string,) => {
+
+
+
+
+  return `/api/public/feedback/${token}`
+}
+
+/**
+ * @summary Submit event feedback
+ */
+export const submitPublicEventFeedback = async (token: string,
+    publicFeedbackSubmitBody: PublicFeedbackSubmitBody, options?: Parameters<typeof customFetch>[1]): Promise<SubmitPublicEventFeedback200> => {
+
+  return customFetch<SubmitPublicEventFeedback200>(getSubmitPublicEventFeedbackUrl(token),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(publicFeedbackSubmitBody)
+  }
+);}
+
+
+
+
+
+export const getSubmitPublicEventFeedbackMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitPublicEventFeedback>>, TError,{token: string;data: BodyType<PublicFeedbackSubmitBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof submitPublicEventFeedback>>, TError,{token: string;data: BodyType<PublicFeedbackSubmitBody>}, TContext> => {
+
+const mutationKey = ['submitPublicEventFeedback'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof submitPublicEventFeedback>>, {token: string;data: BodyType<PublicFeedbackSubmitBody>}> = (props) => {
+          const {token,data} = props ?? {};
+
+          return  submitPublicEventFeedback(token,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SubmitPublicEventFeedbackMutationResult = NonNullable<Awaited<ReturnType<typeof submitPublicEventFeedback>>>
+    export type SubmitPublicEventFeedbackMutationBody = BodyType<PublicFeedbackSubmitBody>
+    export type SubmitPublicEventFeedbackMutationError = ErrorType<void>
+
+    /**
+ * @summary Submit event feedback
+ */
+export const useSubmitPublicEventFeedback = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitPublicEventFeedback>>, TError,{token: string;data: BodyType<PublicFeedbackSubmitBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof submitPublicEventFeedback>>,
+        TError,
+        {token: string;data: BodyType<PublicFeedbackSubmitBody>},
+        TContext
+      > => {
+      return useMutation(getSubmitPublicEventFeedbackMutationOptions(options));
     }
 
 export const getGetEventHolderLinkUrl = (id: number,) => {

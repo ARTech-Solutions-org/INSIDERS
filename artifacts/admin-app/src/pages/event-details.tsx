@@ -21,6 +21,9 @@ import {
   usePromoteWaitlist,
   getListEventAssignmentsQueryKey,
   getListWaitlistQueryKey,
+  useGetEventFeedbackLink,
+  useCreateEventFeedbackLink,
+  getGetEventFeedbackLinkQueryKey
 } from "@workspace/api-client-react";
 import { useQueryClient, useQueries } from "@tanstack/react-query";
 import { useGetMe } from "@workspace/api-client-react";
@@ -65,7 +68,11 @@ import {
   Crown,
   Trash2,
   UserCog,
-  X
+  X,
+  Link as LinkIcon,
+  Copy,
+  RefreshCw,
+  MessageSquare
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -94,6 +101,31 @@ export default function EventDetails() {
     return event?.superAdminLockedFields?.includes(fieldName) ?? false;
   };
   const [isSubmittingRating, setIsSubmittingRating] = useState(false);
+
+  // ─── FEEDBACK LINK ───────────────────────────────────────────────────────
+  const { data: feedbackLink, isLoading: isFeedbackLinkLoading } = useGetEventFeedbackLink(
+    eventId,
+    { query: { enabled: !!eventId, retry: false, queryKey: getGetEventFeedbackLinkQueryKey(eventId) as any } as any }
+  );
+  
+  const createFeedbackLinkMutation = useCreateEventFeedbackLink({
+    mutation: {
+      onSuccess: () => {
+        toast({ title: "Feedback link generated successfully." });
+        queryClient.invalidateQueries({ queryKey: getGetEventFeedbackLinkQueryKey(eventId) as any });
+      },
+      onError: (err: any) => {
+        toast({ title: "Failed to generate link.", description: err.response?.data?.error || err.message, variant: "destructive" });
+      }
+    }
+  });
+
+  const handleCopyFeedbackLink = () => {
+    if (!feedbackLink) return;
+    const url = `${window.location.origin}/feedback/${feedbackLink.token}`;
+    navigator.clipboard.writeText(url);
+    toast({ title: "Link copied to clipboard." });
+  };
 
   // ─── WAITLIST ────────────────────────────────────────────────────────────
   const { data: waitlist } = useListWaitlist(eventId, {
@@ -708,6 +740,74 @@ export default function EventDetails() {
                 ))}
                 {(!event.deductionRules || event.deductionRules.length === 0) && (
                   <div className="text-sm text-muted-foreground">No rules defined.</div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="w-5 h-5 text-primary" />
+                  Rate Event Link
+                </CardTitle>
+                <CardDescription>
+                  Share this public link with the client so they can rate the event and its teams.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {isFeedbackLinkLoading ? (
+                  <div className="flex items-center justify-center py-4">
+                    <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                  </div>
+                ) : feedbackLink ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Input 
+                        readOnly 
+                        value={`${window.location.origin}/feedback/${feedbackLink.token}`} 
+                        className="font-mono text-sm"
+                      />
+                      <Button variant="outline" size="icon" onClick={handleCopyFeedbackLink} title="Copy Link">
+                        <Copy className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground">Status:</span>
+                      {feedbackLink.submittedAt ? (
+                        <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                          <CheckCircle className="w-3 h-3 mr-1" /> Submitted
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-yellow-600 border-yellow-600 dark:text-yellow-500 dark:border-yellow-500">
+                          Waiting for submission
+                        </Badge>
+                      )}
+                    </div>
+                    {(!isFieldLocked("budget") || isSuperAdmin) && (
+                      <Button 
+                        variant="secondary" 
+                        size="sm" 
+                        className="w-full mt-2" 
+                        onClick={() => createFeedbackLinkMutation.mutate({ id: eventId })}
+                        disabled={createFeedbackLinkMutation.isPending}
+                      >
+                        {createFeedbackLinkMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}
+                        Regenerate Link
+                      </Button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center py-4 space-y-3">
+                    <p className="text-sm text-muted-foreground">No feedback link generated yet.</p>
+                    <Button 
+                      onClick={() => createFeedbackLinkMutation.mutate({ id: eventId })}
+                      disabled={createFeedbackLinkMutation.isPending || (isFieldLocked("budget") && !isSuperAdmin)}
+                      className="w-full"
+                    >
+                      {createFeedbackLinkMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <LinkIcon className="w-4 h-4 mr-2" />}
+                      Generate Link
+                    </Button>
+                  </div>
                 )}
               </CardContent>
             </Card>

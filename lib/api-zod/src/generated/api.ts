@@ -444,7 +444,7 @@ export const UpdateUsherDocumentStatusParams = zod.object({
   "docId": zod.coerce.number().int()
 })
 
-export const UpdateUsherDocumentStatusBody = zod.object({
+export const updateUsherDocumentStatusBody = zod.object({
   "status": zod.enum(['pending', 'approved', 'rejected']).optional()
 })
 
@@ -825,6 +825,89 @@ export const DeleteDeductionRuleResponse = zod.void()
 
 
 /**
+ * @summary Get active event feedback link
+ */
+export const GetEventFeedbackLinkParams = zod.object({
+  "id": zod.coerce.number().int()
+})
+
+export const GetEventFeedbackLinkResponse = zod.object({
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
+  "token": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "revokedAt": zod.coerce.date().nullish(),
+  "submittedAt": zod.coerce.date().nullish()
+})
+
+
+/**
+ * @summary Generate a new event feedback link (invalidates old ones)
+ */
+export const CreateEventFeedbackLinkParams = zod.object({
+  "id": zod.coerce.number().int()
+})
+
+export const CreateEventFeedbackLinkResponse = zod.object({
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
+  "token": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "revokedAt": zod.coerce.date().nullish(),
+  "submittedAt": zod.coerce.date().nullish()
+})
+
+
+/**
+ * @summary Get safe event details for public feedback
+ */
+export const GetPublicEventFeedbackParams = zod.object({
+  "token": zod.coerce.string()
+})
+
+export const GetPublicEventFeedbackResponse = zod.object({
+  "id": zod.number().int(),
+  "title": zod.string(),
+  "eventLocName": zod.string(),
+  "startTime": zod.coerce.date(),
+  "endTime": zod.coerce.date(),
+  "teams": zod.array(zod.object({
+  "id": zod.number().int(),
+  "name": zod.string(),
+  "ushers": zod.array(zod.object({
+  "id": zod.number().int(),
+  "name": zod.string()
+}))
+}))
+})
+
+
+/**
+ * @summary Submit event feedback
+ */
+export const SubmitPublicEventFeedbackParams = zod.object({
+  "token": zod.coerce.string()
+})
+
+export const SubmitPublicEventFeedbackBody = zod.object({
+  "overallRating": zod.number().int(),
+  "comment": zod.string().optional(),
+  "teamRatings": zod.array(zod.object({
+  "teamId": zod.number().int(),
+  "rating": zod.number().int()
+})).optional(),
+  "usherOverrides": zod.array(zod.object({
+  "usherId": zod.number().int(),
+  "rating": zod.number().int()
+})).optional()
+})
+
+export const SubmitPublicEventFeedbackResponse = zod.object({
+  "success": zod.boolean().optional()
+})
+
+
+/**
  * @summary Get or create event holder link
  */
 export const GetEventHolderLinkParams = zod.object({
@@ -961,7 +1044,7 @@ export const PromoteWaitlistParams = zod.object({
   "waitlistId": zod.coerce.number().int()
 })
 
-export const PromoteWaitlistBody = zod.object({
+export const promoteWaitlistBody = zod.object({
   "eventTeamId": zod.number().int().nullish(),
   "isTeamLead": zod.boolean().optional()
 })
@@ -1257,7 +1340,7 @@ export const AdminCheckoutResponse = zod.object({
 /**
  * @summary Get ranked usher candidates for event (admin)
  */
-export const GetSmartCandidatesParams = zod.object({
+export const getSmartCandidatesParams = zod.object({
   "id": zod.coerce.number().int()
 })
 

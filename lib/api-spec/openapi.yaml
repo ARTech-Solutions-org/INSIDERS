@@ -570,6 +570,176 @@ paths:
       responses:
         '204':
           description: Deleted
+  /events/{id}/feedback-link:
+    get:
+      operationId: getEventFeedbackLink
+      summary: Get active event feedback link
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventFeedbackLink'
+        '404':
+          description: Not found
+    post:
+      operationId: createEventFeedbackLink
+      summary: Generate a new event feedback link (invalidates old ones)
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventFeedbackLink'
+  /public/feedback/{token}:
+    get:
+      operationId: getPublicEventFeedback
+      summary: Get safe event details for public feedback
+      parameters:
+      - name: token
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicEventFeedbackDetails'
+        '400':
+          description: Link is invalid or already submitted
+        '404':
+          description: Not found
+    post:
+      operationId: submitPublicEventFeedback
+      summary: Submit event feedback
+      parameters:
+      - name: token
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublicFeedbackSubmitBody'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        '400':
+          description: Link is invalid or already submitted
+        '404':
+          description: Not found
+  /events/{id}/feedback-link:
+    get:
+      operationId: getEventFeedbackLink
+      summary: Get active event feedback link
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventFeedbackLink'
+        '404':
+          description: Not found
+    post:
+      operationId: createEventFeedbackLink
+      summary: Generate a new event feedback link (invalidates old ones)
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventFeedbackLink'
+  /public/feedback/{token}:
+    get:
+      operationId: getPublicEventFeedback
+      summary: Get safe event details for public feedback
+      parameters:
+      - name: token
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicEventFeedbackDetails'
+        '400':
+          description: Link is invalid or already submitted
+        '404':
+          description: Not found
+    post:
+      operationId: submitPublicEventFeedback
+      summary: Submit event feedback
+      parameters:
+      - name: token
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublicFeedbackSubmitBody'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        '400':
+          description: Link is invalid or already submitted
+        '404':
+          description: Not found
   /events/{id}/holder-link:
     get:
       operationId: getEventHolderLink
@@ -1617,6 +1787,129 @@ paths:
 
 components:
   schemas:
+
+    EventFeedbackLink:
+      type: object
+      required:
+      - id
+      - eventId
+      - token
+      - createdAt
+      properties:
+        id:
+          type: integer
+        eventId:
+          type: integer
+        token:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        revokedAt:
+          type: string
+          format: date-time
+          nullable: true
+        submittedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    PublicEventFeedbackDetails:
+      type: object
+      required:
+      - id
+      - title
+      - eventLocName
+      - startTime
+      - endTime
+      - teams
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        eventLocName:
+          type: string
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        teams:
+          type: array
+          items:
+            type: object
+            required:
+            - id
+            - name
+            - ushers
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+              ushers:
+                type: array
+                items:
+                  type: object
+                  required:
+                  - id
+                  - name
+                  properties:
+                    id:
+                      type: integer
+                    name:
+                      type: string
+
+    PublicFeedbackSubmitBody:
+      type: object
+      required:
+      - overallRating
+      properties:
+        overallRating:
+          type: integer
+        comment:
+          type: string
+        teamRatings:
+          type: array
+          items:
+            type: object
+            required:
+            - teamId
+            - rating
+            properties:
+              teamId:
+                type: integer
+              rating:
+                type: integer
+        usherOverrides:
+          type: array
+          items:
+            type: object
+            required:
+            - usherId
+            - rating
+            properties:
+              usherId:
+                type: integer
+              rating:
+                type: integer
+
+
+        usherOverrides:
+          type: array
+          items:
+            type: object
+            required:
+            - usherId
+            - rating
+            properties:
+              usherId:
+                type: integer
+              rating:
+                type: integer
+
     HealthStatus:
       type: object
       required:

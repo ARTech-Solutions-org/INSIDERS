@@ -13,6 +13,7 @@ export * from "./event-holder-links";
 export * from "./balance-transactions";
 export * from "./payouts";
 export * from "./ratings";
+export * from "./event-feedback";
 export * from "./notifications";
 export * from "./broadcast-messages";
 export * from "./audit-log";

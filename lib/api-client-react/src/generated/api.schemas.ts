@@ -4,6 +4,52 @@
  * Api
  * OpenAPI spec version: 1.0.0
  */
+export interface EventFeedbackLink {
+  id: number;
+  eventId: number;
+  token: string;
+  createdAt: string;
+  revokedAt?: string | null;
+  submittedAt?: string | null;
+}
+
+export type PublicEventFeedbackDetailsTeamsItemUshersItem = {
+  id: number;
+  name: string;
+};
+
+export type PublicEventFeedbackDetailsTeamsItem = {
+  id: number;
+  name: string;
+  ushers: PublicEventFeedbackDetailsTeamsItemUshersItem[];
+};
+
+export interface PublicEventFeedbackDetails {
+  id: number;
+  title: string;
+  eventLocName: string;
+  startTime: string;
+  endTime: string;
+  teams: PublicEventFeedbackDetailsTeamsItem[];
+}
+
+export type PublicFeedbackSubmitBodyTeamRatingsItem = {
+  teamId: number;
+  rating: number;
+};
+
+export type PublicFeedbackSubmitBodyUsherOverridesItem = {
+  usherId: number;
+  rating: number;
+};
+
+export interface PublicFeedbackSubmitBody {
+  overallRating: number;
+  comment?: string;
+  teamRatings?: PublicFeedbackSubmitBodyTeamRatingsItem[];
+  usherOverrides?: PublicFeedbackSubmitBodyUsherOverridesItem[];
+}
+
 export interface HealthStatus {
   status: string;
 }
@@ -774,6 +820,10 @@ status?: string;
 upcoming?: boolean;
 page?: number;
 limit?: number;
+};
+
+export type SubmitPublicEventFeedback200 = {
+  success?: boolean;
 };
 
 export type RemoveFromWaitlist200 = {

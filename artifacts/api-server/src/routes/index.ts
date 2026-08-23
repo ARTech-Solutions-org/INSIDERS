@@ -11,6 +11,7 @@ import ratingsRouter from "./ratings.js";
 import pushTokensRouter from "./push-tokens.js";
 import remindersRouter from "./reminders.js";
 import syncRouter from "./sync.js";
+import publicRouter from "./public.js";
 
 const router: IRouter = Router();
 
@@ -26,5 +27,6 @@ router.use(ratingsRouter);
 router.use(pushTokensRouter);
 router.use(remindersRouter);
 router.use(syncRouter);
+router.use("/public", publicRouter);
 
 export default router;

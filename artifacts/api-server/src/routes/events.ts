@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { randomBytes } from "crypto";
-import { db, eventsTable, eventAssignmentsTable, deductionRulesTable, eventHolderLinksTable, waitlistTable, ushersTable, usherAvailabilityTable, eventTeamsTable, adminsTable } from "@workspace/db";
+import { db, eventsTable, eventAssignmentsTable, deductionRulesTable, eventHolderLinksTable, waitlistTable, ushersTable, usherAvailabilityTable, eventTeamsTable, adminsTable, eventFeedbackLinksTable } from "@workspace/db";
 import { eq, and, gte, sql, desc, lt, gt, ne, inArray, lte } from "drizzle-orm";
 import { requireAdmin, requireAuth } from "../middleware/auth.js";
 import { audit } from "../lib/audit.js";
@@ -890,6 +890,33 @@ router.post("/events/:id/waitlist/:waitlistId/promote", requireAdmin, async (req
   }
 
   res.json({ ...assignment, usher });
+});
+
+// GET /events/:id/feedback-link
+router.get("/events/:id/feedback-link", requireAdmin, async (req, res) => {
+  const eventId = parseInt(req.params.id as string, 10);
+  const [link] = await db.select().from(eventFeedbackLinksTable).where(eq(eventFeedbackLinksTable.eventId, eventId)).orderBy(desc(eventFeedbackLinksTable.createdAt)).limit(1);
+  if (!link || link.revokedAt) { res.status(404).json({ error: "Not found" }); return; }
+  res.json(link);
+});
+
+// POST /events/:id/feedback-link
+router.post("/events/:id/feedback-link", requireAdmin, async (req, res) => {
+  const eventId = parseInt(req.params.id as string, 10);
+  
+  const [event] = await db.select().from(eventsTable).where(eq(eventsTable.id, eventId));
+  if (!event) { res.status(404).json({ error: "Event not found" }); return; }
+
+  // Revoke all existing links
+  await db.update(eventFeedbackLinksTable).set({ revokedAt: new Date() }).where(eq(eventFeedbackLinksTable.eventId, eventId));
+
+  const token = randomBytes(32).toString("hex");
+  const [link] = await db.insert(eventFeedbackLinksTable).values({
+    eventId,
+    token
+  }).returning();
+
+  res.json(link);
 });
 
 export default router;

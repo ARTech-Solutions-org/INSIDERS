@@ -19,6 +19,7 @@ import EventDetails from '@/pages/event-details';
 import Broadcasts from '@/pages/broadcasts';
 import AuditLog from '@/pages/audit-log';
 import Financials from '@/pages/financials';
+import PublicFeedback from '@/pages/public-feedback';
 
 const queryClient = new QueryClient();
 
@@ -68,6 +69,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/login" component={Login} />
+      <Route path="/feedback/:token" component={PublicFeedback} />
       <Route path="*">
         <ProtectedRoutes />
       </Route>
