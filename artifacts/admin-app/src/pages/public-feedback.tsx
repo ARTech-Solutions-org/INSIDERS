@@ -1,7 +1,11 @@
 import { useParams } from "wouter";
 import { useState } from "react";
-import { useGetPublicEventFeedback, useSubmitPublicEventFeedback } from "@workspace/api-client-react";
-import { SubmitPublicEventFeedbackBody } from "@workspace/api-zod";
+import { 
+  useGetPublicEventFeedback, 
+  useSubmitPublicEventFeedback,
+  getGetPublicEventFeedbackQueryKey,
+  PublicFeedbackSubmitBody
+} from "@workspace/api-client-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -55,6 +59,7 @@ export default function PublicFeedback() {
     query: {
       enabled: !!token,
       retry: false, // Don't retry if token is invalid or revoked
+      queryKey: getGetPublicEventFeedbackQueryKey(token) as any
     }
   });
 
@@ -110,7 +115,7 @@ export default function PublicFeedback() {
       return;
     }
 
-    const payload: SubmitPublicEventFeedbackBody = {
+    const payload: PublicFeedbackSubmitBody = {
       generalRating,
       generalComments: generalComments.trim() || undefined,
       teamRatings: Object.entries(teamRatings).filter(([_, data]) => data.rating > 0).map(([teamId, data]) => ({
