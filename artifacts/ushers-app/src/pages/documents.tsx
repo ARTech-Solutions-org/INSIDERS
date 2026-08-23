@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useListMyDocuments, useAddMyDocument, getListMyDocumentsQueryKey, useGetMyUsherProfile } from '@workspace/api-client-react';
+import { useListMyDocuments, useAddMyDocument, getListMyDocumentsQueryKey, useGetMyUsherProfile, useUpdateMyUsherProfile, getGetMyUsherProfileQueryKey } from '@workspace/api-client-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { FileText, Plus, Calendar, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
@@ -38,6 +38,8 @@ export default function Documents() {
   const [docType, setDocType] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
   const [newFile, setNewFile] = useState<File | null>(null);
+  const updateProfileMutation = useUpdateMyUsherProfile();
+
 
         queryClient.invalidateQueries({ queryKey: getListMyDocumentsQueryKey() });
   const handleAdd = async () => {
@@ -78,6 +80,31 @@ export default function Documents() {
       toast.error('Failed to upload document');
     }
   };
+
+  const handleUploadId = async (file: File, side: 'front' | 'back') => {
+    try {
+      toast.loading(`Uploading ID (${side})...`, { id: `upload-id-${side}` });
+      const res = await uploadToR2(file, 'nationalId');
+      
+      const payload: any = {};
+      if (side === 'front') {
+        payload.nationalIdDocUrl = res.url;
+        payload.nationalIdDocKey = res.key;
+      } else {
+        payload.nationalIdDocBackUrl = res.url;
+        payload.nationalIdDocBackKey = res.key;
+      }
+
+      await updateProfileMutation.mutateAsync({ data: payload });
+      toast.success(`ID (${side}) updated successfully`);
+      queryClient.invalidateQueries({ queryKey: getGetMyUsherProfileQueryKey() });
+    } catch (e) {
+      toast.error(`Failed to upload ID (${side})`);
+    } finally {
+      toast.dismiss(`upload-id-${side}`);
+    }
+  };
+
 
   const safeDocs = Array.isArray(documents) ? documents : [];
 
@@ -148,9 +175,9 @@ export default function Documents() {
         </div>
       ) : (
         <div className="space-y-3 pb-safe relative z-10">
-          {profile?.nationalIdDocUrl && (
-            <div className="bg-card border border-border rounded-2xl p-4 flex flex-col shadow-sm">
-              <div className="flex items-center gap-4 mb-3">
+          <div className="bg-card border border-border rounded-2xl p-4 flex flex-col shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-4">
                 <div className="w-12 h-12 border rounded-full flex items-center justify-center bg-primary/5 text-primary border-primary/20">
                   <FileText className="w-6 h-6" />
                 </div>
@@ -158,20 +185,38 @@ export default function Documents() {
                   <p className="font-bold tracking-wide uppercase">National ID (Front)</p>
                   <div className="flex items-center gap-2 mt-1">
                     <span className="brand-meta px-2 py-1 border rounded-md bg-secondary/10 text-secondary border-secondary/20">
-                      READ ONLY
+                      {profile?.nationalIdDocUrl ? 'UPLOADED' : 'REQUIRED'}
                     </span>
                   </div>
                 </div>
               </div>
+              <div className="relative">
+                <Button size="sm" variant="outline" className="text-[10px] tracking-widest uppercase">
+                  {profile?.nationalIdDocUrl ? 'REPLACE' : 'UPLOAD'}
+                </Button>
+                <Input 
+                  type="file" 
+                  accept="image/*"
+                  className="absolute inset-0 opacity-0 cursor-pointer"
+                  onChange={e => {
+                    if (e.target.files && e.target.files[0]) {
+                      handleUploadId(e.target.files[0], 'front');
+                      e.target.value = '';
+                    }
+                  }}
+                />
+              </div>
+            </div>
+            {profile?.nationalIdDocUrl && (
               <div className="w-full h-40 bg-muted rounded-xl overflow-hidden mt-2 relative">
                 <img src={profile.nationalIdDocKey ? getImageUrl(profile.nationalIdDocKey) : profile.nationalIdDocUrl} alt="ID Front" className="w-full h-full object-cover" />
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
-          {(profile as any)?.nationalIdDocBackUrl && (
-            <div className="bg-card border border-border rounded-2xl p-4 flex flex-col shadow-sm">
-              <div className="flex items-center gap-4 mb-3">
+          <div className="bg-card border border-border rounded-2xl p-4 flex flex-col shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-4">
                 <div className="w-12 h-12 border rounded-full flex items-center justify-center bg-primary/5 text-primary border-primary/20">
                   <FileText className="w-6 h-6" />
                 </div>
@@ -179,16 +224,34 @@ export default function Documents() {
                   <p className="font-bold tracking-wide uppercase">National ID (Back)</p>
                   <div className="flex items-center gap-2 mt-1">
                     <span className="brand-meta px-2 py-1 border rounded-md bg-secondary/10 text-secondary border-secondary/20">
-                      READ ONLY
+                      {(profile as any)?.nationalIdDocBackUrl ? 'UPLOADED' : 'REQUIRED'}
                     </span>
                   </div>
                 </div>
               </div>
+              <div className="relative">
+                <Button size="sm" variant="outline" className="text-[10px] tracking-widest uppercase">
+                  {(profile as any)?.nationalIdDocBackUrl ? 'REPLACE' : 'UPLOAD'}
+                </Button>
+                <Input 
+                  type="file" 
+                  accept="image/*"
+                  className="absolute inset-0 opacity-0 cursor-pointer"
+                  onChange={e => {
+                    if (e.target.files && e.target.files[0]) {
+                      handleUploadId(e.target.files[0], 'back');
+                      e.target.value = '';
+                    }
+                  }}
+                />
+              </div>
+            </div>
+            {(profile as any)?.nationalIdDocBackUrl && (
               <div className="w-full h-40 bg-muted rounded-xl overflow-hidden mt-2 relative">
                 <img src={(profile as any).nationalIdDocBackKey ? getImageUrl((profile as any).nationalIdDocBackKey) : (profile as any).nationalIdDocBackUrl} alt="ID Back" className="w-full h-full object-cover" />
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           {safeDocs.map(doc => {
             const isExpiringSoon = doc.expiryDate && new Date(doc.expiryDate).getTime() - new Date().getTime() < 30 * 24 * 60 * 60 * 1000;
