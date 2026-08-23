@@ -1019,6 +1019,78 @@ export function useGetUsher<TData = Awaited<ReturnType<typeof getUsher>>, TError
 
 
 
+export const getUpdateUsherUrl = (id: number,) => {
+
+
+
+
+  return `/api/ushers/${id}`
+}
+
+/**
+ * @summary Update an usher (admin)
+ */
+export const updateUsher = async (id: number,
+    usherUpdate: UsherUpdate, options?: Parameters<typeof customFetch>[1]): Promise<UsherProfile> => {
+
+  return customFetch<UsherProfile>(getUpdateUsherUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(usherUpdate)
+  }
+);}
+
+
+
+
+
+export const getUpdateUsherMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateUsher>>, TError,{id: number;data: BodyType<UsherUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateUsher>>, TError,{id: number;data: BodyType<UsherUpdate>}, TContext> => {
+
+const mutationKey = ['updateUsher'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateUsher>>, {id: number;data: BodyType<UsherUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateUsher(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateUsherMutationResult = NonNullable<Awaited<ReturnType<typeof updateUsher>>>
+    export type UpdateUsherMutationBody = BodyType<UsherUpdate>
+    export type UpdateUsherMutationError = ErrorType<void>
+
+    /**
+ * @summary Update an usher (admin)
+ */
+export const useUpdateUsher = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateUsher>>, TError,{id: number;data: BodyType<UsherUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateUsher>>,
+        TError,
+        {id: number;data: BodyType<UsherUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateUsherMutationOptions(options));
+    }
+
 export const getUpdateUsherStatusUrl = (id: number,) => {
 
 

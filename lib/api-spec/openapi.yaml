@@ -209,6 +209,30 @@ paths:
                 $ref: '#/components/schemas/UsherProfile'
         '404':
           description: Not found
+    patch:
+      operationId: updateUsher
+      summary: Update an usher (admin)
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UsherUpdate'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsherProfile'
+        '404':
+          description: Not found
   /ushers/{id}/status:
     patch:
       operationId: updateUsherStatus
@@ -2117,15 +2141,27 @@ components:
           type: string
         email:
           type: string
+        nationalIdDocKey:
+          type:
+          - string
+          - 'null'
         nationalIdDocUrl:
           type:
           - string
           - 'null'
-        profilePhotoUrl:
+        nationalIdDocBackKey:
+          type:
+          - string
+          - 'null'
+        nationalIdDocBackUrl:
           type:
           - string
           - 'null'
         profilePhotoKey:
+          type:
+          - string
+          - 'null'
+        profilePhotoUrl:
           type:
           - string
           - 'null'

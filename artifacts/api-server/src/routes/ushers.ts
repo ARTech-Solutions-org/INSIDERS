@@ -89,6 +89,26 @@ router.get("/ushers/:id", requireAdmin, async (req, res) => {
   res.json(safe);
 });
 
+// PATCH /ushers/:id - admin
+router.patch("/ushers/:id", requireAdmin, async (req, res) => {
+  // Use the generated body, though we only really need ID docs for now.
+  const { UpdateUsherBody } = await import("@workspace/api-zod");
+  const parsed = UpdateUsherBody.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.flatten() }); return; }
+  const usherId = parseInt(req.params.id as string, 10);
+
+  const [existing] = await db.select().from(ushersTable).where(eq(ushersTable.id, usherId));
+  if (!existing) { res.status(404).json({ error: "Not found" }); return; }
+
+  const [updated] = await db.update(ushersTable)
+    .set(parsed.data)
+    .where(eq(ushersTable.id, usherId))
+    .returning();
+  
+  const { passwordHash: _ph, ...safe } = updated;
+  res.json(safe);
+});
+
 // PATCH /ushers/:id/status - admin (approve+decline=any admin; suspend=super_admin only)
 router.patch("/ushers/:id/status", requireAdmin, async (req, res) => {
   const parsed = UpdateUsherStatusBody.safeParse(req.body);

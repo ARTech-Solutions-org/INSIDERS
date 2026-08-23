@@ -307,9 +307,12 @@ export const UpdateMyUsherProfileBody = zod.object({
   "fullName": zod.string().optional(),
   "phone": zod.string().optional(),
   "email": zod.string().optional(),
+  "nationalIdDocKey": zod.string().nullish(),
   "nationalIdDocUrl": zod.string().nullish(),
-  "profilePhotoUrl": zod.string().nullish(),
-  "profilePhotoKey": zod.string().nullish()
+  "nationalIdDocBackKey": zod.string().nullish(),
+  "nationalIdDocBackUrl": zod.string().nullish(),
+  "profilePhotoKey": zod.string().nullish(),
+  "profilePhotoUrl": zod.string().nullish()
 })
 
 export const UpdateMyUsherProfileResponse = zod.object({
@@ -346,6 +349,51 @@ export const GetUsherParams = zod.object({
 })
 
 export const GetUsherResponse = zod.object({
+  "id": zod.number().int(),
+  "fullName": zod.string(),
+  "phone": zod.string(),
+  "email": zod.string(),
+  "nationalIdNumber": zod.string(),
+  "nationalIdDocUrl": zod.string().nullish(),
+  "profilePhotoUrl": zod.string().nullish(),
+  "status": zod.string(),
+  "avgRating": zod.number(),
+  "balance": zod.number(),
+  "createdAt": zod.coerce.date(),
+  "version": zod.number().int().optional(),
+  "paymentMethod": zod.string().nullish(),
+  "paymentMethodDetails": zod.string().nullish(),
+  "profilePhotoKey": zod.string().nullish(),
+  "nationalIdDocKey": zod.string().nullish(),
+  "nationalIdDocBackKey": zod.string().nullish(),
+  "nationalIdDocBackUrl": zod.string().nullish(),
+  "clientRatingAvg": zod.number().nullish(),
+  "punctualityScore": zod.number().nullish(),
+  "reliabilityScore": zod.number().nullish(),
+  "lastRatingRecalcAt": zod.coerce.date().nullish()
+})
+
+
+/**
+ * @summary Update an usher (admin)
+ */
+export const UpdateUsherParams = zod.object({
+  "id": zod.coerce.number().int()
+})
+
+export const UpdateUsherBody = zod.object({
+  "fullName": zod.string().optional(),
+  "phone": zod.string().optional(),
+  "email": zod.string().optional(),
+  "nationalIdDocKey": zod.string().nullish(),
+  "nationalIdDocUrl": zod.string().nullish(),
+  "nationalIdDocBackKey": zod.string().nullish(),
+  "nationalIdDocBackUrl": zod.string().nullish(),
+  "profilePhotoKey": zod.string().nullish(),
+  "profilePhotoUrl": zod.string().nullish()
+})
+
+export const UpdateUsherResponse = zod.object({
   "id": zod.number().int(),
   "fullName": zod.string(),
   "phone": zod.string(),

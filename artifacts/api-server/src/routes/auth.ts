@@ -35,7 +35,9 @@ router.post("/uploads/presigned-url", async (req, res) => {
     }
     
     const id = crypto.randomUUID();
-    let key = `uploads/${id}/${filename}`;
+    // Sanitize filename to avoid weird SignatureDoesNotMatch errors with R2
+    const safeName = filename.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+    let key = `uploads/${id}/${safeName}`;
     if (type === 'profilePhoto') key = `profile-photos/${id}.jpg`;
     if (type === 'idDocumentFront') key = `id-documents/${id}/front.jpg`;
     if (type === 'idDocumentBack') key = `id-documents/${id}/back.jpg`;

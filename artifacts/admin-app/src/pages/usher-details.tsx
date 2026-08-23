@@ -10,7 +10,8 @@ import {
   getListUshersQueryKey,
   getListUsherDocumentsQueryKey,
   getGetUsherReliabilityEventsQueryKey,
-  useGetMe
+  useGetMe,
+  useUpdateUsher
 } from "@workspace/api-client-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAuthToken } from "@/lib/auth";
@@ -47,6 +48,30 @@ const getImageUrl = (key?: string | null) => {
   if (!key) return undefined;
   const baseUrl = import.meta.env.VITE_API_URL?.replace(/\/+$/, '') || '';
   return `${baseUrl}/api/uploads/read?key=${encodeURIComponent(key)}`;
+};
+
+const uploadToR2 = async (file: File, type: string) => {
+  const baseUrl = import.meta.env.VITE_API_URL?.replace(/\/+$/, '') || '';
+  const token = getAuthToken();
+  const res = await fetch(`${baseUrl}/api/uploads/presigned-url`, {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    },
+    body: JSON.stringify({ filename: file.name, contentType: file.type, type })
+  });
+  if (!res.ok) throw new Error('Failed to get upload URL');
+  const { url, key } = await res.json();
+  
+  const uploadRes = await fetch(url, {
+    method: 'PUT',
+    headers: { 'Content-Type': file.type },
+    body: file
+  });
+  if (!uploadRes.ok) throw new Error('Failed to upload file');
+  
+  return { url: `${baseUrl}/api/uploads/read?key=${encodeURIComponent(key)}`, key };
 };
 
 export const useUpdateUsherDocumentStatus = () => {
@@ -97,6 +122,47 @@ export default function UsherDetails() {
       queryKey: getGetUsherReliabilityEventsQueryKey(usherId) as any
     }
   });
+
+  const updateUsherMutation = useUpdateUsher();
+  const [idFrontFile, setIdFrontFile] = useState<File | null>(null);
+  const [idBackFile, setIdBackFile] = useState<File | null>(null);
+  const [isUploadingId, setIsUploadingId] = useState(false);
+
+  const handleUploadId = async () => {
+    if (!idFrontFile) {
+      toast({ variant: "destructive", title: "Missing Document", description: "Please select ID Front image" });
+      return;
+    }
+    try {
+      setIsUploadingId(true);
+      toast({ title: "Uploading ID..." });
+      
+      const frontRes = await uploadToR2(idFrontFile, 'idDocumentFront');
+      let backRes = null;
+      if (idBackFile) {
+        backRes = await uploadToR2(idBackFile, 'idDocumentBack');
+      }
+
+      await updateUsherMutation.mutateAsync({
+        id: usherId,
+        data: {
+          nationalIdDocKey: frontRes.key,
+          nationalIdDocUrl: frontRes.url,
+          nationalIdDocBackKey: backRes?.key || undefined,
+          nationalIdDocBackUrl: backRes?.url || undefined,
+        }
+      });
+      
+      toast({ title: "ID uploaded successfully!" });
+      queryClient.invalidateQueries({ queryKey: getGetUsherQueryKey(usherId) as any });
+      setIdFrontFile(null);
+      setIdBackFile(null);
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "Upload Failed", description: e.message || "Could not upload ID" });
+    } finally {
+      setIsUploadingId(false);
+    }
+  };
 
   const { mutate: updateStatus, isPending: isUpdating } = useUpdateUsherStatus({
     mutation: {
@@ -408,8 +474,38 @@ export default function UsherDetails() {
                 )}
               </div>
             ) : (
-              <div className="text-center py-6 text-muted-foreground text-sm">
-                No National ID document uploaded.
+              <div className="flex flex-col items-center py-6 gap-4">
+                <div className="text-center text-muted-foreground text-sm">
+                  No National ID document uploaded.
+                </div>
+                <div className="w-full max-w-xs space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">ID Front (Required)</label>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={(e) => setIdFrontFile(e.target.files?.[0] || null)}
+                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">ID Back (Optional)</label>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={(e) => setIdBackFile(e.target.files?.[0] || null)}
+                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                    />
+                  </div>
+                  <Button 
+                    className="w-full" 
+                    onClick={handleUploadId} 
+                    disabled={isUploadingId || !idFrontFile}
+                  >
+                    {isUploadingId && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                    Upload ID
+                  </Button>
+                </div>
               </div>
             )}
           </CardContent>

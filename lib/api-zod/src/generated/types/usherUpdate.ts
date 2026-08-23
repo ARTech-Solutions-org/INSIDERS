@@ -10,9 +10,15 @@ export interface UsherUpdate {
   phone?: string;
   email?: string;
   /** @nullable */
+  nationalIdDocKey?: string | null;
+  /** @nullable */
   nationalIdDocUrl?: string | null;
   /** @nullable */
-  profilePhotoUrl?: string | null;
+  nationalIdDocBackKey?: string | null;
+  /** @nullable */
+  nationalIdDocBackUrl?: string | null;
   /** @nullable */
   profilePhotoKey?: string | null;
+  /** @nullable */
+  profilePhotoUrl?: string | null;
 }
