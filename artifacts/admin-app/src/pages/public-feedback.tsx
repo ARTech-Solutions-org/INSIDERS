@@ -1,6 +1,6 @@
 import { useParams } from "wouter";
 import { useState } from "react";
-import { useGetPublicEventFeedbackDetails, useSubmitPublicEventFeedback } from "@workspace/api-client-react";
+import { useGetPublicEventFeedback, useSubmitPublicEventFeedback } from "@workspace/api-client-react";
 import { SubmitPublicEventFeedbackBody } from "@workspace/api-zod";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -51,7 +51,7 @@ export default function PublicFeedback() {
   // Usher Overrides: map of usherId -> { teamId, rating, comments }
   const [usherOverrides, setUsherOverrides] = useState<Record<number, { teamId: number, rating: number, comments: string }>>({});
 
-  const { data: event, isLoading, error } = useGetPublicEventFeedbackDetails(token, {
+  const { data: event, isLoading, error } = useGetPublicEventFeedback(token, {
     query: {
       enabled: !!token,
       retry: false, // Don't retry if token is invalid or revoked
