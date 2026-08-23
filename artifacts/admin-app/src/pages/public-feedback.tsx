@@ -1,40 +1,56 @@
 import { useParams } from "wouter";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   useGetPublicEventFeedback, 
   useSubmitPublicEventFeedback,
   getGetPublicEventFeedbackQueryKey,
   PublicFeedbackSubmitBody
 } from "@workspace/api-client-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Star, CheckCircle2 } from "lucide-react";
+import { Loader2, CheckCircle2, ChevronRight, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Reusable star rating component
-function StarRating({ value, onChange, disabled }: { value: number; onChange: (v: number) => void; disabled?: boolean }) {
+// Custom Star Icon for a unique look
+function CustomStar({ filled, className }: { filled: boolean, className?: string }) {
   return (
-    <div className="flex gap-1">
+    <svg 
+      viewBox="0 0 24 24" 
+      fill={filled ? "currentColor" : "none"} 
+      stroke="currentColor" 
+      strokeWidth={filled ? "0" : "1.5"}
+      className={className}
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
+    </svg>
+  );
+}
+
+function StarRating({ value, onChange, disabled, size = "md" }: { value: number; onChange: (v: number) => void; disabled?: boolean; size?: "sm" | "md" | "lg" }) {
+  const [hover, setHover] = useState(0);
+  
+  const sizeClasses = {
+    sm: "w-6 h-6",
+    md: "w-10 h-10",
+    lg: "w-12 h-12 md:w-16 md:h-16"
+  };
+
+  return (
+    <div className="flex gap-2 justify-center" onMouseLeave={() => setHover(0)}>
       {[1, 2, 3, 4, 5].map((star) => (
         <button
           key={star}
           type="button"
           disabled={disabled}
+          onMouseEnter={() => setHover(star)}
           onClick={() => onChange(star)}
           className={cn(
-            "p-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm transition-colors",
-            disabled && "cursor-not-allowed opacity-50"
+            "p-1 transition-all duration-300 ease-out outline-none rounded-full",
+            disabled ? "cursor-not-allowed opacity-50" : "hover:scale-110 active:scale-95",
+            (hover || value) >= star ? "text-amber-400" : "text-zinc-300"
           )}
         >
-          <Star
-            className={cn(
-              "w-8 h-8",
-              star <= value ? "fill-primary text-primary" : "text-muted-foreground hover:text-primary/50"
-            )}
-          />
+          <CustomStar filled={(hover || value) >= star} className={cn(sizeClasses[size], "transition-all duration-300")} />
         </button>
       ))}
     </div>
@@ -49,16 +65,17 @@ export default function PublicFeedback() {
   const [generalRating, setGeneralRating] = useState<number>(0);
   const [generalComments, setGeneralComments] = useState<string>("");
   
-  // Team Ratings: map of teamId -> { rating, comments }
   const [teamRatings, setTeamRatings] = useState<Record<number, { rating: number, comments: string }>>({});
-  
-  // Usher Overrides: map of usherId -> { teamId, rating, comments }
   const [usherOverrides, setUsherOverrides] = useState<Record<number, { teamId: number, rating: number, comments: string }>>({});
+
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
 
   const { data: event, isLoading, error } = useGetPublicEventFeedback(token, {
     query: {
       enabled: !!token,
-      retry: false, // Don't retry if token is invalid or revoked
+      retry: false,
       queryKey: getGetPublicEventFeedbackQueryKey(token) as any
     }
   });
@@ -67,51 +84,51 @@ export default function PublicFeedback() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="min-h-screen bg-[#fafafa] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-zinc-900" />
       </div>
     );
   }
 
-  // If the link is invalid, revoked, or already submitted, the API will return 404/403
   if (error || !event) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-        <Card className="w-full max-w-md border-destructive">
-          <CardHeader>
-            <CardTitle className="text-destructive text-center">Unavailable</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center text-muted-foreground">
+      <div className="min-h-screen bg-[#fafafa] flex flex-col items-center justify-center p-6 font-sans">
+        <div className="w-full max-w-md bg-white p-8 rounded-3xl shadow-sm border border-zinc-100 text-center space-y-4">
+          <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-semibold text-zinc-900 tracking-tight">Link Unavailable</h2>
+          <p className="text-zinc-500 leading-relaxed">
             {/* @ts-expect-error - axios error format */}
             {error?.response?.data?.error || "This feedback link is invalid, expired, or has already been submitted."}
-          </CardContent>
-        </Card>
+          </p>
+        </div>
       </div>
     );
   }
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-        <Card className="w-full max-w-md border-primary text-center">
-          <CardHeader>
-            <div className="flex justify-center mb-4">
-              <CheckCircle2 className="w-16 h-16 text-primary" />
-            </div>
-            <CardTitle>Thank You!</CardTitle>
-          </CardHeader>
-          <CardContent className="text-muted-foreground">
-            Your feedback for <strong>{event.title}</strong> has been successfully submitted. We appreciate your time.
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-[#fafafa] flex flex-col items-center justify-center p-6 font-sans">
+        <div className="w-full max-w-md bg-white p-10 rounded-3xl shadow-sm border border-zinc-100 text-center animate-in fade-in zoom-in duration-500">
+          <div className="w-20 h-20 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle2 className="w-10 h-10" />
+          </div>
+          <h2 className="text-3xl font-semibold text-zinc-900 tracking-tight mb-3">Thank You</h2>
+          <p className="text-zinc-500 leading-relaxed">
+            Your feedback for <strong className="text-zinc-800 font-medium">{event.title}</strong> has been successfully submitted. We appreciate your time and insights.
+          </p>
+        </div>
       </div>
     );
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (generalRating === 0) {
-      alert("Please provide a general rating for the event.");
+      alert("Please provide an overall rating to continue.");
       return;
     }
 
@@ -132,12 +149,8 @@ export default function PublicFeedback() {
     };
 
     submitMutation.mutate({ token, data: payload }, {
-      onSuccess: () => {
-        setSubmitted(true);
-      },
-      onError: (err: any) => {
-        alert(err.response?.data?.error || "Failed to submit feedback. Please try again.");
-      }
+      onSuccess: () => setSubmitted(true),
+      onError: (err: any) => alert(err.response?.data?.error || "Failed to submit feedback. Please try again.")
     });
   };
 
@@ -157,123 +170,149 @@ export default function PublicFeedback() {
     setUsherOverrides(prev => ({ ...prev, [usherId]: { ...prev[usherId], teamId, rating: prev[usherId]?.rating || 0, comments } }));
   };
 
-  return (
-    <div className="min-h-screen bg-muted/30 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto space-y-6">
-        <div className="text-center space-y-2 mb-8">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Event Feedback</h1>
-          <p className="text-muted-foreground text-lg">We'd love to hear about your experience at {event.title}</p>
-        </div>
+  const hasTeams = event.teams && event.teams.length > 0;
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* General Event Feedback */}
-          <Card className="border-primary/20 shadow-md">
-            <CardHeader className="bg-primary/5 pb-4 border-b">
-              <CardTitle>General Experience</CardTitle>
-              <CardDescription>How was the overall event?</CardDescription>
-            </CardHeader>
-            <CardContent className="pt-6 space-y-6">
-              <div className="space-y-3">
-                <Label className="text-base">Overall Rating <span className="text-destructive">*</span></Label>
-                <StarRating value={generalRating} onChange={setGeneralRating} disabled={submitMutation.isPending} />
+  return (
+    <div className="min-h-screen bg-[#FDFCFB] font-sans selection:bg-zinc-200">
+      {/* Header Banner */}
+      <header className="pt-16 pb-12 px-6 text-center max-w-2xl mx-auto">
+        <div className={cn("transition-all duration-1000 ease-out transform", mounted ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0")}>
+          <p className="text-zinc-500 font-medium tracking-widest uppercase text-xs mb-4">Event Feedback</p>
+          <h1 className="text-4xl md:text-5xl font-bold text-zinc-900 tracking-tight leading-tight">
+            {event.title}
+          </h1>
+        </div>
+      </header>
+
+      <main className="max-w-2xl mx-auto px-4 sm:px-6 pb-32">
+        <form onSubmit={(e) => e.preventDefault()} className="space-y-12">
+          
+          {/* Step 1: Overall Rating */}
+          <div className={cn("transition-all duration-700 ease-out transform", mounted ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0", "delay-100")}>
+            <div className="bg-white rounded-3xl p-8 sm:p-12 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-zinc-100/80">
+              <h2 className="text-2xl font-medium text-center text-zinc-800 mb-8">How was your overall experience?</h2>
+              
+              <div className="mb-10">
+                <StarRating value={generalRating} onChange={setGeneralRating} size="lg" disabled={submitMutation.isPending} />
               </div>
+
               <div className="space-y-3">
-                <Label htmlFor="general-comments" className="text-base">Additional Comments</Label>
+                <label htmlFor="general-comments" className="text-sm font-medium text-zinc-500 pl-2">Any additional thoughts?</label>
                 <Textarea
                   id="general-comments"
-                  placeholder="Tell us what went well or what could be improved..."
-                  rows={4}
+                  placeholder="What stood out to you?"
+                  className="bg-zinc-50/50 border-zinc-200 resize-none min-h-[120px] rounded-2xl focus-visible:ring-zinc-400 p-4 text-base placeholder:text-zinc-400"
                   value={generalComments}
                   onChange={(e) => setGeneralComments(e.target.value)}
                   disabled={submitMutation.isPending}
                 />
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
-          {/* Team Feedback */}
-          {event.teams && event.teams.length > 0 && (
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold tracking-tight mt-8">Team Feedback (Optional)</h2>
-              <p className="text-muted-foreground text-sm">Rate specific teams or individual ushers if they stood out.</p>
-              
-              <div className="space-y-6">
-                {event.teams.map((team) => (
-                  <Card key={team.id} className="overflow-hidden">
-                    <CardHeader className="bg-muted/50 pb-4 border-b">
-                      <div className="flex justify-between items-start gap-4">
-                        <div>
-                          <CardTitle className="text-lg">{team.name} Team</CardTitle>
-                          <CardDescription>{team.ushers.length} ushers</CardDescription>
-                        </div>
-                        <StarRating 
-                          value={teamRatings[team.id]?.rating || 0} 
-                          onChange={(r) => handleTeamRatingChange(team.id, r)}
-                          disabled={submitMutation.isPending} 
-                        />
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pt-6 space-y-4">
-                      {teamRatings[team.id]?.rating > 0 && (
-                        <div className="space-y-2 pb-4 border-b">
-                          <Label htmlFor={`team-comments-${team.id}`}>Comments for {team.name} Team</Label>
-                          <Textarea
-                            id={`team-comments-${team.id}`}
-                            placeholder={`Feedback for the entire ${team.name} team...`}
-                            rows={2}
-                            value={teamRatings[team.id]?.comments || ""}
-                            onChange={(e) => handleTeamCommentsChange(team.id, e.target.value)}
-                            disabled={submitMutation.isPending}
-                          />
-                        </div>
-                      )}
+          {/* Step 2: Teams & Ushers */}
+          {hasTeams && generalRating > 0 && (
+            <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 space-y-10">
+              <div className="text-center px-4">
+                <h2 className="text-xl font-medium text-zinc-800">Team Performance</h2>
+                <p className="text-zinc-500 text-sm mt-2">Rate specific teams or individuals if they made an impact.</p>
+              </div>
 
-                      <div className="space-y-4">
-                        <Label className="text-sm text-muted-foreground font-semibold uppercase tracking-wider">Individual Ushers</Label>
-                        <div className="grid gap-4 sm:grid-cols-2">
-                          {team.ushers.map((usher) => (
-                            <div key={usher.id} className="border rounded-md p-3 space-y-3 bg-background">
-                              <div className="flex justify-between items-center gap-2">
-                                <span className="font-medium text-sm truncate" title={usher.name}>{usher.name}</span>
-                                <StarRating 
-                                  value={usherOverrides[usher.id]?.rating || 0} 
-                                  onChange={(r) => handleUsherRatingChange(usher.id, team.id, r)}
-                                  disabled={submitMutation.isPending} 
-                                />
+              {event.teams.map((team) => (
+                <div key={team.id} className="bg-white rounded-3xl p-6 sm:p-8 shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-zinc-100/80 space-y-8">
+                  {/* Team Header */}
+                  <div className="flex flex-col sm:flex-row justify-between items-center gap-6 pb-6 border-b border-zinc-100">
+                    <div className="text-center sm:text-left">
+                      <h3 className="text-lg font-semibold text-zinc-900">{team.name} Team</h3>
+                      <p className="text-zinc-500 text-sm mt-1">{team.ushers.length} {team.ushers.length === 1 ? 'member' : 'members'}</p>
+                    </div>
+                    <div className="bg-zinc-50 rounded-full px-6 py-3">
+                      <StarRating 
+                        value={teamRatings[team.id]?.rating || 0} 
+                        onChange={(r) => handleTeamRatingChange(team.id, r)}
+                        size="md"
+                        disabled={submitMutation.isPending} 
+                      />
+                    </div>
+                  </div>
+
+                  {/* Team Comments */}
+                  {teamRatings[team.id]?.rating > 0 && (
+                    <div className="animate-in fade-in duration-300 space-y-2">
+                      <Textarea
+                        placeholder={`Specific feedback for the ${team.name} team...`}
+                        className="bg-zinc-50/50 border-zinc-200 resize-none rounded-2xl focus-visible:ring-zinc-400 text-sm"
+                        value={teamRatings[team.id]?.comments || ""}
+                        onChange={(e) => handleTeamCommentsChange(team.id, e.target.value)}
+                        disabled={submitMutation.isPending}
+                      />
+                    </div>
+                  )}
+
+                  {/* Individual Ushers Grid */}
+                  {team.ushers.length > 0 && (
+                    <div className="pt-2">
+                      <p className="text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-4 px-2">Individuals</p>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        {team.ushers.map((usher) => (
+                          <div key={usher.id} className="group bg-zinc-50/50 hover:bg-zinc-50 rounded-2xl p-4 transition-colors border border-transparent hover:border-zinc-200">
+                            <div className="flex justify-between items-center gap-3">
+                              <div className="flex items-center gap-3 overflow-hidden">
+                                <div className="w-8 h-8 rounded-full bg-zinc-200 flex-shrink-0 flex items-center justify-center text-zinc-500">
+                                  <User className="w-4 h-4" />
+                                </div>
+                                <span className="font-medium text-zinc-700 text-sm truncate" title={usher.name}>{usher.name}</span>
                               </div>
-                              {usherOverrides[usher.id]?.rating > 0 && (
+                              <StarRating 
+                                value={usherOverrides[usher.id]?.rating || 0} 
+                                onChange={(r) => handleUsherRatingChange(usher.id, team.id, r)}
+                                size="sm"
+                                disabled={submitMutation.isPending} 
+                              />
+                            </div>
+                            {usherOverrides[usher.id]?.rating > 0 && (
+                              <div className="mt-3 animate-in fade-in duration-300">
                                 <Textarea
-                                  placeholder={`Comments for ${usher.name}...`}
-                                  rows={1}
-                                  className="h-auto resize-none min-h-[40px] text-sm"
+                                  placeholder={`Note for ${usher.name}...`}
+                                  className="bg-white border-zinc-200 resize-none min-h-[60px] rounded-xl text-sm"
                                   value={usherOverrides[usher.id]?.comments || ""}
                                   onChange={(e) => handleUsherCommentsChange(usher.id, team.id, e.target.value)}
                                   disabled={submitMutation.isPending}
                                 />
-                              )}
-                            </div>
-                          ))}
-                        </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           )}
-
-          <div className="pt-6 sticky bottom-6 z-10 flex justify-end">
-            <Button 
-              type="submit" 
-              size="lg" 
-              className="w-full sm:w-auto shadow-lg"
-              disabled={submitMutation.isPending}
-            >
-              {submitMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Submit Feedback
-            </Button>
-          </div>
         </form>
+      </main>
+
+      {/* Floating Action Bar */}
+      <div className={cn(
+        "fixed bottom-0 left-0 right-0 p-4 sm:p-6 bg-gradient-to-t from-[#FDFCFB] via-[#FDFCFB]/90 to-transparent flex justify-center pointer-events-none transition-all duration-500",
+        generalRating > 0 ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"
+      )}>
+        <Button 
+          onClick={() => handleSubmit()}
+          size="lg" 
+          className="w-full max-w-sm rounded-full h-14 text-base font-medium shadow-xl pointer-events-auto bg-zinc-900 hover:bg-zinc-800 text-white transition-all active:scale-[0.98]"
+          disabled={submitMutation.isPending || generalRating === 0}
+        >
+          {submitMutation.isPending ? (
+            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+          ) : (
+            <span className="flex items-center">
+              Submit Feedback
+              <ChevronRight className="w-5 h-5 ml-1 opacity-70" />
+            </span>
+          )}
+        </Button>
       </div>
     </div>
   );
