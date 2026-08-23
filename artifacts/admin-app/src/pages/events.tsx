@@ -1,4 +1,4 @@
-import { useListEvents, useDeleteEvent } from "@workspace/api-client-react";
+import { useListEvents, useDeleteEvent, useGetEventFeedbackLink, useCreateEventFeedbackLink, getGetEventFeedbackLinkQueryKey } from "@workspace/api-client-react";
 import { Link } from "wouter";
 import {
   Table,
@@ -10,8 +10,9 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, MoreVertical, Eye, MapPin, Calendar, Trash2 } from "lucide-react";
+import { Plus, Search, MoreVertical, Eye, MapPin, Calendar, Trash2, Link as LinkIcon, Loader2, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,6 +24,75 @@ import {
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
+
+function EventFeedbackButton({ eventId, eventStatus }: { eventId: number, eventStatus: string }) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const { data: feedbackLink, isLoading } = useGetEventFeedbackLink(eventId, {
+    query: {
+      enabled: !!eventId && eventStatus === "completed",
+      retry: false,
+      queryKey: getGetEventFeedbackLinkQueryKey(eventId) as any
+    }
+  });
+
+  const createFeedbackLinkMutation = useCreateEventFeedbackLink({
+    mutation: {
+      onSuccess: () => {
+        toast({ title: "Feedback link generated successfully." });
+        queryClient.invalidateQueries({ queryKey: getGetEventFeedbackLinkQueryKey(eventId) as any });
+      },
+      onError: (err: any) => {
+        toast({ title: "Failed to generate link.", description: err.response?.data?.error || err.message, variant: "destructive" });
+      }
+    }
+  });
+
+  if (eventStatus !== "completed") {
+    return null;
+  }
+
+  if (isLoading) {
+    return <Loader2 className="w-4 h-4 animate-spin text-muted-foreground mx-auto" />;
+  }
+
+  if (!feedbackLink) {
+    return (
+      <Button 
+        variant="outline" 
+        size="sm"
+        disabled={createFeedbackLinkMutation.isPending}
+        onClick={() => createFeedbackLinkMutation.mutate({ id: eventId })}
+        title="Generate Feedback Link"
+      >
+        {createFeedbackLinkMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <LinkIcon className="w-4 h-4 mr-2" />}
+        Generate
+      </Button>
+    );
+  }
+
+  const isSubmitted = !!feedbackLink.submittedAt;
+
+  const handleCopy = () => {
+    if (isSubmitted) return;
+    const url = `${window.location.origin}/feedback/${feedbackLink.token}`;
+    navigator.clipboard.writeText(url);
+    toast({ title: "Link copied to clipboard." });
+  };
+
+  return (
+    <Button 
+      variant={isSubmitted ? "secondary" : "default"} 
+      size="sm"
+      className={isSubmitted ? "bg-muted text-muted-foreground hover:bg-muted cursor-default" : ""}
+      onClick={isSubmitted ? undefined : handleCopy}
+      title={isSubmitted ? "Feedback already submitted" : "Copy Feedback Link"}
+    >
+      {isSubmitted ? <Check className="w-4 h-4 mr-2" /> : <LinkIcon className="w-4 h-4 mr-2" />}
+      {isSubmitted ? "Rated" : "Copy Link"}
+    </Button>
+  );
+}
 
 export default function Events() {
   const [status, setStatus] = useState<string>("");
@@ -93,19 +163,20 @@ export default function Events() {
                 <TableHead>Location</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Budget</TableHead>
+                <TableHead className="text-center">Feedback</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                  <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
                     Loading events...
                   </TableCell>
                 </TableRow>
               ) : data?.data?.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                  <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
                     No events found.
                   </TableCell>
                 </TableRow>
@@ -137,6 +208,9 @@ export default function Events() {
                     </TableCell>
                     <TableCell className="text-sm font-medium">
                       EGP {event.budget?.toLocaleString() || '0'}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <EventFeedbackButton eventId={event.id} eventStatus={event.status || ''} />
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
