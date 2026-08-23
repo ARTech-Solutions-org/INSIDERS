@@ -366,7 +366,8 @@ function AdminsManagement() {
   const handleInvite = async () => {
     try {
       const res = await createInvite();
-      navigator.clipboard.writeText(res.link);
+      const link = `${window.location.origin}/register-admin?token=${res.token}`;
+      navigator.clipboard.writeText(link);
       toast({
         title: "Invitation Created",
         description: "The invitation link has been copied to your clipboard.",
