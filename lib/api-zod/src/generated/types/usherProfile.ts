@@ -33,6 +33,8 @@ export interface UsherProfile {
   /** @nullable */
   nationalIdDocBackUrl?: string | null;
   /** @nullable */
+  nationalIdExpiryDate?: Date | null;
+  /** @nullable */
   clientRatingAvg?: number | null;
   /** @nullable */
   punctualityScore?: number | null;

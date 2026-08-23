@@ -176,6 +176,8 @@ export interface UsherProfile {
   /** @nullable */
   nationalIdDocBackUrl?: string | null;
   /** @nullable */
+  nationalIdExpiryDate?: string | null;
+  /** @nullable */
   clientRatingAvg?: number | null;
   /** @nullable */
   punctualityScore?: number | null;

@@ -2227,6 +2227,11 @@ components:
           type:
           - string
           - 'null'
+        nationalIdExpiryDate:
+          type:
+          - string
+          - 'null'
+          format: date
         clientRatingAvg:
           type:
           - number
