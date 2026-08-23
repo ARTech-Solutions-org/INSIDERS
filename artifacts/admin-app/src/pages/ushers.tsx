@@ -22,6 +22,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 
@@ -191,9 +192,23 @@ export default function Ushers() {
                       {getStatusBadge(usher.status || undefined)}
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-1">
-                        <span className="font-medium text-sm">{usher.avgRating?.toFixed(1) || 'N/A'}</span>
-                      </div>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger className="cursor-default">
+                            <div className="flex items-center gap-1 bg-muted/30 px-2 py-1 rounded-md">
+                              <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                              <span className="font-medium text-sm">{usher.avgRating?.toFixed(1) || 'N/A'}</span>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent align="center" className="text-xs p-2">
+                            <div className="space-y-1">
+                              <p><span className="text-muted-foreground">Client:</span> {usher.clientRatingAvg?.toFixed(1) || '0.0'}</p>
+                              <p><span className="text-muted-foreground">Punctual:</span> {(usher.punctualityScore || 0).toFixed(1)}</p>
+                              <p><span className="text-muted-foreground">Reliable:</span> {(usher.reliabilityScore || 0).toFixed(1)}</p>
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
                       {format(new Date(usher.createdAt), 'MMM d, yyyy')}

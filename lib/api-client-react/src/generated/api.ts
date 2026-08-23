@@ -77,7 +77,9 @@ import type {
   PublicEventFeedbackDetails,
   PublicFeedbackSubmitBody,
   Rating,
+  RatingConfig,
   RatingInput,
+  ReliabilityEventsResult,
   RemoveFromWaitlist200,
   RequestPayoutInput,
   SmartAssignFilters,
@@ -6711,6 +6713,231 @@ export function useGetEventStats<TData = Awaited<ReturnType<typeof getEventStats
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetEventStatsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetRatingConfigUrl = () => {
+
+
+
+
+  return `/api/admin/settings/rating`
+}
+
+/**
+ * @summary Get rating weights/thresholds (super admin only)
+ */
+export const getRatingConfig = async ( options?: Parameters<typeof customFetch>[1]): Promise<RatingConfig> => {
+
+  return customFetch<RatingConfig>(getGetRatingConfigUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRatingConfigQueryKey = () => {
+    return [
+    `/api/admin/settings/rating`
+    ] as const;
+    }
+
+
+export const getGetRatingConfigQueryOptions = <TData = Awaited<ReturnType<typeof getRatingConfig>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRatingConfig>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRatingConfigQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRatingConfig>>> = ({ signal }) => getRatingConfig({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRatingConfig>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetRatingConfigQueryResult = NonNullable<Awaited<ReturnType<typeof getRatingConfig>>>
+export type GetRatingConfigQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get rating weights/thresholds (super admin only)
+ */
+
+export function useGetRatingConfig<TData = Awaited<ReturnType<typeof getRatingConfig>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRatingConfig>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetRatingConfigQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateRatingConfigUrl = () => {
+
+
+
+
+  return `/api/admin/settings/rating`
+}
+
+/**
+ * @summary Update rating weights/thresholds (super admin only)
+ */
+export const updateRatingConfig = async (ratingConfig: RatingConfig, options?: Parameters<typeof customFetch>[1]): Promise<RatingConfig> => {
+
+  return customFetch<RatingConfig>(getUpdateRatingConfigUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(ratingConfig)
+  }
+);}
+
+
+
+
+
+export const getUpdateRatingConfigMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateRatingConfig>>, TError,{data: BodyType<RatingConfig>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateRatingConfig>>, TError,{data: BodyType<RatingConfig>}, TContext> => {
+
+const mutationKey = ['updateRatingConfig'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateRatingConfig>>, {data: BodyType<RatingConfig>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateRatingConfig(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateRatingConfigMutationResult = NonNullable<Awaited<ReturnType<typeof updateRatingConfig>>>
+    export type UpdateRatingConfigMutationBody = BodyType<RatingConfig>
+    export type UpdateRatingConfigMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update rating weights/thresholds (super admin only)
+ */
+export const useUpdateRatingConfig = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateRatingConfig>>, TError,{data: BodyType<RatingConfig>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateRatingConfig>>,
+        TError,
+        {data: BodyType<RatingConfig>},
+        TContext
+      > => {
+      return useMutation(getUpdateRatingConfigMutationOptions(options));
+    }
+
+export const getGetUsherReliabilityEventsUrl = (id: number,) => {
+
+
+
+
+  return `/api/ushers/${id}/reliability-events`
+}
+
+/**
+ * @summary Get reliability events (no-shows / late cancellations) for an usher
+ */
+export const getUsherReliabilityEvents = async (id: number, options?: Parameters<typeof customFetch>[1]): Promise<ReliabilityEventsResult> => {
+
+  return customFetch<ReliabilityEventsResult>(getGetUsherReliabilityEventsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetUsherReliabilityEventsQueryKey = (id: number,) => {
+    return [
+    `/api/ushers/${id}/reliability-events`
+    ] as const;
+    }
+
+
+export const getGetUsherReliabilityEventsQueryOptions = <TData = Awaited<ReturnType<typeof getUsherReliabilityEvents>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getUsherReliabilityEvents>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetUsherReliabilityEventsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getUsherReliabilityEvents>>> = ({ signal }) => getUsherReliabilityEvents(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getUsherReliabilityEvents>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetUsherReliabilityEventsQueryResult = NonNullable<Awaited<ReturnType<typeof getUsherReliabilityEvents>>>
+export type GetUsherReliabilityEventsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get reliability events (no-shows / late cancellations) for an usher
+ */
+
+export function useGetUsherReliabilityEvents<TData = Awaited<ReturnType<typeof getUsherReliabilityEvents>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getUsherReliabilityEvents>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetUsherReliabilityEventsQueryOptions(id,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

@@ -151,6 +151,14 @@ export interface UsherProfile {
   nationalIdDocBackKey?: string | null;
   /** @nullable */
   nationalIdDocBackUrl?: string | null;
+  /** @nullable */
+  clientRatingAvg?: number | null;
+  /** @nullable */
+  punctualityScore?: number | null;
+  /** @nullable */
+  reliabilityScore?: number | null;
+  /** @nullable */
+  lastRatingRecalcAt?: string | null;
 }
 
 export interface AuthResult {
@@ -269,6 +277,35 @@ export interface UsherStats {
   cancelCount: number;
   noShowCount: number;
   totalEarned?: number;
+}
+
+export interface RatingConfig {
+  clientRatingWeight?: number;
+  punctualityWeight?: number;
+  reliabilityWeight?: number;
+  gracePeriodMinutes?: number;
+  punctualityPenaltyPerInterval?: number;
+  punctualityIntervalMinutes?: number;
+  reliabilityWindowDays?: number;
+  noShowPenalty?: number;
+  lateCancellationPenalty?: number;
+  lateCancellationWindowHours?: number;
+  reliabilityFlagThreshold?: number;
+}
+
+export interface ReliabilityEvent {
+  id?: number;
+  usherId?: number;
+  eventId?: number;
+  type?: string;
+  occurredAt?: string;
+}
+
+export interface ReliabilityEventsResult {
+  events?: ReliabilityEvent[];
+  isFlagged?: boolean;
+  flagThreshold?: number;
+  windowDays?: number;
 }
 
 export interface Event {

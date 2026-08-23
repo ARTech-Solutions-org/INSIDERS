@@ -1,7 +1,7 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
-import { db, ushersTable, usherDocumentsTable, usherSkillsTable, usherAvailabilityTable, notificationsTable } from "@workspace/db";
-import { eq, and, ilike, or, gte, lte, sql } from "drizzle-orm";
+import { db, ushersTable, usherDocumentsTable, usherSkillsTable, usherAvailabilityTable, notificationsTable, reliabilityEventsTable, systemSettingsTable, DEFAULT_RATING_CONFIG } from "@workspace/db";
+import { eq, and, ilike, or, gte, lte, sql, desc } from "drizzle-orm";
 import { requireUsher, requireAdmin, requireSuperAdmin } from "../middleware/auth.js";
 import { audit } from "../lib/audit.js";
 import { sendPushToUsher } from "../lib/fcm.js";
@@ -266,6 +266,29 @@ router.patch("/ushers/:id/documents/:docId/status", requireAdmin, async (req, re
   
   audit(req.user!.id, "UPDATE_DOCUMENT_STATUS", "usher_documents", docId, `Admin updated document ${docId} status to ${status} from IP ${req.ip}`);
   res.json(updated);
+});
+
+// GET /ushers/:id/reliability-events — admin only
+router.get("/ushers/:id/reliability-events", requireAdmin, async (req, res) => {
+  const usherId = parseInt(req.params.id as string, 10);
+  const [cfgRow] = await db.select().from(systemSettingsTable).where(eq(systemSettingsTable.key, "ratingConfig"));
+  const cfg = (cfgRow?.value ?? DEFAULT_RATING_CONFIG) as typeof DEFAULT_RATING_CONFIG;
+  const windowStart = new Date();
+  windowStart.setDate(windowStart.getDate() - cfg.reliabilityWindowDays);
+
+  const events = await db
+    .select()
+    .from(reliabilityEventsTable)
+    .where(and(
+      eq(reliabilityEventsTable.usherId, usherId),
+      gte(reliabilityEventsTable.occurredAt, windowStart)
+    ))
+    .orderBy(desc(reliabilityEventsTable.occurredAt));
+
+  const flagThreshold = cfg.reliabilityFlagThreshold;
+  const isFlagged = events.length >= flagThreshold;
+
+  res.json({ events, isFlagged, flagThreshold, windowDays: cfg.reliabilityWindowDays });
 });
 
 export default router;

@@ -20,6 +20,7 @@ import Broadcasts from '@/pages/broadcasts';
 import AuditLog from '@/pages/audit-log';
 import Financials from '@/pages/financials';
 import PublicFeedback from '@/pages/public-feedback';
+import Settings from '@/pages/settings';
 
 const queryClient = new QueryClient();
 
@@ -58,7 +59,7 @@ function ProtectedRoutes() {
         <Route path="/broadcasts" component={Broadcasts} />
         <Route path="/audit-log" component={() => <SuperAdminOnly><AuditLog /></SuperAdminOnly>} />
         <Route path="/financials" component={() => <SuperAdminOnly><Financials /></SuperAdminOnly>} />
-        <Route path="/settings" component={() => <SuperAdminOnly><div>Settings</div></SuperAdminOnly>} />
+        <Route path="/settings" component={() => <SuperAdminOnly><Settings /></SuperAdminOnly>} />
         <Route component={NotFound} />
       </Switch>
     </AdminLayout>

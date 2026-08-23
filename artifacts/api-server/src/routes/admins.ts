@@ -1,11 +1,12 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
-import { db, adminsTable, broadcastMessagesTable, auditLogTable, usherDocumentsTable, ushersTable, notificationsTable, eventsTable, eventAssignmentsTable, ratingsTable, payoutsTable } from "@workspace/db";
+import { db, adminsTable, broadcastMessagesTable, auditLogTable, usherDocumentsTable, ushersTable, notificationsTable, eventsTable, eventAssignmentsTable, ratingsTable, payoutsTable, systemSettingsTable, DEFAULT_RATING_CONFIG } from "@workspace/db";
 import { eq, lte, and, desc, gte, sql, lt, inArray, isNull, or } from "drizzle-orm";
 import { requireAdmin, requireSuperAdmin } from "../middleware/auth.js";
 import { audit } from "../lib/audit.js";
 import { CreateAdminBody, UpdateAdminBody, SendBroadcastBody } from "@workspace/api-zod";
 import { sendPushToUshers } from "../lib/fcm.js";
+import { recalculateAllUsherRatings } from "../lib/auto-rating-engine.js";
 
 const router = Router();
 
@@ -288,6 +289,43 @@ router.get("/admin/event-stats/:id", requireAdmin, async (req, res) => {
   const punctualityRate = completedCount > 0 ? Math.round((onTimePunches.length / completedCount) * 100) : 0;
 
   res.json({ attendanceRate, punctualityRate, completedCount, cancelledCount, noShowCount, totalAssigned });
+});
+
+// GET /admin/settings/rating — super_admin only
+router.get("/admin/settings/rating", requireSuperAdmin, async (req, res) => {
+  const [row] = await db.select().from(systemSettingsTable).where(eq(systemSettingsTable.key, "ratingConfig"));
+  res.json(row ? row.value : DEFAULT_RATING_CONFIG);
+});
+
+// PUT /admin/settings/rating — super_admin only
+router.put("/admin/settings/rating", requireSuperAdmin, async (req, res) => {
+  const body = req.body;
+  if (typeof body !== "object" || !body) { res.status(400).json({ error: "Invalid body" }); return; }
+
+  // Merge with defaults so we never lose a key
+  const merged = { ...DEFAULT_RATING_CONFIG, ...body };
+
+  // Normalize weights to sum to 1
+  const totalWeight = (merged.clientRatingWeight || 0) + (merged.punctualityWeight || 0) + (merged.reliabilityWeight || 0);
+  if (totalWeight > 0 && Math.abs(totalWeight - 1) > 0.001) {
+    merged.clientRatingWeight = parseFloat((merged.clientRatingWeight / totalWeight).toFixed(4));
+    merged.punctualityWeight = parseFloat((merged.punctualityWeight / totalWeight).toFixed(4));
+    merged.reliabilityWeight = parseFloat((merged.reliabilityWeight / totalWeight).toFixed(4));
+  }
+
+  await db.insert(systemSettingsTable).values({
+    key: "ratingConfig",
+    value: merged,
+    updatedAt: new Date(),
+    updatedByAdminId: req.user!.id
+  }).onConflictDoUpdate({ target: systemSettingsTable.key, set: { value: merged, updatedAt: new Date(), updatedByAdminId: req.user!.id } });
+
+  await audit(req.user!.id, "UPDATE_RATING_CONFIG", "system_settings", 0);
+
+  // Trigger full recalculation in background (fire-and-forget)
+  recalculateAllUsherRatings().catch(() => {});
+
+  res.json(merged);
 });
 
 export default router;

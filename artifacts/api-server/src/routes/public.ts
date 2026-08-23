@@ -2,6 +2,7 @@ import { Router } from "express";
 import { db, eventFeedbackLinksTable, eventsTable, eventTeamsTable, eventAssignmentsTable, ushersTable, eventFeedbackTable } from "@workspace/db";
 import { eq, and, isNull } from "drizzle-orm";
 import { PublicFeedbackSubmitBody, SubmitPublicEventFeedbackBody } from "@workspace/api-zod";
+import { recalculateUsherCompositeRating } from "../lib/auto-rating-engine.js";
 
 const router = Router();
 
@@ -108,6 +109,14 @@ router.post("/feedback/:token", async (req, res) => {
 
       return true;
     });
+
+    // Fire-and-forget: recalculate composite rating for all ushers in usherOverrides
+    if (parsed.data.usherOverrides && parsed.data.usherOverrides.length > 0) {
+      const usherIds = [...new Set(parsed.data.usherOverrides.map((o: any) => o.usherId))];
+      for (const uid of usherIds) {
+        recalculateUsherCompositeRating(uid).catch(() => {});
+      }
+    }
 
     res.json({ success });
   } catch (err: any) {

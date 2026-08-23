@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { db, eventAssignmentsTable, eventsTable, ushersTable, deductionRulesTable, cancellationsTable, balanceTransactionsTable, eventTeamsTable, waitlistTable } from "@workspace/db";
+import { db, eventAssignmentsTable, eventsTable, ushersTable, deductionRulesTable, cancellationsTable, balanceTransactionsTable, eventTeamsTable, waitlistTable, reliabilityEventsTable, systemSettingsTable, DEFAULT_RATING_CONFIG } from "@workspace/db";
 import { eq, and, ne, sql, inArray, lt } from "drizzle-orm";
 import { requireUsher } from "../middleware/auth.js";
 import {
@@ -7,7 +7,7 @@ import {
   UsherCheckinBody,
   CancelAssignmentBody,
 } from "@workspace/api-zod";
-import { calculateAndApplyAutoRating } from "../lib/auto-rating-engine.js";
+import { calculateAndApplyAutoRating, recalculateUsherCompositeRating } from "../lib/auto-rating-engine.js";
 
 const router = Router();
 
@@ -83,6 +83,15 @@ router.get("/my/assignments", requireUsher, async (req, res) => {
     await db.update(eventAssignmentsTable)
       .set({ status: "no_show" })
       .where(inArray(eventAssignmentsTable.id, expiredIds));
+
+    // Log reliability events and trigger recalculation for each no-show usher
+    const noShowItems = result.filter(item => expiredIds.includes(item.id));
+    for (const item of noShowItems) {
+      try {
+        await db.insert(reliabilityEventsTable).values({ usherId: req.user!.id, eventId: item.eventId, type: "no_show" });
+        recalculateUsherCompositeRating(req.user!.id).catch(() => {});
+      } catch { /* non-critical */ }
+    }
   }
 
   // Filter out items that no longer match the requested status
@@ -262,8 +271,8 @@ router.post("/my/assignments/:assignmentId/checkout", requireUsher, async (req, 
     : 0;
   const [updated] = await db.update(eventAssignmentsTable).set({ checkoutTime: checkoutNow, checkoutLat: lat ? Number(lat) : null, checkoutLng: lng ? Number(lng) : null, status: "completed", earlyLeaveMinutes } as any).where(eq(eventAssignmentsTable.id, assignment.id)).returning();
   if (!updated) { res.status(404).json({ error: "Not found" }); return; }
-  // Trigger automated rating evaluation and default 5-star fallback
-  await calculateAndApplyAutoRating(updated.id);
+  // Trigger composite rating recalculation (fire-and-forget)
+  recalculateUsherCompositeRating(assignment.usherId).catch(() => {});
   res.json(await buildMyAssignment(updated));
 });
 
@@ -272,9 +281,32 @@ router.post("/my/assignments/:assignmentId/cancel", requireUsher, async (req, re
   const parsed = CancelAssignmentBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.flatten() }); return; }
   const assignmentId = parseInt(req.params.assignmentId as string, 10);
-  const [assignment] = await db.update(eventAssignmentsTable).set({ status: "cancelled" }).where(and(eq(eventAssignmentsTable.id, assignmentId), eq(eventAssignmentsTable.usherId, req.user!.id))).returning();
+
+  // Load the assignment BEFORE cancelling to get event info for late-cancel check
+  const [existingAssignment] = await db
+    .select({ id: eventAssignmentsTable.id, usherId: eventAssignmentsTable.usherId, eventId: eventAssignmentsTable.eventId, status: eventAssignmentsTable.status })
+    .from(eventAssignmentsTable)
+    .where(and(eq(eventAssignmentsTable.id, assignmentId), eq(eventAssignmentsTable.usherId, req.user!.id)));
+  if (!existingAssignment) { res.status(404).json({ error: "Not found" }); return; }
+
+  const [assignment] = await db.update(eventAssignmentsTable).set({ status: "cancelled" }).where(eq(eventAssignmentsTable.id, assignmentId)).returning();
   if (!assignment) { res.status(404).json({ error: "Not found" }); return; }
   const [cancellation] = await db.insert(cancellationsTable).values({ eventAssignmentId: assignment.id, reason: parsed.data.reason ?? null, penaltyApplied: false }).returning();
+
+  // Check if this is a late cancellation (within configurable window before event start)
+  try {
+    const [event] = await db.select({ startTime: eventsTable.startTime }).from(eventsTable).where(eq(eventsTable.id, existingAssignment.eventId));
+    const [cfgRow] = await db.select().from(systemSettingsTable).where(eq(systemSettingsTable.key, "ratingConfig"));
+    const cfg = (cfgRow?.value ?? DEFAULT_RATING_CONFIG) as typeof DEFAULT_RATING_CONFIG;
+    if (event && ["accepted", "assigned"].includes(existingAssignment.status ?? "")) {
+      const hoursUntilEvent = (new Date(event.startTime).getTime() - Date.now()) / 3600000;
+      if (hoursUntilEvent >= 0 && hoursUntilEvent <= cfg.lateCancellationWindowHours) {
+        await db.insert(reliabilityEventsTable).values({ usherId: existingAssignment.usherId, eventId: existingAssignment.eventId, type: "late_cancellation" });
+        recalculateUsherCompositeRating(existingAssignment.usherId).catch(() => {});
+      }
+    }
+  } catch { /* non-critical */ }
+
   const ma = await buildMyAssignment(assignment);
   res.json({ assignment: ma, cancellation, penaltyApplied: false, penaltyAmount: null });
 });

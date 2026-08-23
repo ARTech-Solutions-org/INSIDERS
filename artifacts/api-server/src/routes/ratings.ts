@@ -3,21 +3,9 @@ import { db, ratingsTable, eventAssignmentsTable, ushersTable, eventHolderLinksT
 import { eq, avg, inArray } from "drizzle-orm";
 import { requireAuth } from "../middleware/auth.js";
 import { CreateRatingBody, SubmitHolderRatingBody } from "@workspace/api-zod";
+import { recalculateUsherCompositeRating } from "../lib/auto-rating-engine.js";
 
 const router = Router();
-
-async function updateAvgRating(usherId: number) {
-  const assignments = await db.select({ id: eventAssignmentsTable.id }).from(eventAssignmentsTable).where(eq(eventAssignmentsTable.usherId, usherId));
-  const assignmentIds = assignments.map(a => a.id);
-  if (!assignmentIds.length) return;
-  const rows = await db.select({ id: ratingsTable.id, ratingValue: ratingsTable.ratingValue }).from(ratingsTable).where(eq(ratingsTable.eventAssignmentId, assignmentIds[0]));
-  // approximate: recompute from all ratings for this usher's assignments
-  const allRatings = await Promise.all(assignmentIds.map(id => db.select({ ratingValue: ratingsTable.ratingValue }).from(ratingsTable).where(eq(ratingsTable.eventAssignmentId, id))));
-  const flat = allRatings.flat();
-  if (!flat.length) return;
-  const avg = flat.reduce((s, r) => s + r.ratingValue, 0) / flat.length;
-  await db.update(ushersTable).set({ avgRating: avg }).where(eq(ushersTable.id, usherId));
-}
 
 // POST /ratings
 router.post("/ratings", requireAuth, async (req, res) => {
@@ -48,7 +36,7 @@ router.post("/ratings", requireAuth, async (req, res) => {
   }
 
   const [assignment] = await db.select().from(eventAssignmentsTable).where(eq(eventAssignmentsTable.id, rating.eventAssignmentId));
-  if (assignment) await updateAvgRating(assignment.usherId);
+  if (assignment) recalculateUsherCompositeRating(assignment.usherId).catch(() => {});
   res.status(201).json(rating);
 });
 
@@ -60,7 +48,7 @@ router.post("/ratings/holder/:token", async (req, res) => {
   if (!link) { res.status(404).json({ error: "Invalid token" }); return; }
   const [rating] = await db.insert(ratingsTable).values({ ...parsed.data, ratedByType: "holder" }).returning();
   const [assignment] = await db.select().from(eventAssignmentsTable).where(eq(eventAssignmentsTable.id, rating.eventAssignmentId));
-  if (assignment) await updateAvgRating(assignment.usherId);
+  if (assignment) recalculateUsherCompositeRating(assignment.usherId).catch(() => {});
   res.status(201).json(rating);
 });
 

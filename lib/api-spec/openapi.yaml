@@ -655,91 +655,7 @@ paths:
           description: Link is invalid or already submitted
         '404':
           description: Not found
-  /events/{id}/feedback-link:
-    get:
-      operationId: getEventFeedbackLink
-      summary: Get active event feedback link
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: integer
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EventFeedbackLink'
-        '404':
-          description: Not found
-    post:
-      operationId: createEventFeedbackLink
-      summary: Generate a new event feedback link (invalidates old ones)
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: integer
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EventFeedbackLink'
-  /public/feedback/{token}:
-    get:
-      operationId: getPublicEventFeedback
-      summary: Get safe event details for public feedback
-      parameters:
-      - name: token
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PublicEventFeedbackDetails'
-        '400':
-          description: Link is invalid or already submitted
-        '404':
-          description: Not found
-    post:
-      operationId: submitPublicEventFeedback
-      summary: Submit event feedback
-      parameters:
-      - name: token
-        in: path
-        required: true
-        schema:
-          type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PublicFeedbackSubmitBody'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-        '400':
-          description: Link is invalid or already submitted
-        '404':
-          description: Not found
+
   /events/{id}/holder-link:
     get:
       operationId: getEventHolderLink
@@ -1785,6 +1701,52 @@ paths:
               schema:
                 $ref: '#/components/schemas/EventStats'
 
+  /admin/settings/rating:
+    get:
+      operationId: getRatingConfig
+      summary: Get rating weights/thresholds (super admin only)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RatingConfig'
+    put:
+      operationId: updateRatingConfig
+      summary: Update rating weights/thresholds (super admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RatingConfig'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RatingConfig'
+
+  /ushers/{id}/reliability-events:
+    get:
+      operationId: getUsherReliabilityEvents
+      summary: Get reliability events (no-shows / late cancellations) for an usher
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReliabilityEventsResult'
+
 components:
   schemas:
 
@@ -1896,19 +1858,6 @@ components:
               rating:
                 type: integer
 
-
-        usherOverrides:
-          type: array
-          items:
-            type: object
-            required:
-            - usherId
-            - rating
-            properties:
-              usherId:
-                type: integer
-              rating:
-                type: integer
 
     HealthStatus:
       type: object
@@ -2142,6 +2091,23 @@ components:
           type:
           - string
           - 'null'
+        clientRatingAvg:
+          type:
+          - number
+          - 'null'
+        punctualityScore:
+          type:
+          - number
+          - 'null'
+        reliabilityScore:
+          type:
+          - number
+          - 'null'
+        lastRatingRecalcAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
     UsherUpdate:
       type: object
       properties:
@@ -2332,6 +2298,58 @@ components:
           type: integer
         totalEarned:
           type: number
+    RatingConfig:
+      type: object
+      properties:
+        clientRatingWeight:
+          type: number
+        punctualityWeight:
+          type: number
+        reliabilityWeight:
+          type: number
+        gracePeriodMinutes:
+          type: integer
+        punctualityPenaltyPerInterval:
+          type: number
+        punctualityIntervalMinutes:
+          type: integer
+        reliabilityWindowDays:
+          type: integer
+        noShowPenalty:
+          type: number
+        lateCancellationPenalty:
+          type: number
+        lateCancellationWindowHours:
+          type: integer
+        reliabilityFlagThreshold:
+          type: integer
+    ReliabilityEvent:
+      type: object
+      properties:
+        id:
+          type: integer
+        usherId:
+          type: integer
+        eventId:
+          type: integer
+        type:
+          type: string
+        occurredAt:
+          type: string
+          format: date-time
+    ReliabilityEventsResult:
+      type: object
+      properties:
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReliabilityEvent'
+        isFlagged:
+          type: boolean
+        flagThreshold:
+          type: integer
+        windowDays:
+          type: integer
     Event:
       type: object
       required:

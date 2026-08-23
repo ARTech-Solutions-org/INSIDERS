@@ -32,4 +32,12 @@ export interface UsherProfile {
   nationalIdDocBackKey?: string | null;
   /** @nullable */
   nationalIdDocBackUrl?: string | null;
+  /** @nullable */
+  clientRatingAvg?: number | null;
+  /** @nullable */
+  punctualityScore?: number | null;
+  /** @nullable */
+  reliabilityScore?: number | null;
+  /** @nullable */
+  lastRatingRecalcAt?: Date | null;
 }

@@ -5,6 +5,7 @@ import {
   useUpdateUsherStatus,
   useGetUsherStats,
   useListUsherDocuments,
+  useGetUsherReliabilityEvents,
   getGetUsherQueryKey,
   getListUshersQueryKey,
   getListUsherDocumentsQueryKey,
@@ -87,6 +88,11 @@ export default function UsherDetails() {
     query: { 
       enabled: !!usherId,
       queryKey: getListUsherDocumentsQueryKey(usherId) as any
+    }
+  });
+  const { data: reliabilityData } = useGetUsherReliabilityEvents(usherId, {
+    query: {
+      enabled: !!usherId,
     }
   });
 
@@ -250,11 +256,18 @@ export default function UsherDetails() {
 
             <div className="flex sm:flex-col gap-4 text-left sm:text-right border-t sm:border-t-0 sm:border-l border-border pt-4 sm:pt-0 sm:pl-6 w-full sm:w-auto justify-between">
               <div>
-                <span className="text-xs text-muted-foreground uppercase tracking-wider block font-semibold">Rating</span>
+                <span className="text-xs text-muted-foreground uppercase tracking-wider block font-semibold">Overall Rating</span>
                 <span className="text-xl font-bold flex items-center sm:justify-end gap-1">
                   <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
                   {usher.avgRating?.toFixed(1) || "N/A"}
                 </span>
+                {usher.avgRating != null && (
+                  <div className="text-[10px] text-muted-foreground mt-1 text-left sm:text-right">
+                    <div>Client: {usher.clientRatingAvg?.toFixed(1) || '0.0'}</div>
+                    <div>Punctual: {(usher.punctualityScore || 0).toFixed(1)}</div>
+                    <div>Reliable: {(usher.reliabilityScore || 0).toFixed(1)}</div>
+                  </div>
+                )}
               </div>
               <div>
                 <span className="text-xs text-muted-foreground uppercase tracking-wider block font-semibold">Balance</span>
@@ -475,6 +488,58 @@ export default function UsherDetails() {
             )}
           </CardContent>
         </Card>
+
+        {/* Reliability Events */}
+        {reliabilityData && (reliabilityData as any).events && (
+          <Card className="md:col-span-2">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <ShieldAlert className="w-5 h-5 text-red-500" /> Reliability Events (Last {(reliabilityData as any).windowDays} Days)
+                  </CardTitle>
+                  <CardDescription>Recent no-shows and late cancellations.</CardDescription>
+                </div>
+                {(reliabilityData as any).isFlagged && (
+                  <Badge variant="destructive" className="animate-pulse">
+                    Reliability Flagged
+                  </Badge>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              {(reliabilityData as any).events.length === 0 ? (
+                <div className="text-center py-6 text-muted-foreground text-sm">
+                  No reliability events recorded in the current window.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {(reliabilityData as any).events.map((evt: any) => (
+                    <div key={evt.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-2 h-2 rounded-full ${evt.type === 'no_show' ? 'bg-red-500' : 'bg-amber-500'}`} />
+                        <div>
+                          <p className="text-sm font-medium">
+                            {evt.type === 'no_show' ? 'No-Show' : 'Late Cancellation'}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Event #{evt.eventId}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {format(new Date(evt.occurredAt), "MMM d, yyyy h:mm a")}
+                      </div>
+                    </div>
+                  ))}
+                  <p className="text-xs text-muted-foreground pt-2 border-t">
+                    {(reliabilityData as any).events.length} / {(reliabilityData as any).flagThreshold} events to flag.
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {usher?.paymentMethodDetails && usher.paymentMethod?.toLowerCase() === 'instapay' && (

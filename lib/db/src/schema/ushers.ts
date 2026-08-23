@@ -30,13 +30,19 @@ export const ushersTable = pgTable("ushers", {
   shortsSize: varchar("shorts_size", { length: 20 }),
   homeLat: real("home_lat"),
   homeLng: real("home_lng"),
-  avgRating: real("avg_rating").default(0.0),
+  avgRating: real("avg_rating").default(0.0),           // composite overall score (0–5)
+  clientRatingAvg: real("client_rating_avg"),            // avg of client feedback stars
+  punctualityScore: real("punctuality_score"),           // 0–5, avg per-event punctuality
+  reliabilityScore: real("reliability_score"),           // 0–5, penalized from 5.0 baseline
+  lastRatingRecalcAt: timestamp("last_rating_recalc_at", { withTimezone: true }),
   balance: real("balance").default(0.0),
   paymentMethod: varchar("payment_method", { length: 50 }),
   paymentMethodDetails: varchar("payment_method_details", { length: 255 }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   version: integer("version").notNull().default(1),
 });
+
+
 
 export const insertUsherSchema = createInsertSchema(ushersTable).omit({ id: true, createdAt: true, avgRating: true, balance: true, status: true });
 export type InsertUsher = z.infer<typeof insertUsherSchema>;
