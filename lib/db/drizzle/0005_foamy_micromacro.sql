@@ -1,0 +1,1 @@
+ALTER TABLE "ushers" ADD COLUMN "national_id_expiry_date" date;

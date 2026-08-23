@@ -40,7 +40,10 @@ export default function Documents() {
   const [newFile, setNewFile] = useState<File | null>(null);
   const updateProfileMutation = useUpdateMyUsherProfile();
 
-
+  const [idOpen, setIdOpen] = useState(false);
+  const [idSide, setIdSide] = useState<'front' | 'back' | null>(null);
+  const [idExpiry, setIdExpiry] = useState('');
+  const [idFile, setIdFile] = useState<File | null>(null);
         queryClient.invalidateQueries({ queryKey: getListMyDocumentsQueryKey() });
   const handleAdd = async () => {
     if (!docType) {
@@ -81,13 +84,24 @@ export default function Documents() {
     }
   };
 
-  const handleUploadId = async (file: File, side: 'front' | 'back') => {
+  const handleUploadIdSubmit = async () => {
+    if (!idFile) {
+      toast.error('Please select an image file');
+      return;
+    }
+    if (!idExpiry) {
+      toast.error('Expiration date is required');
+      return;
+    }
+
     try {
-      toast.loading(`Uploading ID (${side})...`, { id: `upload-id-${side}` });
-      const res = await uploadToR2(file, 'nationalId');
+      toast.loading(`Uploading ID (${idSide})...`, { id: `upload-id-${idSide}` });
+      const res = await uploadToR2(idFile, 'nationalId');
       
-      const payload: any = {};
-      if (side === 'front') {
+      const payload: any = {
+        nationalIdExpiryDate: new Date(idExpiry).toISOString()
+      };
+      if (idSide === 'front') {
         payload.nationalIdDocUrl = res.url;
         payload.nationalIdDocKey = res.key;
       } else {
@@ -96,16 +110,35 @@ export default function Documents() {
       }
 
       await updateProfileMutation.mutateAsync({ data: payload });
-      toast.success(`ID (${side}) updated successfully`);
+      toast.success(`ID (${idSide}) updated successfully`);
       queryClient.invalidateQueries({ queryKey: getGetMyUsherProfileQueryKey() });
-    } catch (e) {
-      toast.error(`Failed to upload ID (${side})`);
+      setIdOpen(false);
+      setIdFile(null);
+      setIdExpiry('');
+    } catch (e: any) {
+      toast.error(e.response?.data?.error || `Failed to upload ID (${idSide})`);
     } finally {
-      toast.dismiss(`upload-id-${side}`);
+      toast.dismiss(`upload-id-${idSide}`);
     }
   };
 
+  const canReplaceId = () => {
+    if (!profile?.nationalIdExpiryDate) return true;
+    const expiry = new Date(profile.nationalIdExpiryDate);
+    const now = new Date();
+    const isExpired = now.getTime() > expiry.getTime();
+    const isSameMonth = now.getFullYear() === expiry.getFullYear() && now.getMonth() === expiry.getMonth();
+    return isExpired || isSameMonth;
+  };
 
+  const openIdDialog = (side: 'front' | 'back') => {
+    if (profile?.nationalIdDocUrl && !canReplaceId()) {
+      toast.error('National ID can only be replaced during the month of its expiration.');
+      return;
+    }
+    setIdSide(side);
+    setIdOpen(true);
+  };
   const safeDocs = Array.isArray(documents) ? documents : [];
 
   const getImageUrl = (key?: string | null) => {
@@ -191,20 +224,9 @@ export default function Documents() {
                 </div>
               </div>
               <div className="relative">
-                <Button size="sm" variant="outline" className="text-[10px] tracking-widest uppercase">
+                <Button size="sm" variant="outline" className="text-[10px] tracking-widest uppercase" onClick={() => openIdDialog('front')}>
                   {profile?.nationalIdDocUrl ? 'REPLACE' : 'UPLOAD'}
                 </Button>
-                <Input 
-                  type="file" 
-                  accept="image/*"
-                  className="absolute inset-0 opacity-0 cursor-pointer"
-                  onChange={e => {
-                    if (e.target.files && e.target.files[0]) {
-                      handleUploadId(e.target.files[0], 'front');
-                      e.target.value = '';
-                    }
-                  }}
-                />
               </div>
             </div>
             {profile?.nationalIdDocUrl && (
@@ -230,20 +252,9 @@ export default function Documents() {
                 </div>
               </div>
               <div className="relative">
-                <Button size="sm" variant="outline" className="text-[10px] tracking-widest uppercase">
+                <Button size="sm" variant="outline" className="text-[10px] tracking-widest uppercase" onClick={() => openIdDialog('back')}>
                   {(profile as any)?.nationalIdDocBackUrl ? 'REPLACE' : 'UPLOAD'}
                 </Button>
-                <Input 
-                  type="file" 
-                  accept="image/*"
-                  className="absolute inset-0 opacity-0 cursor-pointer"
-                  onChange={e => {
-                    if (e.target.files && e.target.files[0]) {
-                      handleUploadId(e.target.files[0], 'back');
-                      e.target.value = '';
-                    }
-                  }}
-                />
               </div>
             </div>
             {(profile as any)?.nationalIdDocBackUrl && (
@@ -284,6 +295,41 @@ export default function Documents() {
           })}
         </div>
       )}
+
+      <Dialog open={idOpen} onOpenChange={setIdOpen}>
+        <DialogContent className="w-[90vw] max-w-[400px] rounded-2xl border border-border p-6 bg-card shadow-lg">
+          <DialogHeader>
+            <DialogTitle className="brand-display text-2xl uppercase tracking-wide">
+              UPLOAD ID ({idSide === 'front' ? 'FRONT' : 'BACK'})
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-5 pt-4">
+            <div className="space-y-2">
+              <label className="font-semibold text-xs text-foreground/90">ID Photo</label>
+              <Input type="file" accept="image/*" onChange={e => {
+                if (e.target.files && e.target.files[0]) {
+                  setIdFile(e.target.files[0]);
+                }
+              }} className="rounded-xl border-border h-11 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90" />
+            </div>
+
+            <div className="space-y-2">
+              <label className="font-semibold text-xs text-foreground/90">Expiration Date</label>
+              <Input
+                type="date"
+                value={idExpiry}
+                onChange={e => setIdExpiry(e.target.value)}
+                className="rounded-xl border-border h-11"
+              />
+            </div>
+
+            <Button className="w-full rounded-xl h-11 text-xs font-bold tracking-widest uppercase mt-4 shadow-sm" onClick={handleUploadIdSubmit} disabled={updateProfileMutation.isPending}>
+              {updateProfileMutation.isPending ? 'UPLOADING...' : 'SAVE ID'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }

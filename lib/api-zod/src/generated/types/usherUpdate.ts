@@ -18,6 +18,8 @@ export interface UsherUpdate {
   /** @nullable */
   nationalIdDocBackUrl?: string | null;
   /** @nullable */
+  nationalIdExpiryDate?: Date | null;
+  /** @nullable */
   profilePhotoKey?: string | null;
   /** @nullable */
   profilePhotoUrl?: string | null;

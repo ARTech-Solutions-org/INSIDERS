@@ -40,6 +40,7 @@ export const RegisterUsherBody = zod.object({
   "nationalIdDocKey": zod.string().nullish(),
   "nationalIdDocBackUrl": zod.string().nullish(),
   "nationalIdDocBackKey": zod.string().nullish(),
+  "nationalIdExpiryDate": zod.coerce.date().nullish(),
   "profilePhotoUrl": zod.string().nullish(),
   "profilePhotoKey": zod.string().nullish(),
   "paymentMethod": zod.enum(['instapay', 'ewallet']).optional(),
@@ -311,6 +312,7 @@ export const UpdateMyUsherProfileBody = zod.object({
   "nationalIdDocUrl": zod.string().nullish(),
   "nationalIdDocBackKey": zod.string().nullish(),
   "nationalIdDocBackUrl": zod.string().nullish(),
+  "nationalIdExpiryDate": zod.coerce.date().nullish(),
   "profilePhotoKey": zod.string().nullish(),
   "profilePhotoUrl": zod.string().nullish()
 })
@@ -389,6 +391,7 @@ export const UpdateUsherBody = zod.object({
   "nationalIdDocUrl": zod.string().nullish(),
   "nationalIdDocBackKey": zod.string().nullish(),
   "nationalIdDocBackUrl": zod.string().nullish(),
+  "nationalIdExpiryDate": zod.coerce.date().nullish(),
   "profilePhotoKey": zod.string().nullish(),
   "profilePhotoUrl": zod.string().nullish()
 })

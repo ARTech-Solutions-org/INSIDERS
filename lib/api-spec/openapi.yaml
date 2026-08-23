@@ -1992,6 +1992,11 @@ components:
           type:
           - string
           - 'null'
+        nationalIdExpiryDate:
+          type:
+          - string
+          - 'null'
+          format: date
         profilePhotoUrl:
           type:
           - string
@@ -2157,6 +2162,11 @@ components:
           type:
           - string
           - 'null'
+        nationalIdExpiryDate:
+          type:
+          - string
+          - 'null'
+          format: date
         profilePhotoKey:
           type:
           - string

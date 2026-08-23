@@ -117,6 +117,8 @@ export interface UsherRegistration {
   /** @nullable */
   nationalIdDocBackKey?: string | null;
   /** @nullable */
+  nationalIdExpiryDate?: string | null;
+  /** @nullable */
   profilePhotoUrl?: string | null;
   /** @nullable */
   profilePhotoKey?: string | null;
@@ -204,6 +206,8 @@ export interface UsherUpdate {
   nationalIdDocBackKey?: string | null;
   /** @nullable */
   nationalIdDocBackUrl?: string | null;
+  /** @nullable */
+  nationalIdExpiryDate?: string | null;
   /** @nullable */
   profilePhotoKey?: string | null;
   /** @nullable */

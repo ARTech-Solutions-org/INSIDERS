@@ -46,6 +46,8 @@ export interface UsherRegistration {
   /** @nullable */
   nationalIdDocBackKey?: string | null;
   /** @nullable */
+  nationalIdExpiryDate?: Date | null;
+  /** @nullable */
   profilePhotoUrl?: string | null;
   /** @nullable */
   profilePhotoKey?: string | null;

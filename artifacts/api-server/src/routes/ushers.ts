@@ -75,6 +75,24 @@ router.get("/ushers/me", requireUsher, async (req, res) => {
 router.patch("/ushers/me", requireUsher, async (req, res) => {
   const parsed = UpdateMyUsherProfileBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.flatten() }); return; }
+
+  const isUpdatingId = parsed.data.nationalIdDocKey !== undefined || parsed.data.nationalIdDocBackKey !== undefined;
+  if (isUpdatingId) {
+    const [currentUser] = await db.select().from(ushersTable).where(eq(ushersTable.id, req.user!.id));
+    if (currentUser.nationalIdDocKey && currentUser.nationalIdExpiryDate) {
+      const expiryDate = new Date(currentUser.nationalIdExpiryDate);
+      const now = new Date();
+      
+      const isExpired = now.getTime() > expiryDate.getTime();
+      const isSameMonth = now.getFullYear() === expiryDate.getFullYear() && now.getMonth() === expiryDate.getMonth();
+      
+      if (!isExpired && !isSameMonth) {
+        res.status(403).json({ error: "National ID can only be replaced during the month of its expiration." });
+        return;
+      }
+    }
+  }
+
   const [usher] = await db.update(ushersTable).set(parsed.data).where(eq(ushersTable.id, req.user!.id)).returning();
   const { passwordHash: _ph, ...safe } = usher;
   res.json(safe);

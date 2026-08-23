@@ -13,6 +13,7 @@ export const ushersTable = pgTable("ushers", {
   nationalIdDocKey: text("national_id_doc_key"),
   nationalIdDocBackUrl: text("national_id_doc_back_url"),
   nationalIdDocBackKey: text("national_id_doc_back_key"),
+  nationalIdExpiryDate: date("national_id_expiry_date"),
   profilePhotoUrl: text("profile_photo_url"),
   profilePhotoKey: text("profile_photo_key"),
   passwordHash: varchar("password_hash", { length: 255 }).notNull(),
