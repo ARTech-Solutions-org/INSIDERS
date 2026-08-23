@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useCreateEvent } from "@workspace/api-client-react";
 import { useLocation } from "wouter";
+import { useGetMe } from "@workspace/api-client-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -28,8 +29,13 @@ export default function EventsNew() {
     endTime: "",
     dressCode: "",
     instructions: "",
-    eventBudget: "",
+    budget: "",
+    leaderRate: "",
+    regularRate: "",
   });
+
+  const { data: user } = useGetMe();
+  const isSuperAdmin = user?.role === 'super_admin';
 
   const { mutate: createEvent, isPending } = useCreateEvent({
     mutation: {
@@ -80,7 +86,9 @@ export default function EventsNew() {
         endTime: endDateTime.toISOString(),
         dressCode: formData.dressCode || undefined,
         instructions: formData.instructions || undefined,
-        eventBudget: parseInt(formData.eventBudget) || undefined,
+        budget: isSuperAdmin ? (parseInt(formData.budget) || undefined) : undefined,
+        leaderRate: parseFloat(formData.leaderRate) || undefined,
+        regularRate: parseFloat(formData.regularRate) || undefined,
         status: 'draft',
       },
     });
@@ -283,17 +291,45 @@ export default function EventsNew() {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="eventBudget">Event Budget (EGP)</Label>
-              <Input 
-                id="eventBudget" 
-                name="eventBudget" 
-                type="number"
-                placeholder="e.g., 5000" 
-                value={formData.eventBudget} 
-                onChange={handleChange} 
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="leaderRate">Leader Pay Rate (EGP)</Label>
+                <Input 
+                  id="leaderRate" 
+                  name="leaderRate" 
+                  type="number"
+                  placeholder="e.g., 500" 
+                  value={formData.leaderRate} 
+                  onChange={handleChange} 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="regularRate">Regular Pay Rate (EGP)</Label>
+                <Input 
+                  id="regularRate" 
+                  name="regularRate" 
+                  type="number"
+                  placeholder="e.g., 300" 
+                  value={formData.regularRate} 
+                  onChange={handleChange} 
+                />
+              </div>
             </div>
+
+            {isSuperAdmin && (
+              <div className="space-y-2 pt-4 border-t border-border">
+                <Label htmlFor="budget">Total Event Budget (EGP)</Label>
+                <p className="text-xs text-muted-foreground mb-2">Only visible to Super Admins</p>
+                <Input 
+                  id="budget" 
+                  name="budget" 
+                  type="number"
+                  placeholder="e.g., 5000" 
+                  value={formData.budget} 
+                  onChange={handleChange} 
+                />
+              </div>
+            )}
           </CardContent>
         </Card>
 

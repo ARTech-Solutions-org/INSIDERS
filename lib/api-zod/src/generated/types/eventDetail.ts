@@ -29,7 +29,10 @@ export interface EventDetail {
   startTime: Date;
   endTime: Date;
   checkinRadiusM?: number;
-  eventBudget?: number;
+  budget?: number;
+  leaderRate?: number;
+  regularRate?: number;
+  superAdminLockedFields?: string[];
   /** @nullable */
   contactName?: string | null;
   /** @nullable */

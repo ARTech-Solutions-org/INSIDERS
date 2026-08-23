@@ -15,6 +15,7 @@ export interface MyAssignment {
   eventTeamId?: number | null;
   status: string;
   isTeamLead?: boolean;
+  role?: string;
   /** @nullable */
   checkinTime?: string | null;
   /** @nullable */

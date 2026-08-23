@@ -136,7 +136,7 @@ export default function Events() {
                       {getStatusBadge(event.status || undefined)}
                     </TableCell>
                     <TableCell className="text-sm font-medium">
-                      EGP {event.eventBudget?.toLocaleString() || '0'}
+                      EGP {event.budget?.toLocaleString() || '0'}
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>

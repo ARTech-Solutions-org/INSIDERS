@@ -5,10 +5,7 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export interface AssignmentInput {
-  usherId: number;
-  /** @nullable */
+export type PromoteWaitlistBody = {
   eventTeamId?: number | null;
   isTeamLead?: boolean;
-  role?: string;
-}
+};

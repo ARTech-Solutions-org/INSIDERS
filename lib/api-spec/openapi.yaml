@@ -2092,8 +2092,16 @@ components:
           format: date-time
         checkinRadiusM:
           type: integer
-        eventBudget:
+        budget:
           type: number
+        leaderRate:
+          type: number
+        regularRate:
+          type: number
+        superAdminLockedFields:
+          type: array
+          items:
+            type: string
         contactName:
           type:
           - string
@@ -2164,8 +2172,16 @@ components:
           format: date-time
         checkinRadiusM:
           type: integer
-        eventBudget:
+        budget:
           type: number
+        leaderRate:
+          type: number
+        regularRate:
+          type: number
+        superAdminLockedFields:
+          type: array
+          items:
+            type: string
         contactName:
           type:
           - string
@@ -2243,8 +2259,16 @@ components:
           format: date-time
         checkinRadiusM:
           type: integer
-        eventBudget:
+        budget:
           type: number
+        leaderRate:
+          type: number
+        regularRate:
+          type: number
+        superAdminLockedFields:
+          type: array
+          items:
+            type: string
         contactName:
           type:
           - string
@@ -2302,8 +2326,16 @@ components:
           format: date-time
         checkinRadiusM:
           type: integer
-        eventBudget:
+        budget:
           type: number
+        leaderRate:
+          type: number
+        regularRate:
+          type: number
+        superAdminLockedFields:
+          type: array
+          items:
+            type: string
         contactName:
           type:
           - string
@@ -2368,6 +2400,8 @@ components:
           type: string
         isTeamLead:
           type: boolean
+        role:
+          type: string
         checkinTime:
           type:
           - string
@@ -2404,6 +2438,8 @@ components:
           type: string
         isTeamLead:
           type: boolean
+        role:
+          type: string
         checkinTime:
           type:
           - string
@@ -2447,6 +2483,8 @@ components:
           - 'null'
         isTeamLead:
           type: boolean
+        role:
+          type: string
     MyWaitlistEntry:
       type: object
       required:
@@ -2489,6 +2527,8 @@ components:
           type: string
         isTeamLead:
           type: boolean
+        role:
+          type: string
         checkinTime:
           type:
           - string
@@ -2526,6 +2566,8 @@ components:
           - 'null'
         isTeamLead:
           type: boolean
+        role:
+          type: string
         phone:
           type:
           - string

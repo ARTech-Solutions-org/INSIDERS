@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, text, real, integer, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, varchar, text, real, integer, timestamp, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { adminsTable } from "./admins";
@@ -18,7 +18,10 @@ export const eventsTable = pgTable("events", {
   endTime: timestamp("end_time", { withTimezone: true }).notNull(),
   checkinRadiusM: integer("checkin_radius_m").default(100),
   checkinWindowMinutes: integer("checkin_window_minutes").default(5),
-  eventBudget: real("event_budget").default(0.0),
+  budget: real("event_budget").default(0.0),
+  leaderRate: real("leader_rate").default(0.0),
+  regularRate: real("regular_rate").default(0.0),
+  superAdminLockedFields: jsonb("super_admin_locked_fields").$type<string[]>().default([]),
   contactName: varchar("contact_name", { length: 255 }),
   contactPhone: varchar("contact_phone", { length: 50 }),
   status: varchar("status", { length: 50 }).default("draft"),

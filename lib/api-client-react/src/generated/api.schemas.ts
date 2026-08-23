@@ -247,7 +247,10 @@ export interface Event {
   startTime: string;
   endTime: string;
   checkinRadiusM?: number;
-  eventBudget?: number;
+  budget?: number;
+  leaderRate?: number;
+  regularRate?: number;
+  superAdminLockedFields?: string[];
   /** @nullable */
   contactName?: string | null;
   /** @nullable */
@@ -266,6 +269,7 @@ export interface EventAssignment {
   usherId: number;
   status: string;
   isTeamLead?: boolean;
+  role?: string;
   /** @nullable */
   checkinTime?: string | null;
   /** @nullable */
@@ -312,7 +316,10 @@ export interface EventDetail {
   startTime: string;
   endTime: string;
   checkinRadiusM?: number;
-  eventBudget?: number;
+  budget?: number;
+  leaderRate?: number;
+  regularRate?: number;
+  superAdminLockedFields?: string[];
   /** @nullable */
   contactName?: string | null;
   /** @nullable */
@@ -348,7 +355,10 @@ export interface EventInput {
   startTime: string;
   endTime: string;
   checkinRadiusM?: number;
-  eventBudget?: number;
+  budget?: number;
+  leaderRate?: number;
+  regularRate?: number;
+  superAdminLockedFields?: string[];
   /** @nullable */
   contactName?: string | null;
   /** @nullable */
@@ -378,7 +388,10 @@ export interface EventUpdate {
   startTime?: string;
   endTime?: string;
   checkinRadiusM?: number;
-  eventBudget?: number;
+  budget?: number;
+  leaderRate?: number;
+  regularRate?: number;
+  superAdminLockedFields?: string[];
   /** @nullable */
   contactName?: string | null;
   /** @nullable */
@@ -407,6 +420,7 @@ export interface AssignmentWithUsher {
   eventTeamId?: number | null;
   status: string;
   isTeamLead: boolean;
+  role?: string;
   /** @nullable */
   checkinTime?: string | null;
   /** @nullable */
@@ -421,6 +435,7 @@ export interface AssignmentInput {
   /** @nullable */
   eventTeamId?: number | null;
   isTeamLead?: boolean;
+  role?: string;
 }
 
 export interface MyWaitlistEntry {
@@ -438,6 +453,7 @@ export interface TeamMember {
   /** @nullable */
   profilePhotoUrl?: string | null;
   isTeamLead: boolean;
+  role?: string;
   /** @nullable */
   phone?: string | null;
   status?: string;
@@ -457,6 +473,7 @@ export interface MyAssignment {
   eventTeamId?: number | null;
   status: string;
   isTeamLead?: boolean;
+  role?: string;
   /** @nullable */
   checkinTime?: string | null;
   /** @nullable */

@@ -23,6 +23,7 @@ import {
   getListWaitlistQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient, useQueries } from "@tanstack/react-query";
+import { useGetMe } from "@workspace/api-client-react";
 import { 
   Card, 
   CardContent, 
@@ -75,11 +76,23 @@ export default function EventDetails() {
   const eventId = params?.id ? parseInt(params.id, 10) : 0;
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { data: user } = useGetMe();
+  const isSuperAdmin = user?.role === "super_admin";
+
+  const { data: event, isLoading: isEventLoading, refetch } = useGetEvent(
+    eventId,
+    { query: { enabled: !!eventId, queryKey: getGetEventQueryKey(eventId) as any } as any }
+  );
 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [ratingAssignment, setRatingAssignment] = useState<any>(null);
   const [ratingValue, setRatingValue] = useState(5);
   const [ratingComment, setRatingComment] = useState("");
+
+  const isFieldLocked = (fieldName: string) => {
+    if (isSuperAdmin) return false;
+    return event?.superAdminLockedFields?.includes(fieldName) ?? false;
+  };
   const [isSubmittingRating, setIsSubmittingRating] = useState(false);
 
   // ─── WAITLIST ────────────────────────────────────────────────────────────
@@ -88,6 +101,14 @@ export default function EventDetails() {
       enabled: !!eventId,
     } as any
   });
+
+  
+  const totalSpent = (event?.assignments || []).reduce((acc: number, a: any) => {
+    if (a.status !== 'assigned' && a.status !== 'accepted' && a.status !== 'checked_in') return acc;
+    return acc + (a.role === 'leader' ? (event?.leaderRate || 0) : (event?.regularRate || 0));
+  }, 0);
+  
+  const isBudgetExceeded = event?.budget && totalSpent > event.budget;
 
   const { mutate: addToWaitlist, isPending: isAddingToWaitlist } = useAddToWaitlist({
     mutation: {
@@ -172,10 +193,7 @@ export default function EventDetails() {
     }
   };
 
-  const { data: event, isLoading: isEventLoading, refetch } = useGetEvent(
-    eventId,
-    { query: { enabled: !!eventId, queryKey: getGetEventQueryKey(eventId) as any } as any }
-  );
+
 
   const [newTeamName, setNewTeamName] = useState("");
   const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
@@ -300,7 +318,9 @@ export default function EventDetails() {
     endTime: "",
     dressCode: "",
     instructions: "",
-    eventBudget: "",
+    budget: "",
+    leaderRate: "",
+    regularRate: "",
   });
 
   useEffect(() => {
@@ -320,7 +340,9 @@ export default function EventDetails() {
         endTime: format(end, "HH:mm"),
         dressCode: event.dressCode || "",
         instructions: event.instructions || "",
-        eventBudget: event.eventBudget ? String(event.eventBudget) : "",
+        budget: event.budget ? String(event.budget) : "",
+          leaderRate: event.leaderRate ? String(event.leaderRate) : "",
+          regularRate: event.regularRate ? String(event.regularRate) : "",
       });
     }
   }, [event]);
@@ -351,7 +373,9 @@ export default function EventDetails() {
         endTime: endDateTime.toISOString(),
         dressCode: formData.dressCode || undefined,
         instructions: formData.instructions || undefined,
-        eventBudget: formData.eventBudget ? parseFloat(formData.eventBudget) : undefined,
+        budget: isSuperAdmin && formData.budget ? parseFloat(formData.budget) : undefined,
+          leaderRate: formData.leaderRate ? parseFloat(formData.leaderRate) : undefined,
+          regularRate: formData.regularRate ? parseFloat(formData.regularRate) : undefined,
         version: event?.version
       }
     });
@@ -537,15 +561,41 @@ export default function EventDetails() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 gap-2">
-                    <Label htmlFor="eventBudget">Budget (EGP)</Label>
-                    <Input 
-                      id="eventBudget" 
-                      type="number" 
-                      value={formData.eventBudget} 
-                      onChange={e => setFormData(p => ({ ...p, eventBudget: e.target.value }))}
-                    />
-                  </div>
+                  
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="grid gap-2">
+                        <Label htmlFor="leaderRate">Leader Pay Rate (EGP)</Label>
+                        <Input 
+                          id="leaderRate" 
+                          type="number" 
+                          value={formData.leaderRate} 
+                          onChange={e => setFormData(p => ({ ...p, leaderRate: e.target.value }))}
+                          disabled={isFieldLocked('leaderRate')}
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="regularRate">Regular Pay Rate (EGP)</Label>
+                        <Input 
+                          id="regularRate" 
+                          type="number" 
+                          value={formData.regularRate} 
+                          onChange={e => setFormData(p => ({ ...p, regularRate: e.target.value }))}
+                          disabled={isFieldLocked('regularRate')}
+                        />
+                      </div>
+                    </div>
+                    {isSuperAdmin && (
+                      <div className="grid grid-cols-1 gap-2">
+                        <Label htmlFor="budget">Total Event Budget (EGP)</Label>
+                        <Input 
+                          id="budget" 
+                          type="number" 
+                          value={formData.budget} 
+                          onChange={e => setFormData(p => ({ ...p, budget: e.target.value }))}
+                        />
+                      </div>
+                    )}
+  
 
                   <div className="grid grid-cols-1 gap-2">
                     <Label htmlFor="dressCode">Dress Code</Label>
@@ -616,10 +666,20 @@ export default function EventDetails() {
                   <span className="text-muted-foreground">End Time</span>
                   <span className="font-medium">{format(new Date(event.endTime), 'h:mm a')}</span>
                 </div>
-                <div className="flex justify-between border-b pb-2">
-                  <span className="text-muted-foreground">Budget</span>
-                  <span className="font-medium">EGP {event.eventBudget?.toLocaleString()}</span>
-                </div>
+                
+                  <div className="flex justify-between border-b pb-2">
+                    <span className="text-muted-foreground">Budget</span>
+                    <span className="font-medium">EGP {event.budget?.toLocaleString() || "Not set"}</span>
+                  </div>
+                  <div className="flex justify-between border-b pb-2">
+                    <span className="text-muted-foreground">Leader Pay Rate</span>
+                    <span className="font-medium">EGP {event.leaderRate?.toLocaleString() || "Not set"}</span>
+                  </div>
+                  <div className="flex justify-between border-b pb-2">
+                    <span className="text-muted-foreground">Regular Pay Rate</span>
+                    <span className="font-medium">EGP {event.regularRate?.toLocaleString() || "Not set"}</span>
+                  </div>
+  
                 <div className="flex justify-between border-b pb-2">
                   <span className="text-muted-foreground">Geofence Range</span>
                   <span className="font-semibold text-primary">{event.checkinRadiusM || 100} meters</span>
@@ -743,10 +803,20 @@ export default function EventDetails() {
           <Card className="flex flex-col">
             <CardHeader className="pb-3 border-b border-primary/10">
               <CardTitle className="flex items-center justify-between">
-                <span className="flex items-center gap-2">
-                  <Users className="w-5 h-5 text-primary" />
-                  Assigned Staff ({event.assignments?.filter((a: any) => selectedTeamId === null ? true : a.eventTeamId === selectedTeamId).length || 0})
-                </span>
+                
+                <div className="flex flex-col gap-1">
+                  <span className="flex items-center gap-2">
+                    <Users className="w-5 h-5 text-primary" />
+                    Assigned Staff ({event.assignments?.filter((a: any) => selectedTeamId === null ? true : a.eventTeamId === selectedTeamId).length || 0})
+                  </span>
+                  {event.budget && (
+                    <span className={`text-xs font-normal ${isBudgetExceeded ? 'text-destructive' : 'text-muted-foreground'}`}>
+                      Budget: EGP {totalSpent.toLocaleString()} / {event.budget.toLocaleString()} 
+                      {isBudgetExceeded && ' (Exceeded)'}
+                    </span>
+                  )}
+                </div>
+  
                 {selectedTeamId !== null && (
                   <Badge variant="outline" className="text-xs bg-primary/10">
                     {teams?.find((t: any) => t.id === selectedTeamId)?.name}
@@ -812,6 +882,7 @@ export default function EventDetails() {
                             Remove
                           </Button>
                         </div>
+                        
                         {selectedTeamId === null && teams && teams.length > 0 && !hasStarted && (
                           <select 
                             className="text-[10px] border rounded px-1 py-0.5 mt-1 bg-muted/20"
@@ -825,6 +896,26 @@ export default function EventDetails() {
                             {teams.map((t: any) => <option key={t.id} value={t.id}>{t.name}</option>)}
                           </select>
                         )}
+                        {!hasStarted && (
+                          <select 
+                            className="text-[10px] border rounded px-1 py-0.5 mt-1 bg-muted/20"
+                            value={assignment.role || "regular"}
+                            onChange={(e) => {
+                              updateAssignment({ 
+                                id: eventId, 
+                                assignmentId: assignment.id, 
+                                data: { 
+                                  usherId: assignment.usherId, 
+                                  role: e.target.value as "regular" | "leader" 
+                                } 
+                              });
+                            }}
+                          >
+                            <option value="regular">Regular</option>
+                            <option value="leader">Leader</option>
+                          </select>
+                        )}
+
                       </div>
                     </div>
                   </div>

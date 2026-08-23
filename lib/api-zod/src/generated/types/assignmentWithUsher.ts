@@ -14,6 +14,7 @@ export interface AssignmentWithUsher {
   eventTeamId?: number | null;
   status: string;
   isTeamLead: boolean;
+  role?: string;
   /** @nullable */
   checkinTime?: string | null;
   /** @nullable */
