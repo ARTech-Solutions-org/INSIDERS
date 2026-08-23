@@ -33,7 +33,7 @@ export const RegisterUsherBody = zod.object({
   "pantsSize": zod.string().nullish(),
   "shortsSize": zod.string().nullish(),
   "phone": zod.string(),
-  "email": zod.email(),
+  "email": zod.string().email(),
   "nationalIdNumber": zod.string(),
   "password": zod.string(),
   "nationalIdDocUrl": zod.string().nullish(),
@@ -80,7 +80,7 @@ export const RegisterUsherResponse = zod.object({
  * @summary Usher login
  */
 export const LoginUsherBody = zod.object({
-  "email": zod.email(),
+  "email": zod.string().email(),
   "password": zod.string()
 })
 
@@ -117,7 +117,7 @@ export const LoginUsherResponse = zod.object({
  * @summary Admin login
  */
 export const LoginAdminBody = zod.object({
-  "email": zod.email(),
+  "email": zod.string().email(),
   "password": zod.string()
 })
 
@@ -2740,7 +2740,7 @@ export const ListAdminsResponse = zod.array(ListAdminsResponseItem)
  */
 export const CreateAdminBody = zod.object({
   "name": zod.string(),
-  "email": zod.email(),
+  "email": zod.string().email(),
   "password": zod.string(),
   "role": zod.string()
 })

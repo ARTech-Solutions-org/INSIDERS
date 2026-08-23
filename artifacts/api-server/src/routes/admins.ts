@@ -230,7 +230,7 @@ router.get("/fcm-debug", async (req, res) => {
 router.get("/audit-log", requireSuperAdmin, async (req, res) => {
   const { adminId, actionType, from, to, page = "1", limit = "50" } = req.query as Record<string, string>;
   const offset = (parseInt(page) - 1) * parseInt(limit);
-  const rows = await db.select({ id: auditLogTable.id, adminId: auditLogTable.adminId, actionType: auditLogTable.actionType, targetTable: auditLogTable.targetTable, targetId: auditLogTable.targetId, details: auditLogTable.details, createdAt: auditLogTable.createdAt, adminName: adminsTable.name }).from(auditLogTable).leftJoin(adminsTable, adminInvitationsTable, eq(auditLogTable.adminId, adminsTable.id)).orderBy(desc(auditLogTable.createdAt)).limit(parseInt(limit)).offset(offset);
+  const rows = await db.select({ id: auditLogTable.id, adminId: auditLogTable.adminId, actionType: auditLogTable.actionType, targetTable: auditLogTable.targetTable, targetId: auditLogTable.targetId, details: auditLogTable.details, createdAt: auditLogTable.createdAt, adminName: adminsTable.name }).from(auditLogTable).leftJoin(adminsTable, eq(auditLogTable.adminId, adminsTable.id)).orderBy(desc(auditLogTable.createdAt)).limit(parseInt(limit)).offset(offset);
   res.json(rows);
 });
 
@@ -269,7 +269,7 @@ router.get("/admin/dashboard", requireAdmin, async (req, res) => {
 
   if (isSuperAdmin) {
     const [{ balanceOwed }] = await db.select({ balanceOwed: sql<number>`coalesce(sum(balance), 0)::float` }).from(ushersTable).where(gte(ushersTable.balance, 0));
-    const recentActivity = await db.select({ id: auditLogTable.id, adminId: auditLogTable.adminId, actionType: auditLogTable.actionType, targetTable: auditLogTable.targetTable, targetId: auditLogTable.targetId, details: auditLogTable.details, createdAt: auditLogTable.createdAt, adminName: adminsTable.name }).from(auditLogTable).leftJoin(adminsTable, adminInvitationsTable, eq(auditLogTable.adminId, adminsTable.id)).orderBy(desc(auditLogTable.createdAt)).limit(10);
+    const recentActivity = await db.select({ id: auditLogTable.id, adminId: auditLogTable.adminId, actionType: auditLogTable.actionType, targetTable: auditLogTable.targetTable, targetId: auditLogTable.targetId, details: auditLogTable.details, createdAt: auditLogTable.createdAt, adminName: adminsTable.name }).from(auditLogTable).leftJoin(adminsTable, eq(auditLogTable.adminId, adminsTable.id)).orderBy(desc(auditLogTable.createdAt)).limit(10);
     res.json({ totalActiveUshers: active, pendingApprovals: pending, upcomingEventsThisWeek: upcoming, totalBalanceOwed: balanceOwed, recentActivity, eventTrends });
   } else {
     res.json({ totalActiveUshers: active, pendingApprovals: pending, upcomingEventsThisWeek: upcoming, totalBalanceOwed: null, recentActivity: null, eventTrends });
