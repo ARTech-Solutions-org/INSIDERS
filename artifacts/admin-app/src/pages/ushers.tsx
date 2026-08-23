@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Search, MoreVertical, Eye, CheckCircle, XCircle, Download } from "lucide-react";
+import { Search, MoreVertical, Eye, CheckCircle, XCircle, Download, Star } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,

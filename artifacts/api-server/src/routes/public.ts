@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db, eventFeedbackLinksTable, eventsTable, eventTeamsTable, eventAssignmentsTable, ushersTable, eventFeedbackTable } from "@workspace/db";
 import { eq, and, isNull } from "drizzle-orm";
-import { PublicFeedbackSubmitBody, SubmitPublicEventFeedbackBody } from "@workspace/api-zod";
+import { SubmitPublicEventFeedbackBody } from "@workspace/api-zod";
 import { recalculateUsherCompositeRating } from "../lib/auto-rating-engine.js";
 
 const router = Router();

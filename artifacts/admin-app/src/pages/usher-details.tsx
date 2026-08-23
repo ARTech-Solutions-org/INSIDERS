@@ -9,6 +9,7 @@ import {
   getGetUsherQueryKey,
   getListUshersQueryKey,
   getListUsherDocumentsQueryKey,
+  getGetUsherReliabilityEventsQueryKey,
   useGetMe
 } from "@workspace/api-client-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -93,6 +94,7 @@ export default function UsherDetails() {
   const { data: reliabilityData } = useGetUsherReliabilityEvents(usherId, {
     query: {
       enabled: !!usherId,
+      queryKey: getGetUsherReliabilityEventsQueryKey(usherId) as any
     }
   });
 
