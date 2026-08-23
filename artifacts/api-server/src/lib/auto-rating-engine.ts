@@ -185,42 +185,47 @@ export async function recalculateUsherCompositeRating(usherId: number): Promise<
       )
     );
 
-  let reliabilityScore = 5;
-  for (const ev of reliabilityEvents) {
-    if (ev.type === "no_show") reliabilityScore -= cfg.noShowPenalty;
-    else if (ev.type === "late_cancellation") reliabilityScore -= cfg.lateCancellationPenalty;
+  let reliabilityScore: number | null = null;
+  if (attendedAssignments.length > 0 || reliabilityEvents.length > 0 || clientRatingsCount > 0) {
+    reliabilityScore = 5;
+    for (const ev of reliabilityEvents) {
+      if (ev.type === "no_show") reliabilityScore -= cfg.noShowPenalty;
+      else if (ev.type === "late_cancellation") reliabilityScore -= cfg.lateCancellationPenalty;
+    }
+    reliabilityScore = parseFloat(Math.max(0, Math.min(5, reliabilityScore)).toFixed(2));
   }
-  reliabilityScore = parseFloat(Math.max(0, Math.min(5, reliabilityScore)).toFixed(2));
 
   // ── 4. Composite ──────────────────────────────────────────────────────────
   let { clientRatingWeight, punctualityWeight, reliabilityWeight } = cfg;
 
-  // If no client ratings yet, renormalize other weights
-  let effectiveClientRating = clientRatingAvg;
-  if (effectiveClientRating === null) {
-    const remaining = punctualityWeight + reliabilityWeight;
-    if (remaining > 0) {
-      punctualityWeight = punctualityWeight / remaining;
-      reliabilityWeight = reliabilityWeight / remaining;
-    }
-    effectiveClientRating = 0; // won't contribute
-    clientRatingWeight = 0;
-  }
+  let composite = 0;
 
-  const composite = parseFloat(
-    (
-      (effectiveClientRating * clientRatingWeight) +
-      ((punctualityScore ?? 5) * punctualityWeight) +
-      (reliabilityScore * reliabilityWeight)
-    ).toFixed(2)
-  );
+  if (clientRatingAvg === null && punctualityScore === null && reliabilityScore === null) {
+    // Brand new usher, no history at all
+    composite = 0;
+  } else {
+    // Calculate total weight for the metrics we actually have
+    let totalWeight = 0;
+    if (clientRatingAvg !== null) totalWeight += clientRatingWeight;
+    if (punctualityScore !== null) totalWeight += punctualityWeight;
+    if (reliabilityScore !== null) totalWeight += reliabilityWeight;
+
+    if (totalWeight > 0) {
+      let calc = 0;
+      if (clientRatingAvg !== null) calc += clientRatingAvg * (clientRatingWeight / totalWeight);
+      if (punctualityScore !== null) calc += punctualityScore * (punctualityWeight / totalWeight);
+      if (reliabilityScore !== null) calc += reliabilityScore * (reliabilityWeight / totalWeight);
+      
+      composite = parseFloat(calc.toFixed(2));
+    }
+  }
 
   // ── 5. Persist ────────────────────────────────────────────────────────────
   await db.update(ushersTable).set({
     avgRating: composite,
     clientRatingAvg: clientRatingAvg ?? undefined,
     punctualityScore: punctualityScore ?? undefined,
-    reliabilityScore,
+    reliabilityScore: reliabilityScore ?? undefined,
     lastRatingRecalcAt: new Date(),
   }).where(eq(ushersTable.id, usherId));
 }
