@@ -207,7 +207,12 @@ export default function EventDetails() {
       });
 
       if (!res.ok) {
-        const errorData = await res.json();
+        let errorData: any = {};
+        try {
+          errorData = await res.json();
+        } catch (e) {
+          errorData = { error: `Server returned status ${res.status}` };
+        }
         throw new Error(errorData.error || "Failed to submit rating");
       }
 

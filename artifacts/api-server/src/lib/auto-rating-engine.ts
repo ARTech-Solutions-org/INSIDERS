@@ -59,41 +59,80 @@ function computePunctualityForAssignment(
 export async function recalculateUsherCompositeRating(usherId: number): Promise<void> {
   const cfg = await loadRatingConfig();
 
-  // ── 1. Client Rating Avg ───────────────────────────────────────────────────
-  // a) From public event feedback usherOverrides (stored as JSON in event_feedback)
-  const feedbackRows = await db
-    .select({ usherOverrides: eventFeedbackTable.usherOverrides })
-    .from(eventFeedbackTable);
-
-  let clientRatingsTotal = 0;
-  let clientRatingsCount = 0;
-
-  for (const row of feedbackRows) {
-    if (!row.usherOverrides) continue;
-    let overrides: { usherId: number; rating: number }[] = [];
-    try {
-      overrides = typeof row.usherOverrides === "string"
-        ? JSON.parse(row.usherOverrides)
-        : (row.usherOverrides as any[]);
-    } catch { continue; }
-    for (const o of overrides) {
-      if (o.usherId === usherId && o.rating > 0) {
-        clientRatingsTotal += o.rating;
-        clientRatingsCount++;
-      }
-    }
-  }
-
-  // b) From manual ratings (admin/holder) linked to this usher's assignments
+  // ── 1. Fetch Assignments ─────────────────────────────────────────────────────
+  // Get all assignments for this usher (needed for both manual ratings and finding their team for public feedback)
   const assignments = await db
-    .select({ id: eventAssignmentsTable.id, checkinTime: eventAssignmentsTable.checkinTime,
+    .select({ 
+      id: eventAssignmentsTable.id, 
+      eventId: eventAssignmentsTable.eventId,
+      eventTeamId: eventAssignmentsTable.eventTeamId,
+      checkinTime: eventAssignmentsTable.checkinTime,
       lateArrivalMinutes: eventAssignmentsTable.lateArrivalMinutes,
-      earlyLeaveMinutes: eventAssignmentsTable.earlyLeaveMinutes })
+      earlyLeaveMinutes: eventAssignmentsTable.earlyLeaveMinutes 
+    })
     .from(eventAssignmentsTable)
     .where(eq(eventAssignmentsTable.usherId, usherId));
 
   const assignmentIds = assignments.map((a) => a.id);
+  const eventTeamMap = new Map<number, number | null>(); // eventId -> eventTeamId
+  for (const a of assignments) {
+    eventTeamMap.set(a.eventId, a.eventTeamId);
+  }
 
+  let clientRatingsTotal = 0;
+  let clientRatingsCount = 0;
+
+  // ── 2. Client Rating Avg ───────────────────────────────────────────────────
+  // a) From public event feedback (teamRatings + usherOverrides)
+  const feedbackRows = await db
+    .select({ 
+      eventId: eventFeedbackTable.eventId,
+      usherOverrides: eventFeedbackTable.usherOverrides,
+      teamRatings: eventFeedbackTable.teamRatings
+    })
+    .from(eventFeedbackTable);
+
+  for (const row of feedbackRows) {
+    // Only process events the usher was actually assigned to
+    if (!eventTeamMap.has(row.eventId)) continue;
+
+    let overrideRating: number | null = null;
+    
+    // Check if usher has an explicit override
+    if (row.usherOverrides) {
+      try {
+        const overrides = typeof row.usherOverrides === "string" 
+          ? JSON.parse(row.usherOverrides) 
+          : (row.usherOverrides as any[]);
+        const match = overrides.find((o: any) => o.usherId === usherId);
+        if (match && match.rating > 0) {
+          overrideRating = match.rating;
+        }
+      } catch {}
+    }
+
+    if (overrideRating !== null) {
+      // Use the usher-specific rating
+      clientRatingsTotal += overrideRating;
+      clientRatingsCount++;
+    } else if (row.teamRatings) {
+      // Fallback to their team rating for that event
+      try {
+        const teamId = eventTeamMap.get(row.eventId) || 0; // 0 represents "General" unassigned team
+        const teamRatings = typeof row.teamRatings === "string"
+          ? JSON.parse(row.teamRatings)
+          : (row.teamRatings as any[]);
+        
+        const match = teamRatings.find((t: any) => t.teamId === teamId);
+        if (match && match.rating > 0) {
+          clientRatingsTotal += match.rating;
+          clientRatingsCount++;
+        }
+      } catch {}
+    }
+  }
+
+  // b) From manual ratings (admin/holder) linked to this usher's assignments
   if (assignmentIds.length > 0) {
     const manualRatings = await db
       .select({ ratingValue: ratingsTable.ratingValue, ratedByType: ratingsTable.ratedByType })

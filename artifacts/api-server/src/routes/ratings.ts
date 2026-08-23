@@ -35,9 +35,9 @@ router.post("/ratings", requireAuth, async (req, res) => {
     [rating] = await db.insert(ratingsTable).values(parsed.data).returning();
   }
 
-  const [assignment] = await db.select().from(eventAssignmentsTable).where(eq(eventAssignmentsTable.id, rating.eventAssignmentId));
+  const [assignment] = await db.select().from(eventAssignmentsTable).where(eq(eventAssignmentsTable.id, rating?.eventAssignmentId || parsed.data.eventAssignmentId));
   if (assignment) recalculateUsherCompositeRating(assignment.usherId).catch(() => {});
-  res.status(201).json(rating);
+  res.status(201).json(rating || { success: true });
 });
 
 // POST /ratings/holder/:token (public)
