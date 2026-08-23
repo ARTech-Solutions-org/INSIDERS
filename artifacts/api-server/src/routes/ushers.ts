@@ -93,7 +93,12 @@ router.patch("/ushers/me", requireUsher, async (req, res) => {
     }
   }
 
-  const [usher] = await db.update(ushersTable).set(parsed.data).where(eq(ushersTable.id, req.user!.id)).returning();
+  const updateData: any = { ...parsed.data };
+  if (updateData.nationalIdExpiryDate instanceof Date) {
+    updateData.nationalIdExpiryDate = updateData.nationalIdExpiryDate.toISOString().split('T')[0];
+  }
+
+  const [usher] = await db.update(ushersTable).set(updateData).where(eq(ushersTable.id, req.user!.id)).returning();
   const { passwordHash: _ph, ...safe } = usher;
   res.json(safe);
 });
@@ -118,8 +123,13 @@ router.patch("/ushers/:id", requireAdmin, async (req, res) => {
   const [existing] = await db.select().from(ushersTable).where(eq(ushersTable.id, usherId));
   if (!existing) { res.status(404).json({ error: "Not found" }); return; }
 
+  const updateData: any = { ...parsed.data };
+  if (updateData.nationalIdExpiryDate instanceof Date) {
+    updateData.nationalIdExpiryDate = updateData.nationalIdExpiryDate.toISOString().split('T')[0];
+  }
+
   const [updated] = await db.update(ushersTable)
-    .set(parsed.data)
+    .set(updateData)
     .where(eq(ushersTable.id, usherId))
     .returning();
   
