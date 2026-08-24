@@ -137,7 +137,32 @@ router.patch("/events/:id", requireAdmin, async (req, res) => {
       
       let newLockedFields = lockedFields;
       if (isSuperAdmin) {
-        const editedFields = Object.keys(parsed.data).filter(key => key !== 'version');
+        const editedFields = Object.keys(parsed.data).filter(key => {
+          if (key === 'version') return false;
+          
+          const val = parsed.data[key as keyof typeof parsed.data];
+          const existVal = existing[key as keyof typeof existing];
+          
+          // Helper to normalize and compare dates
+          if (key === 'startTime' || key === 'endTime') {
+             const vTime = val ? new Date(val).getTime() : null;
+             const eTime = existVal ? new Date(existVal).getTime() : null;
+             return vTime !== eTime;
+          }
+          
+          // Helper to handle null vs undefined equivalents
+          if ((val === null || val === undefined || val === '') && (existVal === null || existVal === undefined || existVal === '')) {
+             return false; // Both are empty-ish
+          }
+          
+          // Compare numbers where string/number types might get mixed up occasionally (e.g. lat/lng)
+          if (typeof val === 'number' || typeof existVal === 'number') {
+             return Number(val) !== Number(existVal);
+          }
+          
+          return val !== existVal;
+        });
+        
         newLockedFields = Array.from(new Set([...lockedFields, ...editedFields]));
       }
       
