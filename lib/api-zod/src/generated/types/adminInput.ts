@@ -10,4 +10,5 @@ export interface AdminInput {
   email: string;
   password: string;
   role: string;
+  canManageFinance?: boolean;
 }

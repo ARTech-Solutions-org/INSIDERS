@@ -9,7 +9,9 @@ export default function Dashboard() {
     query: { queryKey: getGetAdminDashboardQueryKey(), refetchInterval: 30000 } // Auto-refresh every 30 seconds
   });
   const { data: me } = useGetMe();
+
   const isSuper = me?.type === "admin" && me?.role === "super_admin";
+  const hasFinanceAccess = isSuper || (me?.type === "admin" && me?.canManageFinance);
 
   if (isLoading) {
     return (
@@ -42,7 +44,7 @@ export default function Dashboard() {
         <p className="text-muted-foreground">Overview of system operations and upcoming events.</p>
       </div>
 
-      <div className={`grid gap-4 md:grid-cols-2 ${isSuper ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
+      <div className={`grid gap-4 md:grid-cols-2 ${hasFinanceAccess ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Ushers</CardTitle>
@@ -77,7 +79,7 @@ export default function Dashboard() {
         </Card>
 
         {/* Balance Owed — super_admin only */}
-        {isSuper && (
+        {hasFinanceAccess && (
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-primary">Balance Owed</CardTitle>
@@ -92,7 +94,7 @@ export default function Dashboard() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className={isSuper ? "col-span-4" : "col-span-7"}>
+        <Card className={hasFinanceAccess ? "col-span-4" : "col-span-7"}>
           <CardHeader>
             <CardTitle>Event Trends (Last 6 Months)</CardTitle>
             <CardDescription>
@@ -138,7 +140,7 @@ export default function Dashboard() {
         </Card>
 
         {/* Recent Activity — super_admin only */}
-        {isSuper && (
+        {hasFinanceAccess && (
           <Card className="col-span-3">
             <CardHeader>
               <CardTitle>Recent Activity</CardTitle>

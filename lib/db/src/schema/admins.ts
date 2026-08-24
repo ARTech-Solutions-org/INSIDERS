@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, integer, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, varchar, integer, timestamp, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -9,6 +9,7 @@ export const adminsTable = pgTable("admins", {
   passwordHash: varchar("password_hash", { length: 255 }).notNull(),
   role: varchar("role", { length: 50 }).notNull(),
   createdByAdminId: integer("created_by_admin_id").references((): any => adminsTable.id, { onDelete: "set null" }),
+  canManageFinance: boolean("can_manage_finance").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

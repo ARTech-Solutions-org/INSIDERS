@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useGetRatingConfig, useUpdateRatingConfig, getGetRatingConfigQueryKey, useListAdmins, useCreateAdminInvitation } from '@workspace/api-client-react';
+import { useGetRatingConfig, useUpdateRatingConfig, getGetRatingConfigQueryKey, useListAdmins, useCreateAdminInvitation, useUpdateAdmin, getListAdminsQueryKey } from '@workspace/api-client-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button';
 import { Loader2, Settings2, Save, AlertTriangle, Users, Copy, Plus } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Switch } from '@/components/ui/switch';
 
 const formSchema = z.object({
   clientRatingWeight: z.coerce.number().min(0).max(1),
@@ -361,6 +363,8 @@ export default function Settings() {
 function AdminsManagement() {
   const { data: admins, isLoading } = useListAdmins();
   const { mutateAsync: createInvite, isPending: isInviting } = useCreateAdminInvitation();
+  const { mutateAsync: updateAdmin } = useUpdateAdmin();
+  const queryClient = useQueryClient();
   const { toast } = useToast();
 
   const handleInvite = async () => {
@@ -376,6 +380,23 @@ function AdminsManagement() {
       toast({
         title: "Error",
         description: "Failed to create invitation link.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleUpdateFinanceAccess = async (adminId: number, canManageFinance: boolean) => {
+    try {
+      await updateAdmin({ id: adminId, data: { canManageFinance } });
+      toast({
+        title: "Updated",
+        description: "Admin finance access has been updated.",
+      });
+      queryClient.invalidateQueries({ queryKey: getListAdminsQueryKey() });
+    } catch (e) {
+      toast({
+        title: "Error",
+        description: "Failed to update admin.",
         variant: "destructive",
       });
     }
@@ -400,14 +421,15 @@ function AdminsManagement() {
         </CardHeader>
         <CardContent>
           <div className="rounded-md border mt-4">
-            <div className="grid grid-cols-3 gap-4 p-4 font-medium border-b bg-muted/50">
+            <div className="grid grid-cols-4 gap-4 p-4 font-medium border-b bg-muted/50">
               <div>Name</div>
               <div>Email</div>
               <div>Role</div>
+              <div>Finance Access</div>
             </div>
             <div className="divide-y">
               {admins?.map((admin) => (
-                <div key={admin.id} className="grid grid-cols-3 gap-4 p-4 items-center">
+                <div key={admin.id} className="grid grid-cols-4 gap-4 p-4 items-center">
                   <div>{admin.name}</div>
                   <div className="text-muted-foreground">{admin.email}</div>
                   <div>
@@ -415,10 +437,17 @@ function AdminsManagement() {
                       {admin.role}
                     </Badge>
                   </div>
+                  <div>
+                    <Switch
+                      checked={admin.role === 'super_admin' ? true : admin.canManageFinance}
+                      disabled={admin.role === 'super_admin'}
+                      onCheckedChange={(checked) => handleUpdateFinanceAccess(admin.id, checked)}
+                    />
+                  </div>
                 </div>
               ))}
               {!admins?.length && (
-                <div className="p-4 text-center text-muted-foreground">No admins found</div>
+                <div className="col-span-4 p-4 text-center text-muted-foreground">No admins found</div>
               )}
             </div>
           </div>

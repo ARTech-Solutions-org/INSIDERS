@@ -4,7 +4,7 @@ import { useGetMe, useLogout } from "@workspace/api-client-react";
 import { 
   LayoutDashboard, 
   Users, 
-  Calendar, 
+  CalendarDays, 
   Settings, 
   LogOut, 
   ShieldAlert,
@@ -45,13 +45,14 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   }
 
   const isSuper = user?.role === "super_admin";
+  const hasFinanceAccess = isSuper || user?.canManageFinance;
 
   const navigation = [
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
-    { name: "Events", href: "/events", icon: Calendar },
+    { name: "Events", href: "/events", icon: CalendarDays },
     { name: "Ushers", href: "/ushers", icon: Users },
     { name: "Broadcasts", href: "/broadcasts", icon: Megaphone },
-    { name: "Financials", href: "/financials", icon: Wallet, hide: !isSuper },
+    { name: "Financials", href: "/financials", icon: Wallet, hide: !hasFinanceAccess },
     { name: "Audit Log", href: "/audit-log", icon: ShieldAlert, hide: !isSuper },
     { name: "Settings", href: "/settings", icon: Settings, hide: !isSuper },
   ].filter(item => !item.hide);

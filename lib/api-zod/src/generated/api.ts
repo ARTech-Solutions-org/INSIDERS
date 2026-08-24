@@ -131,6 +131,7 @@ export const LoginAdminResponse = zod.object({
   "email": zod.string(),
   "role": zod.string(),
   "createdByAdminId": zod.number().int().nullish(),
+  "canManageFinance": zod.boolean().optional(),
   "createdAt": zod.coerce.date()
 })
 })
@@ -145,6 +146,7 @@ export const GetMeResponse = zod.object({
   "name": zod.string().optional(),
   "email": zod.string().optional(),
   "role": zod.string().nullish(),
+  "canManageFinance": zod.boolean().optional(),
   "status": zod.string().nullish()
 })
 
@@ -2767,6 +2769,7 @@ export const RegisterAdminResponse = zod.object({
   "email": zod.string(),
   "role": zod.string(),
   "createdByAdminId": zod.number().int().nullish(),
+  "canManageFinance": zod.boolean().optional(),
   "createdAt": zod.coerce.date()
 })
 
@@ -2780,6 +2783,7 @@ export const ListAdminsResponseItem = zod.object({
   "email": zod.string(),
   "role": zod.string(),
   "createdByAdminId": zod.number().int().nullish(),
+  "canManageFinance": zod.boolean().optional(),
   "createdAt": zod.coerce.date()
 })
 export const ListAdminsResponse = zod.array(ListAdminsResponseItem)
@@ -2792,7 +2796,8 @@ export const CreateAdminBody = zod.object({
   "name": zod.string(),
   "email": zod.string().email(),
   "password": zod.string(),
-  "role": zod.string()
+  "role": zod.string(),
+  "canManageFinance": zod.boolean().optional()
 })
 
 export const CreateAdminResponse = zod.object({
@@ -2801,6 +2806,7 @@ export const CreateAdminResponse = zod.object({
   "email": zod.string(),
   "role": zod.string(),
   "createdByAdminId": zod.number().int().nullish(),
+  "canManageFinance": zod.boolean().optional(),
   "createdAt": zod.coerce.date()
 })
 
@@ -2814,7 +2820,8 @@ export const UpdateAdminParams = zod.object({
 
 export const UpdateAdminBody = zod.object({
   "name": zod.string().optional(),
-  "role": zod.string().optional()
+  "role": zod.string().optional(),
+  "canManageFinance": zod.boolean().optional()
 })
 
 export const UpdateAdminResponse = zod.object({
@@ -2823,6 +2830,7 @@ export const UpdateAdminResponse = zod.object({
   "email": zod.string(),
   "role": zod.string(),
   "createdByAdminId": zod.number().int().nullish(),
+  "canManageFinance": zod.boolean().optional(),
   "createdAt": zod.coerce.date()
 })
 

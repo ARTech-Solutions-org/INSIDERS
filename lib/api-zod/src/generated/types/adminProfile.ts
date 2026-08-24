@@ -12,5 +12,6 @@ export interface AdminProfile {
   role: string;
   /** @nullable */
   createdByAdminId?: number | null;
+  canManageFinance?: boolean;
   createdAt: Date;
 }

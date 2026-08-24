@@ -199,6 +199,7 @@ export interface AdminProfile {
   role: string;
   /** @nullable */
   createdByAdminId?: number | null;
+  canManageFinance?: boolean;
   createdAt: string;
 }
 
@@ -214,6 +215,7 @@ export interface CurrentUser {
   email?: string;
   /** @nullable */
   role?: string | null;
+  canManageFinance?: boolean;
   /** @nullable */
   status?: string | null;
 }
@@ -825,11 +827,13 @@ export interface AdminInput {
   email: string;
   password: string;
   role: string;
+  canManageFinance?: boolean;
 }
 
 export interface AdminUpdate {
   name?: string;
   role?: string;
+  canManageFinance?: boolean;
 }
 
 export interface AuditLogEntry {

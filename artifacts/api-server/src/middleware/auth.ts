@@ -71,3 +71,22 @@ export function requireSuperAdmin(req: Request, res: Response, next: NextFunctio
     }
   });
 }
+
+export function requireFinanceAdmin(req: Request, res: Response, next: NextFunction) {
+  requireAuth(req, res, async () => {
+    if (req.user?.type !== "admin") {
+      res.status(403).json({ error: "Forbidden" });
+      return;
+    }
+    try {
+      const [admin] = await db.select({ role: adminsTable.role, canManageFinance: adminsTable.canManageFinance }).from(adminsTable).where(eq(adminsTable.id, req.user.id));
+      if (!admin || (admin.role !== "super_admin" && !admin.canManageFinance)) {
+        res.status(403).json({ error: "Forbidden: Finance Admin access required" });
+        return;
+      }
+      next();
+    } catch {
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+}

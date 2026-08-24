@@ -1,0 +1,1 @@
+ALTER TABLE "admins" ADD COLUMN "can_manage_finance" boolean DEFAULT false NOT NULL;

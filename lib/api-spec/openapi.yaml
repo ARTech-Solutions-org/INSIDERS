@@ -2157,6 +2157,8 @@ components:
           type:
           - string
           - 'null'
+        canManageFinance:
+          type: boolean
         status:
           type:
           - string
@@ -3524,6 +3526,8 @@ components:
           type:
           - integer
           - 'null'
+        canManageFinance:
+          type: boolean
         createdAt:
           type: string
           format: date-time
@@ -3544,6 +3548,8 @@ components:
           type: string
         role:
           type: string
+        canManageFinance:
+          type: boolean
     AdminUpdate:
       type: object
       properties:
@@ -3551,6 +3557,8 @@ components:
           type: string
         role:
           type: string
+        canManageFinance:
+          type: boolean
     AuditLogEntry:
       type: object
       required:

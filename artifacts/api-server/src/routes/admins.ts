@@ -12,7 +12,7 @@ const router = Router();
 
 // GET /admins — super_admin only
 router.get("/admins", requireSuperAdmin, async (req, res) => {
-  const admins = await db.select({ id: adminsTable.id, name: adminsTable.name, email: adminsTable.email, role: adminsTable.role, createdByAdminId: adminsTable.createdByAdminId, createdAt: adminsTable.createdAt }).from(adminsTable);
+  const admins = await db.select({ id: adminsTable.id, name: adminsTable.name, email: adminsTable.email, role: adminsTable.role, canManageFinance: adminsTable.canManageFinance, createdByAdminId: adminsTable.createdByAdminId, createdAt: adminsTable.createdAt }).from(adminsTable);
   res.json(admins);
 });
 
@@ -20,7 +20,7 @@ router.get("/admins", requireSuperAdmin, async (req, res) => {
 router.post("/admins", requireSuperAdmin, async (req, res) => {
   const parsed = CreateAdminBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.flatten() }); return; }
-  const { name, email, password, role } = parsed.data;
+  const { name, email, password, role, canManageFinance } = parsed.data;
   // Only allow valid roles
   if (!["admin", "super_admin"].includes(role)) {
     res.status(400).json({ error: "Invalid role. Must be 'admin' or 'super_admin'." });
@@ -28,7 +28,7 @@ router.post("/admins", requireSuperAdmin, async (req, res) => {
   }
   const passwordHash = await bcrypt.hash(password, 10);
   try {
-    const [admin] = await db.insert(adminsTable).values({ name, email, passwordHash, role, createdByAdminId: req.user!.id }).returning();
+    const [admin] = await db.insert(adminsTable).values({ name, email, passwordHash, role, canManageFinance: canManageFinance ?? false, createdByAdminId: req.user!.id }).returning();
     await audit(req.user!.id, "CREATE_ADMIN", "admins", admin.id);
     const { passwordHash: _ph, ...safe } = admin;
     res.status(201).json(safe);
@@ -80,7 +80,11 @@ router.patch("/admins/:id", requireSuperAdmin, async (req, res) => {
   const parsed = UpdateAdminBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.flatten() }); return; }
   const adminId = parseInt(req.params.id as string, 10);
-  const [admin] = await db.update(adminsTable).set(parsed.data).where(eq(adminsTable.id, adminId)).returning();
+  const updateData: any = { ...parsed.data };
+  if (typeof parsed.data.canManageFinance !== 'undefined') {
+    updateData.canManageFinance = parsed.data.canManageFinance;
+  }
+  const [admin] = await db.update(adminsTable).set(updateData).where(eq(adminsTable.id, adminId)).returning();
   if (!admin) { res.status(404).json({ error: "Not found" }); return; }
   await audit(req.user!.id, "UPDATE_ADMIN", "admins", admin.id);
   const { passwordHash: _ph, ...safe } = admin;

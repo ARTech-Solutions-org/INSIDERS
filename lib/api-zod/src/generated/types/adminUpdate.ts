@@ -8,4 +8,5 @@
 export interface AdminUpdate {
   name?: string;
   role?: string;
+  canManageFinance?: boolean;
 }

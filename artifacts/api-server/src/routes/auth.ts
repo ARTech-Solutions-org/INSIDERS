@@ -234,7 +234,7 @@ router.get("/auth/me", requireAuth, async (req, res) => {
   } else {
     const [admin] = await db.select().from(adminsTable).where(eq(adminsTable.id, user.id));
     if (!admin) { res.status(401).json({ error: "Not found" }); return; }
-    res.json({ type: "admin", id: admin.id, name: admin.name, email: admin.email, role: admin.role, status: null });
+    res.json({ type: "admin", id: admin.id, name: admin.name, email: admin.email, role: admin.role, canManageFinance: admin.canManageFinance, status: null });
   }
 });
 

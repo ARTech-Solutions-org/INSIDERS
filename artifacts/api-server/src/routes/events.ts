@@ -53,15 +53,16 @@ router.post("/events", requireAdmin, async (req, res) => {
   const parsed = CreateEventBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.flatten() }); return; }
   
-  const [admin] = await db.select({ role: adminsTable.role }).from(adminsTable).where(eq(adminsTable.id, req.user!.id));
+  const [admin] = await db.select({ role: adminsTable.role, canManageFinance: adminsTable.canManageFinance }).from(adminsTable).where(eq(adminsTable.id, req.user!.id));
   const isSuperAdmin = admin?.role === "super_admin";
+  const hasFinanceAccess = isSuperAdmin || admin?.canManageFinance;
   
-  if (!isSuperAdmin) {
+  if (!hasFinanceAccess) {
     delete parsed.data.budget;
   }
   
-  const superAdminLockedFields = isSuperAdmin ? Object.keys(parsed.data) : [];
-  if (isSuperAdmin && !superAdminLockedFields.includes("budget")) superAdminLockedFields.push("budget"); // Implicit lock
+  const superAdminLockedFields = hasFinanceAccess ? Object.keys(parsed.data) : [];
+  if (hasFinanceAccess && !superAdminLockedFields.includes("budget")) superAdminLockedFields.push("budget"); // Implicit lock
 
   const [event] = await db.insert(eventsTable).values({ 
     ...parsed.data, 
@@ -105,8 +106,9 @@ router.patch("/events/:id", requireAdmin, async (req, res) => {
   if (!parsed.success) { res.status(400).json({ error: parsed.error.flatten() }); return; }
   const eventId = parseInt(req.params.id as string, 10);
   
-  const [admin] = await db.select({ role: adminsTable.role }).from(adminsTable).where(eq(adminsTable.id, req.user!.id));
+  const [admin] = await db.select({ role: adminsTable.role, canManageFinance: adminsTable.canManageFinance }).from(adminsTable).where(eq(adminsTable.id, req.user!.id));
   const isSuperAdmin = admin?.role === "super_admin";
+  const hasFinanceAccess = isSuperAdmin || admin?.canManageFinance;
 
   try {
     const event = await db.transaction(async (tx) => {
@@ -127,6 +129,10 @@ router.patch("/events/:id", requireAdmin, async (req, res) => {
           const existVal = existing[key as keyof typeof existing];
           // Simple equality check, handle dates if needed
           const isDifferent = val !== undefined && val !== existVal && (val instanceof Date && existVal instanceof Date ? val.getTime() !== existVal.getTime() : true);
+          
+          if (key === "budget" && hasFinanceAccess) {
+             return false; // Finance admins can edit budget even if locked
+          }
           return lockedFields.includes(key) && isDifferent;
         });
         
@@ -136,7 +142,7 @@ router.patch("/events/:id", requireAdmin, async (req, res) => {
       }
       
       let newLockedFields = lockedFields;
-      if (isSuperAdmin) {
+      if (hasFinanceAccess) {
         const editedFields = Object.keys(parsed.data).filter(key => {
           if (key === 'version') return false;
           

@@ -12,6 +12,7 @@ export interface CurrentUser {
   email?: string;
   /** @nullable */
   role?: string | null;
+  canManageFinance?: boolean;
   /** @nullable */
   status?: string | null;
 }

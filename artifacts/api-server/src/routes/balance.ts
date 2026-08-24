@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db, ushersTable, balanceTransactionsTable, payoutsTable, notificationsTable } from "@workspace/db";
 import { eq, desc, and, sql } from "drizzle-orm";
-import { requireUsher, requireAdmin, requireSuperAdmin } from "../middleware/auth.js";
+import { requireUsher, requireAdmin, requireSuperAdmin, requireFinanceAdmin } from "../middleware/auth.js";
 import { audit } from "../lib/audit.js";
 import { sendPushToUsher } from "../lib/fcm.js";
 import { CreateTransactionBody, CreatePayoutBody, UpdatePayoutStatusBody, RequestMyPayoutBody } from "@workspace/api-zod";
@@ -77,7 +77,7 @@ router.post("/my/payouts", requireUsher, async (req, res) => {
 });
 
 // GET /admin/transactions
-router.get("/admin/transactions", requireSuperAdmin, async (req, res) => {
+router.get("/admin/transactions", requireFinanceAdmin, async (req, res) => {
   const { usherId, page = "1", limit = "20" } = req.query as Record<string, string>;
   const offset = (parseInt(page) - 1) * parseInt(limit);
   let query = db.select().from(balanceTransactionsTable).$dynamic().orderBy(desc(balanceTransactionsTable.createdAt));
@@ -86,7 +86,7 @@ router.get("/admin/transactions", requireSuperAdmin, async (req, res) => {
 });
 
 // POST /admin/transactions
-router.post("/admin/transactions", requireSuperAdmin, async (req, res) => {
+router.post("/admin/transactions", requireFinanceAdmin, async (req, res) => {
   const parsed = CreateTransactionBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.flatten() }); return; }
   const { usherId, amount, type, reason, eventAssignmentId } = parsed.data;
@@ -119,7 +119,7 @@ router.post("/admin/transactions", requireSuperAdmin, async (req, res) => {
 });
 
 // GET /admin/payouts
-router.get("/admin/payouts", requireSuperAdmin, async (req, res) => {
+router.get("/admin/payouts", requireFinanceAdmin, async (req, res) => {
   const { status, usherId } = req.query as Record<string, string>;
   let query = db.select({
     id: payoutsTable.id,
@@ -140,7 +140,7 @@ router.get("/admin/payouts", requireSuperAdmin, async (req, res) => {
 });
 
 // POST /admin/payouts
-router.post("/admin/payouts", requireSuperAdmin, async (req, res) => {
+router.post("/admin/payouts", requireFinanceAdmin, async (req, res) => {
   const parsed = CreatePayoutBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.flatten() }); return; }
   const [payout] = await db.insert(payoutsTable).values({ ...parsed.data, status: "pending" }).returning();
@@ -179,7 +179,7 @@ router.post("/admin/payouts", requireSuperAdmin, async (req, res) => {
 });
 
 // PATCH /admin/payouts/:id/status
-router.patch("/admin/payouts/:id/status", requireSuperAdmin, async (req, res) => {
+router.patch("/admin/payouts/:id/status", requireFinanceAdmin, async (req, res) => {
   const parsed = UpdatePayoutStatusBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.flatten() }); return; }
   const paidAt = parsed.data.status === "paid" ? new Date() : null;
