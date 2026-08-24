@@ -876,6 +876,9 @@ export interface AdminDashboard {
   totalActiveUshers: number;
   pendingApprovals: number;
   upcomingEventsThisWeek: number;
+  waitlistCount: number;
+  completedJobsCount: number;
+  cancelledJobsCount: number;
   totalEvents: number;
   ongoingEvents: number;
   avgUsherRating: number;

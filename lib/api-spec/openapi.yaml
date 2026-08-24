@@ -3640,12 +3640,21 @@ components:
       - avgUsherRating
       - pendingPayouts
       - totalPaidOutThisMonth
+      - waitlistCount
+      - completedJobsCount
+      - cancelledJobsCount
       properties:
         totalActiveUshers:
           type: integer
         pendingApprovals:
           type: integer
         upcomingEventsThisWeek:
+          type: integer
+        waitlistCount:
+          type: integer
+        completedJobsCount:
+          type: integer
+        cancelledJobsCount:
           type: integer
         totalEvents:
           type: integer

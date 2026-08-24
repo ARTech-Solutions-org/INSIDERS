@@ -1,6 +1,6 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
-import { db, adminsTable, adminInvitationsTable, broadcastMessagesTable, auditLogTable, usherDocumentsTable, ushersTable, notificationsTable, eventsTable, eventAssignmentsTable, ratingsTable, payoutsTable, systemSettingsTable, DEFAULT_RATING_CONFIG } from "@workspace/db";
+import { db, adminsTable, adminInvitationsTable, broadcastMessagesTable, auditLogTable, usherDocumentsTable, ushersTable, notificationsTable, eventsTable, eventAssignmentsTable, ratingsTable, payoutsTable, systemSettingsTable, waitlistTable, DEFAULT_RATING_CONFIG } from "@workspace/db";
 import { eq, lte, and, desc, gte, sql, lt, inArray, isNull, or, ilike } from "drizzle-orm";
 import { requireAdmin, requireSuperAdmin } from "../middleware/auth.js";
 import { audit } from "../lib/audit.js";
@@ -309,6 +309,10 @@ router.get("/admin/dashboard", requireAdmin, async (req, res) => {
   const [{ totalEvents }] = await db.select({ totalEvents: sql<number>`count(*)::int` }).from(eventsTable);
   const [{ ongoingEvents }] = await db.select({ ongoingEvents: sql<number>`count(*)::int` }).from(eventsTable).where(and(gte(eventsTable.startTime, todayStart), lte(eventsTable.startTime, todayEnd)));
   const [{ avgUsherRating }] = await db.select({ avgUsherRating: sql<number>`coalesce(avg(avg_rating), 0)::float` }).from(ushersTable).where(eq(ushersTable.status, "active"));
+  
+  const [{ waitlistCount }] = await db.select({ waitlistCount: sql<number>`count(*)::int` }).from(waitlistTable);
+  const [{ completedJobsCount }] = await db.select({ completedJobsCount: sql<number>`count(*)::int` }).from(eventAssignmentsTable).where(or(eq(eventAssignmentsTable.status, "completed"), eq(eventAssignmentsTable.status, "checked_in")));
+  const [{ cancelledJobsCount }] = await db.select({ cancelledJobsCount: sql<number>`count(*)::int` }).from(eventAssignmentsTable).where(or(eq(eventAssignmentsTable.status, "cancelled"), eq(eventAssignmentsTable.status, "declined"), eq(eventAssignmentsTable.status, "no_show")));
 
   if (hasFinanceAccess) {
     const [{ balanceOwed }] = await db.select({ balanceOwed: sql<number>`coalesce(sum(balance), 0)::float` }).from(ushersTable).where(gte(ushersTable.balance, 0));
@@ -318,9 +322,9 @@ router.get("/admin/dashboard", requireAdmin, async (req, res) => {
     const thisMonthStart = new Date(); thisMonthStart.setDate(1); thisMonthStart.setHours(0, 0, 0, 0);
     const [{ totalPaidOutThisMonth }] = await db.select({ totalPaidOutThisMonth: sql<number>`coalesce(sum(amount), 0)::float` }).from(payoutsTable).where(and(eq(payoutsTable.status, "completed"), gte(payoutsTable.paidAt, thisMonthStart)));
 
-    res.json({ totalActiveUshers: active, pendingApprovals: pending, upcomingEventsThisWeek: upcoming, totalBalanceOwed: balanceOwed, recentActivity, eventTrends, totalEvents, ongoingEvents, avgUsherRating, pendingPayouts, totalPaidOutThisMonth });
+    res.json({ totalActiveUshers: active, pendingApprovals: pending, upcomingEventsThisWeek: upcoming, totalBalanceOwed: balanceOwed, recentActivity, eventTrends, totalEvents, ongoingEvents, avgUsherRating, pendingPayouts, totalPaidOutThisMonth, waitlistCount, completedJobsCount, cancelledJobsCount });
   } else {
-    res.json({ totalActiveUshers: active, pendingApprovals: pending, upcomingEventsThisWeek: upcoming, totalBalanceOwed: null, recentActivity: null, eventTrends, totalEvents, ongoingEvents, avgUsherRating, pendingPayouts: null, totalPaidOutThisMonth: null });
+    res.json({ totalActiveUshers: active, pendingApprovals: pending, upcomingEventsThisWeek: upcoming, totalBalanceOwed: null, recentActivity: null, eventTrends, totalEvents, ongoingEvents, avgUsherRating, pendingPayouts: null, totalPaidOutThisMonth: null, waitlistCount, completedJobsCount, cancelledJobsCount });
   }
 });
 
