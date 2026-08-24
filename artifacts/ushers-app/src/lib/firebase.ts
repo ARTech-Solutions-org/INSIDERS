@@ -60,7 +60,7 @@ export async function getMessagingToken(): Promise<string | null> {
 
   const messaging = getFirebaseMessaging();
   if (!messaging) {
-    toast.error("فشل في تهيئة Firebase Messaging (ربما جهازك لا يدعم الإشعارات)");
+    toast.error("Failed to initialize Firebase Messaging (your device might not support push notifications)");
     return null;
   }
 
@@ -87,7 +87,7 @@ export async function getMessagingToken(): Promise<string | null> {
     return token || null;
   } catch (err: any) {
     console.warn("[FCM] Failed to get token:", err);
-    toast.error("فشل في الحصول على التوكن: " + (err.message || String(err)));
+    toast.error("Failed to get token: " + (err.message || String(err)));
     return null;
   }
 }

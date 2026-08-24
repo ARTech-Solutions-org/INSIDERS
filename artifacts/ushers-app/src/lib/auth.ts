@@ -44,12 +44,12 @@ export async function registerPushToken(): Promise<void> {
     });
     
     if (!res.ok) {
-      toast.error('فشل في حفظ Token في السيرفر: ' + await res.text());
+      toast.error('Failed to save push token on server: ' + await res.text());
     }
   } catch (err: any) {
     // Non-fatal — the app works fine without push notifications
     console.warn('[FCM] Could not register push token:', err);
-    toast.error('فشل في تفعيل الإشعارات: ' + (err.message || String(err)));
+    toast.error('Failed to activate notifications: ' + (err.message || String(err)));
   }
 }
 
