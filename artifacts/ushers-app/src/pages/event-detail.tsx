@@ -301,6 +301,8 @@ export default function EventDetail() {
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
+  const payAmount = assignment?.overriddenPay ?? ((assignment?.role === 'leader' || assignment?.isTeamLead) ? eventDetails?.leaderRate : eventDetails?.regularRate) ?? 0;
+
   return (
     <div className="pb-24">
       {/* Location Permission Dialog */}
@@ -350,6 +352,9 @@ export default function EventDetail() {
                 TEAM LEAD
               </span>
             )}
+            <span className="inline-flex px-3 py-1 bg-green-500/20 text-green-100 border border-green-500/30 text-[10px] font-bold uppercase tracking-widest rounded-md mb-4 mr-2">
+              {payAmount} EGP
+            </span>
             <div className="flex flex-col gap-3 text-primary-foreground/90 mt-4">
               <div className="flex items-center gap-3">
                 <Calendar className="w-5 h-5 text-primary-foreground/60" strokeWidth={1.5} />
@@ -689,6 +694,24 @@ export default function EventDetail() {
                         <Phone className="w-4 h-4" />
                       </a>
                     )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Deduction Rules */}
+          {eventDetails.deductionRules && eventDetails.deductionRules.length > 0 && (
+            <div className="bg-card border border-destructive/20 rounded-2xl p-5 shadow-sm">
+              <h2 className="brand-display text-xl text-destructive uppercase tracking-wide border-b border-destructive/20 pb-3 mb-4 flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5" />
+                DEDUCTION RULES
+              </h2>
+              <div className="space-y-3">
+                {eventDetails.deductionRules.map((rule: any) => (
+                  <div key={rule.id} className="flex justify-between items-center bg-destructive/5 p-3 rounded-xl border border-destructive/10">
+                    <span className="text-sm font-semibold text-destructive/90">{rule.description}</span>
+                    <span className="text-xs font-bold text-destructive bg-destructive/10 px-2 py-1 rounded-md">-{rule.deductionAmount} EGP</span>
                   </div>
                 ))}
               </div>
