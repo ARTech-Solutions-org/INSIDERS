@@ -268,10 +268,11 @@ router.get("/admin/dashboard", requireAdmin, async (req, res) => {
   }
 
   // Check if caller is super_admin to decide whether to include sensitive fields
-  const [callerAdmin] = await db.select({ role: adminsTable.role }).from(adminsTable).where(eq(adminsTable.id, req.user!.id));
+  const [callerAdmin] = await db.select({ role: adminsTable.role, canManageFinance: adminsTable.canManageFinance }).from(adminsTable).where(eq(adminsTable.id, req.user!.id));
   const isSuperAdmin = callerAdmin?.role === "super_admin";
+  const hasFinanceAccess = isSuperAdmin || callerAdmin?.canManageFinance;
 
-  if (isSuperAdmin) {
+  if (hasFinanceAccess) {
     const [{ balanceOwed }] = await db.select({ balanceOwed: sql<number>`coalesce(sum(balance), 0)::float` }).from(ushersTable).where(gte(ushersTable.balance, 0));
     const recentActivity = await db.select({ id: auditLogTable.id, adminId: auditLogTable.adminId, actionType: auditLogTable.actionType, targetTable: auditLogTable.targetTable, targetId: auditLogTable.targetId, details: auditLogTable.details, createdAt: auditLogTable.createdAt, adminName: adminsTable.name }).from(auditLogTable).leftJoin(adminsTable, eq(auditLogTable.adminId, adminsTable.id)).orderBy(desc(auditLogTable.createdAt)).limit(10);
     res.json({ totalActiveUshers: active, pendingApprovals: pending, upcomingEventsThisWeek: upcoming, totalBalanceOwed: balanceOwed, recentActivity, eventTrends });

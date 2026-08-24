@@ -47,6 +47,29 @@ function SuperAdminOnly({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+/** Renders children only when the logged-in admin has finance access.
+ *  Otherwise redirects to "/" immediately. */
+function RequireFinanceAccess({ children }: { children: React.ReactNode }) {
+  const { data: user, isLoading } = useGetMe();
+  const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    if (!isLoading && user && user.type === 'admin') {
+      const isSuper = user.role === 'super_admin';
+      if (!isSuper && !user.canManageFinance) {
+        setLocation('/');
+      }
+    }
+  }, [isLoading, user, setLocation]);
+
+  if (isLoading) return null;
+  if (!user || user.type !== 'admin') return null;
+  const isSuper = user.role === 'super_admin';
+  if (!isSuper && !user.canManageFinance) return null;
+  
+  return <>{children}</>;
+}
+
 function ProtectedRoutes() {
   return (
     <AdminLayout>
@@ -59,7 +82,7 @@ function ProtectedRoutes() {
         <Route path="/ushers" component={Ushers} />
         <Route path="/broadcasts" component={Broadcasts} />
         <Route path="/audit-log" component={() => <SuperAdminOnly><AuditLog /></SuperAdminOnly>} />
-        <Route path="/financials" component={() => <SuperAdminOnly><Financials /></SuperAdminOnly>} />
+        <Route path="/financials" component={() => <RequireFinanceAccess><Financials /></RequireFinanceAccess>} />
         <Route path="/settings" component={() => <SuperAdminOnly><Settings /></SuperAdminOnly>} />
         <Route component={NotFound} />
       </Switch>
