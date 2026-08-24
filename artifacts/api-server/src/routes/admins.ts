@@ -310,7 +310,7 @@ router.get("/admin/dashboard", requireAdmin, async (req, res) => {
   let eventFilter = undefined;
   let assignmentFilter = undefined;
   
-  if (filterMonth && /^\\d{4}-\\d{2}$/.test(filterMonth)) {
+  if (filterMonth && /^\d{4}-\d{2}$/.test(filterMonth)) {
     const [year, month] = filterMonth.split("-").map(Number);
     const start = new Date(year, month - 1, 1);
     const end = new Date(year, month, 0, 23, 59, 59, 999);
@@ -333,7 +333,7 @@ router.get("/admin/dashboard", requireAdmin, async (req, res) => {
     const [{ pendingPayouts }] = await db.select({ pendingPayouts: sql<number>`count(*)::int` }).from(payoutsTable).where(eq(payoutsTable.status, "pending"));
     
     let payoutFilter = undefined;
-    if (filterMonth && /^\\d{4}-\\d{2}$/.test(filterMonth)) {
+    if (filterMonth && /^\d{4}-\d{2}$/.test(filterMonth)) {
       const [year, month] = filterMonth.split("-").map(Number);
       const start = new Date(year, month - 1, 1);
       const end = new Date(year, month, 0, 23, 59, 59, 999);
