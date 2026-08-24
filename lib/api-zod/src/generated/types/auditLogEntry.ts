@@ -16,8 +16,6 @@ export interface AuditLogEntry {
   /** @nullable */
   targetName?: string | null;
   /** @nullable */
-  ipAddress?: string | null;
-  /** @nullable */
   userAgent?: string | null;
   /** @nullable */
   details?: string | null;

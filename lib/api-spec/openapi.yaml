@@ -3585,10 +3585,6 @@ components:
           type:
           - string
           - 'null'
-        ipAddress:
-          type:
-          - string
-          - 'null'
         userAgent:
           type:
           - string

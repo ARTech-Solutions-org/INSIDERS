@@ -71,6 +71,13 @@
       "when": 1787569351346,
       "tag": "0009_finance_permission",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1787575018607,
+      "tag": "0010_remove_audit_ip",
+      "breakpoints": true
     }
   ]
 }

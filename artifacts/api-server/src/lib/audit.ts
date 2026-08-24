@@ -11,12 +11,10 @@ export async function audit(
 ) {
   try {
     let adminId: number | null = null;
-    let ipAddress: string | null = null;
     let userAgent: string | null = null;
 
     if (req && typeof req === 'object' && 'user' in req) {
       adminId = (req.user as any)?.id || null;
-      ipAddress = req.ip || null;
       userAgent = req.get('User-Agent') || null;
     } else if (typeof req === 'number') {
       adminId = req;
@@ -35,7 +33,6 @@ export async function audit(
       targetTable,
       targetId: targetId ?? undefined,
       targetName: targetName ?? undefined,
-      ipAddress,
       userAgent,
       details: detailsStr,
     });

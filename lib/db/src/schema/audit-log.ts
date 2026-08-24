@@ -10,7 +10,6 @@ export const auditLogTable = pgTable("audit_log", {
   targetTable: varchar("target_table", { length: 100 }).notNull(),
   targetId: integer("target_id"),
   targetName: varchar("target_name", { length: 255 }),
-  ipAddress: varchar("ip_address", { length: 45 }),
   userAgent: text("user_agent"),
   details: text("details"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
