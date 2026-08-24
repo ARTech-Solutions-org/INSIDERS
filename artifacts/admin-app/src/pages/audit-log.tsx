@@ -101,10 +101,7 @@ export default function AuditLog() {
                       </div>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      <div className="flex flex-col">
-                        <span>{log.ipAddress || 'Unknown IP'}</span>
-                        <span className="text-[10px] truncate max-w-[150px]" title={log.userAgent || ''}>{log.userAgent || 'Unknown Agent'}</span>
-                      </div>
+                      <span className="text-[10px] truncate max-w-[150px]" title={log.userAgent || ''}>{log.userAgent || 'Unknown Agent'}</span>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground max-w-[300px] truncate" title={log.details || ''}>
                       {log.details ? (
