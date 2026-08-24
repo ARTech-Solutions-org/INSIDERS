@@ -1,16 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useListMyNotifications, useMarkAllNotificationsRead, useMarkNotificationRead, getListMyNotificationsQueryKey } from '@workspace/api-client-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Bell, Check, CircleAlert, CalendarClock, ShieldAlert, Banknote } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import type { Notification } from '@workspace/api-client-react';
 
 export default function Notifications() {
   const queryClient = useQueryClient();
   const { data: notifications, isLoading } = useListMyNotifications({});
   const markAllMutation = useMarkAllNotificationsRead();
   const markReadMutation = useMarkNotificationRead();
+  const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
 
   const handleMarkAllRead = () => {
     markAllMutation.mutate(undefined, {
@@ -28,6 +31,13 @@ export default function Notifications() {
         queryClient.invalidateQueries({ queryKey: ['notifications', 'unread'] });
       }
     });
+  };
+
+  const handleNotificationClick = (notification: Notification) => {
+    setSelectedNotification(notification);
+    if (!notification.isRead) {
+      handleMarkRead(notification.id);
+    }
   };
 
   const getIcon = (type: string) => {
@@ -71,7 +81,7 @@ export default function Notifications() {
           {allNotifications.map(notification => (
             <div
               key={notification.id}
-              onClick={() => !notification.isRead && handleMarkRead(notification.id)}
+              onClick={() => handleNotificationClick(notification)}
               className={`p-4 transition-colors bg-card border rounded-2xl shadow-sm relative overflow-hidden ${notification.isRead ? 'opacity-60 bg-muted/30 border-border/50' : 'cursor-pointer hover:border-secondary border-border'}`}
             >
               {!notification.isRead && (
@@ -82,7 +92,7 @@ export default function Notifications() {
                   {getIcon(notification.type)}
                 </div>
                 <div className="flex-1 min-w-0 pt-0.5">
-                  <p className={`text-sm leading-snug tracking-wide ${notification.isRead ? 'text-muted-foreground font-medium' : 'text-foreground font-bold'}`}>
+                  <p className={`text-sm leading-snug tracking-wide line-clamp-2 ${notification.isRead ? 'text-muted-foreground font-medium' : 'text-foreground font-bold'}`}>
                     {notification.message}
                   </p>
                   <p className="text-[10px] font-mono text-muted-foreground mt-2 uppercase tracking-widest">
@@ -94,6 +104,32 @@ export default function Notifications() {
           ))}
         </div>
       )}
+
+      <Dialog open={!!selectedNotification} onOpenChange={(open) => !open && setSelectedNotification(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 border rounded-full flex items-center justify-center shrink-0 bg-background border-border">
+                {selectedNotification && getIcon(selectedNotification.type)}
+              </div>
+              <DialogTitle className="uppercase tracking-widest text-lg">Alert Detail</DialogTitle>
+            </div>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm leading-relaxed text-foreground">
+              {selectedNotification?.message}
+            </p>
+          </div>
+          <DialogFooter className="sm:justify-between items-center mt-2 border-t pt-4">
+            <span className="text-xs font-mono text-muted-foreground uppercase tracking-widest">
+              {selectedNotification && format(new Date(selectedNotification.sentAt), 'MMM d, yyyy h:mm a')}
+            </span>
+            <Button type="button" variant="secondary" onClick={() => setSelectedNotification(null)} className="uppercase tracking-widest text-xs font-bold">
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
