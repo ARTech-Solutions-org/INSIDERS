@@ -1002,23 +1002,49 @@ export default function EventDetails() {
                           </select>
                         )}
                         {!hasStarted && (
-                          <select 
-                            className="text-[10px] border rounded px-1 py-0.5 mt-1 bg-muted/20"
-                            value={assignment.role || "regular"}
-                            onChange={(e) => {
-                              updateAssignment({ 
-                                id: eventId, 
-                                assignmentId: assignment.id, 
-                                data: { 
-                                  usherId: assignment.usherId, 
-                                  role: e.target.value as "regular" | "leader" 
-                                } 
-                              });
-                            }}
-                          >
-                            <option value="regular">Regular</option>
-                            <option value="leader">Leader</option>
-                          </select>
+                          <div className="flex gap-1 mt-1">
+                            <select 
+                              className="text-[10px] border rounded px-1 py-0.5 bg-muted/20"
+                              value={assignment.role || "regular"}
+                              onChange={(e) => {
+                                updateAssignment({ 
+                                  id: eventId, 
+                                  assignmentId: assignment.id, 
+                                  data: { 
+                                    usherId: assignment.usherId, 
+                                    role: e.target.value as "regular" | "leader" 
+                                  } 
+                                });
+                              }}
+                            >
+                              <option value="regular">Regular</option>
+                              <option value="leader">Leader</option>
+                            </select>
+                            <Input
+                              type="number"
+                              className="h-5 w-16 text-[10px] px-1 py-0"
+                              placeholder="Pay (EGP)"
+                              value={assignment.overriddenPay ?? ""}
+                              onBlur={(e) => {
+                                const val = e.target.value ? parseInt(e.target.value, 10) : undefined;
+                                if (val !== assignment.overriddenPay) {
+                                  updateAssignment({ 
+                                    id: eventId, 
+                                    assignmentId: assignment.id, 
+                                    data: { 
+                                      usherId: assignment.usherId,
+                                      overriddenPay: val 
+                                    } 
+                                  });
+                                }
+                              }}
+                              onChange={(e) => {
+                                // Just a visual update until blur
+                                const v = e.target.value ? parseInt(e.target.value, 10) : undefined;
+                                assignment.overriddenPay = v;
+                              }}
+                            />
+                          </div>
                         )}
 
                       </div>

@@ -11,6 +11,7 @@ export const eventAssignmentsTable = pgTable("event_assignments", {
   eventTeamId: integer("event_team_id").references(() => eventTeamsTable.id, { onDelete: "set null" }),
   usherId: integer("usher_id").notNull().references(() => ushersTable.id, { onDelete: "cascade" }),
   role: varchar("role", { length: 50 }).default("regular"),
+  overriddenPay: real("overridden_pay"),
   status: varchar("status", { length: 50 }).default("assigned"),
   isTeamLead: boolean("is_team_lead").default(false),
   checkinTime: timestamp("checkin_time", { withTimezone: true }),

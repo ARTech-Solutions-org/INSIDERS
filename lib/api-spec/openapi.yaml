@@ -2909,6 +2909,10 @@ components:
           type: boolean
         role:
           type: string
+        overriddenPay:
+          type:
+          - number
+          - 'null'
         checkinTime:
           type:
           - string
@@ -2954,6 +2958,8 @@ components:
           type: boolean
         role:
           type: string
+        overriddenPay:
+          type: number
     MyWaitlistEntry:
       type: object
       required:
@@ -3077,6 +3083,13 @@ components:
           description: Number of ushers to assign
         eventTeamId:
           type: integer
+        role:
+          type: string
+          enum:
+          - regular
+          - leader
+        overriddenPay:
+          type: number
         gender:
           type: string
           enum:

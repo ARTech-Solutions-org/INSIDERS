@@ -388,6 +388,8 @@ export interface EventAssignment {
   isTeamLead?: boolean;
   role?: string;
   /** @nullable */
+  overriddenPay?: number | null;
+  /** @nullable */
   checkinTime?: string | null;
   /** @nullable */
   checkinLat?: number | null;
@@ -553,6 +555,7 @@ export interface AssignmentInput {
   eventTeamId?: number | null;
   isTeamLead?: boolean;
   role?: string;
+  overriddenPay?: number;
 }
 
 export interface MyWaitlistEntry {
@@ -606,6 +609,14 @@ export interface EventTeamInput {
   name: string;
 }
 
+export type SmartAssignFiltersRole = typeof SmartAssignFiltersRole[keyof typeof SmartAssignFiltersRole];
+
+
+export const SmartAssignFiltersRole = {
+  regular: 'regular',
+  leader: 'leader',
+} as const;
+
 export type SmartAssignFiltersGender = typeof SmartAssignFiltersGender[keyof typeof SmartAssignFiltersGender];
 
 
@@ -618,6 +629,8 @@ export interface SmartAssignFilters {
   /** Number of ushers to assign */
   count: number;
   eventTeamId?: number;
+  role?: SmartAssignFiltersRole;
+  overriddenPay?: number;
   gender?: SmartAssignFiltersGender;
   minRating?: number;
   minCompletedEvents?: number;

@@ -16,6 +16,8 @@ export interface EventAssignment {
   isTeamLead?: boolean;
   role?: string;
   /** @nullable */
+  overriddenPay?: number | null;
+  /** @nullable */
   checkinTime?: string | null;
   /** @nullable */
   checkinLat?: number | null;

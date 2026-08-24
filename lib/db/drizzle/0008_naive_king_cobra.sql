@@ -1,0 +1,1 @@
+ALTER TABLE "event_assignments" ADD COLUMN "overridden_pay" real;

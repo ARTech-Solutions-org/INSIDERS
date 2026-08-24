@@ -373,7 +373,8 @@ router.post("/events/:id/assignments", requireAdmin, async (req, res) => {
       if (!lockedEvent) throw new Error("Not found");
 
       const currentAssignments = await tx.select({
-        role: eventAssignmentsTable.role
+        role: eventAssignmentsTable.role,
+        overriddenPay: eventAssignmentsTable.overriddenPay
       }).from(eventAssignmentsTable).where(
         and(
           eq(eventAssignmentsTable.eventId, eventId),
@@ -383,12 +384,15 @@ router.post("/events/:id/assignments", requireAdmin, async (req, res) => {
 
       let spent = 0;
       for (const a of currentAssignments) {
-        if (a.role === "leader") spent += lockedEvent.leaderRate || 0;
+        if (a.overriddenPay != null) spent += a.overriddenPay;
+        else if (a.role === "leader") spent += lockedEvent.leaderRate || 0;
         else spent += lockedEvent.regularRate || 0;
       }
 
       const newRole = parsed.data.role || "regular";
-      const newCost = newRole === "leader" ? (lockedEvent.leaderRate || 0) : (lockedEvent.regularRate || 0);
+      const newCost = parsed.data.overriddenPay != null 
+        ? parsed.data.overriddenPay 
+        : (newRole === "leader" ? (lockedEvent.leaderRate || 0) : (lockedEvent.regularRate || 0));
 
       if (lockedEvent.budget && spent + newCost > lockedEvent.budget) {
         throw new Error("Budget exceeded: Cannot assign usher because it would exceed the event budget.");
@@ -400,6 +404,7 @@ router.post("/events/:id/assignments", requireAdmin, async (req, res) => {
         eventTeamId: parsed.data.eventTeamId, 
         isTeamLead: parsed.data.isTeamLead ?? false, 
         role: newRole,
+        overriddenPay: parsed.data.overriddenPay,
         status: "assigned" 
       }).returning();
       
@@ -446,7 +451,8 @@ router.patch("/events/:id/assignments/:assignmentId", requireAdmin, async (req, 
 
       const currentAssignments = await tx.select({
         id: eventAssignmentsTable.id,
-        role: eventAssignmentsTable.role
+        role: eventAssignmentsTable.role,
+        overriddenPay: eventAssignmentsTable.overriddenPay
       }).from(eventAssignmentsTable).where(
         and(
           eq(eventAssignmentsTable.eventId, eventId),
@@ -454,16 +460,21 @@ router.patch("/events/:id/assignments/:assignmentId", requireAdmin, async (req, 
         )
       );
 
-      // Only check budget if the role is being changed
-      if (parsed.data.role && parsed.data.role !== existingAssignment.role) {
+      // Only check budget if the role or overriddenPay is being changed
+      if ((parsed.data.role && parsed.data.role !== existingAssignment.role) || (parsed.data.overriddenPay !== undefined && parsed.data.overriddenPay !== existingAssignment.overriddenPay)) {
         let spent = 0;
         for (const a of currentAssignments) {
           if (a.id === assignmentId) continue;
-          if (a.role === "leader") spent += lockedEvent.leaderRate || 0;
+          if (a.overriddenPay != null) spent += a.overriddenPay;
+          else if (a.role === "leader") spent += lockedEvent.leaderRate || 0;
           else spent += lockedEvent.regularRate || 0;
         }
 
-        const newCost = parsed.data.role === "leader" ? (lockedEvent.leaderRate || 0) : (lockedEvent.regularRate || 0);
+        const newCost = parsed.data.overriddenPay !== undefined
+          ? parsed.data.overriddenPay ?? 0
+          : existingAssignment.overriddenPay != null 
+            ? existingAssignment.overriddenPay 
+            : ((parsed.data.role || existingAssignment.role) === "leader" ? (lockedEvent.leaderRate || 0) : (lockedEvent.regularRate || 0));
 
         if (lockedEvent.budget && spent + newCost > lockedEvent.budget) {
           throw new Error("Budget exceeded: Cannot update assignment because it would exceed the event budget.");
@@ -478,9 +489,10 @@ router.patch("/events/:id/assignments/:assignmentId", requireAdmin, async (req, 
 
       const [updated] = await tx.update(eventAssignmentsTable)
         .set({
-          eventTeamId: parsed.data.eventTeamId,
-          isTeamLead: parsed.data.isTeamLead ?? false,
-          ...(parsed.data.role ? { role: parsed.data.role } : {})
+          eventTeamId: parsed.data.eventTeamId !== undefined ? parsed.data.eventTeamId : existingAssignment.eventTeamId,
+          isTeamLead: parsed.data.isTeamLead !== undefined ? parsed.data.isTeamLead : existingAssignment.isTeamLead,
+          role: parsed.data.role !== undefined ? parsed.data.role : existingAssignment.role,
+          overriddenPay: parsed.data.overriddenPay !== undefined ? parsed.data.overriddenPay : existingAssignment.overriddenPay
         })
         .where(eq(eventAssignmentsTable.id, assignmentId))
         .returning();
@@ -661,7 +673,8 @@ router.post("/events/:id/smart-assign-batch", requireAdmin, async (req, res) => 
       if (!lockedEvent) throw new Error("Event not found");
 
       const currentAssignments = await tx.select({
-        role: eventAssignmentsTable.role
+        role: eventAssignmentsTable.role,
+        overriddenPay: eventAssignmentsTable.overriddenPay
       }).from(eventAssignmentsTable).where(
         and(
           eq(eventAssignmentsTable.eventId, eventId),
@@ -671,7 +684,8 @@ router.post("/events/:id/smart-assign-batch", requireAdmin, async (req, res) => 
 
       let spent = 0;
       for (const a of currentAssignments) {
-        if (a.role === "leader") spent += lockedEvent.leaderRate || 0;
+        if (a.overriddenPay != null) spent += a.overriddenPay;
+        else if (a.role === "leader") spent += lockedEvent.leaderRate || 0;
         else spent += lockedEvent.regularRate || 0;
       }
 

@@ -5,11 +5,14 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { SmartAssignFiltersGender } from './smartAssignFiltersGender';
+import type { SmartAssignFiltersRole } from './smartAssignFiltersRole';
 
 export interface SmartAssignFilters {
   /** Number of ushers to assign */
   count: number;
   eventTeamId?: number;
+  role?: SmartAssignFiltersRole;
+  overriddenPay?: number;
   gender?: SmartAssignFiltersGender;
   minRating?: number;
   minCompletedEvents?: number;

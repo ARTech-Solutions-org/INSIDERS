@@ -761,6 +761,7 @@ export const GetEventResponse = zod.object({
   "status": zod.string(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
+  "overriddenPay": zod.number().nullish(),
   "checkinTime": zod.string().nullish(),
   "checkinLat": zod.number().nullish(),
   "checkinLng": zod.number().nullish(),
@@ -1195,6 +1196,7 @@ export const ListEventAssignmentsResponseItem = zod.object({
   "status": zod.string(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
+  "overriddenPay": zod.number().nullish(),
   "checkinTime": zod.string().nullish(),
   "checkinLat": zod.number().nullish(),
   "checkinLng": zod.number().nullish(),
@@ -1242,7 +1244,8 @@ export const AssignUsherToEventBody = zod.object({
   "usherId": zod.number().int(),
   "eventTeamId": zod.number().int().nullish(),
   "isTeamLead": zod.boolean().optional(),
-  "role": zod.string().optional()
+  "role": zod.string().optional(),
+  "overriddenPay": zod.number().optional()
 })
 
 export const AssignUsherToEventResponse = zod.object({
@@ -1253,6 +1256,7 @@ export const AssignUsherToEventResponse = zod.object({
   "status": zod.string(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
+  "overriddenPay": zod.number().nullish(),
   "checkinTime": zod.string().nullish(),
   "checkinLat": zod.number().nullish(),
   "checkinLng": zod.number().nullish(),
@@ -1300,7 +1304,8 @@ export const UpdateAssignmentBody = zod.object({
   "usherId": zod.number().int(),
   "eventTeamId": zod.number().int().nullish(),
   "isTeamLead": zod.boolean().optional(),
-  "role": zod.string().optional()
+  "role": zod.string().optional(),
+  "overriddenPay": zod.number().optional()
 })
 
 export const UpdateAssignmentResponse = zod.object({
@@ -1311,6 +1316,7 @@ export const UpdateAssignmentResponse = zod.object({
   "status": zod.string(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
+  "overriddenPay": zod.number().nullish(),
   "checkinTime": zod.string().nullish(),
   "checkinLat": zod.number().nullish(),
   "checkinLng": zod.number().nullish(),
@@ -1373,6 +1379,7 @@ export const AdminCheckinResponse = zod.object({
   "status": zod.string(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
+  "overriddenPay": zod.number().nullish(),
   "checkinTime": zod.string().nullish(),
   "checkinLat": zod.number().nullish(),
   "checkinLng": zod.number().nullish(),
@@ -1424,6 +1431,7 @@ export const AdminCheckoutResponse = zod.object({
   "status": zod.string(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
+  "overriddenPay": zod.number().nullish(),
   "checkinTime": zod.string().nullish(),
   "checkinLat": zod.number().nullish(),
   "checkinLng": zod.number().nullish(),
@@ -1493,6 +1501,8 @@ export const SmartAssignBatchParams = zod.object({
 export const SmartAssignBatchBody = zod.object({
   "count": zod.number().int().describe('Number of ushers to assign'),
   "eventTeamId": zod.number().int().optional(),
+  "role": zod.enum(['regular', 'leader']).optional(),
+  "overriddenPay": zod.number().optional(),
   "gender": zod.enum(['male', 'female']).optional(),
   "minRating": zod.number().optional(),
   "minCompletedEvents": zod.number().int().optional(),
@@ -1508,6 +1518,7 @@ export const SmartAssignBatchResponseItem = zod.object({
   "status": zod.string(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
+  "overriddenPay": zod.number().nullish(),
   "checkinTime": zod.string().nullish(),
   "checkinLat": zod.number().nullish(),
   "checkinLng": zod.number().nullish(),
@@ -1680,6 +1691,7 @@ export const ListMyAssignmentsResponseItem = zod.object({
   "status": zod.string(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
+  "overriddenPay": zod.number().nullish(),
   "checkinTime": zod.string().nullish(),
   "checkinLat": zod.number().nullish(),
   "checkinLng": zod.number().nullish(),
@@ -1824,6 +1836,7 @@ export const AcceptAssignmentResponse = zod.object({
   "status": zod.string(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
+  "overriddenPay": zod.number().nullish(),
   "checkinTime": zod.string().nullish(),
   "checkinLat": zod.number().nullish(),
   "checkinLng": zod.number().nullish(),
@@ -1934,6 +1947,7 @@ export const DeclineAssignmentResponse = zod.object({
   "status": zod.string(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
+  "overriddenPay": zod.number().nullish(),
   "checkinTime": zod.string().nullish(),
   "checkinLat": zod.number().nullish(),
   "checkinLng": zod.number().nullish(),
@@ -2045,6 +2059,7 @@ export const UsherCheckinResponse = zod.object({
   "status": zod.string(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
+  "overriddenPay": zod.number().nullish(),
   "checkinTime": zod.string().nullish(),
   "checkinLat": zod.number().nullish(),
   "checkinLng": zod.number().nullish(),
@@ -2156,6 +2171,7 @@ export const UsherCheckoutResponse = zod.object({
   "status": zod.string(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
+  "overriddenPay": zod.number().nullish(),
   "checkinTime": zod.string().nullish(),
   "checkinLat": zod.number().nullish(),
   "checkinLng": zod.number().nullish(),
@@ -2267,6 +2283,7 @@ export const CancelAssignmentResponse = zod.object({
   "status": zod.string(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
+  "overriddenPay": zod.number().nullish(),
   "checkinTime": zod.string().nullish(),
   "checkinLat": zod.number().nullish(),
   "checkinLng": zod.number().nullish(),
@@ -2384,6 +2401,7 @@ export const TeamCheckinMemberResponse = zod.object({
   "status": zod.string(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
+  "overriddenPay": zod.number().nullish(),
   "checkinTime": zod.string().nullish(),
   "checkinLat": zod.number().nullish(),
   "checkinLng": zod.number().nullish(),
