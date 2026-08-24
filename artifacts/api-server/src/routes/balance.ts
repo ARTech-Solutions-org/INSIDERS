@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { db, ushersTable, balanceTransactionsTable, payoutsTable } from "@workspace/db";
+import { db, ushersTable, balanceTransactionsTable, payoutsTable, notificationsTable } from "@workspace/db";
 import { eq, desc, and, sql } from "drizzle-orm";
 import { requireUsher, requireAdmin, requireSuperAdmin } from "../middleware/auth.js";
 import { audit } from "../lib/audit.js";
@@ -102,6 +102,13 @@ router.post("/admin/transactions", requireSuperAdmin, async (req, res) => {
     ? `EGP ${amount} has been deducted from your balance. Reason: ${reason}`
     : `EGP ${amount} has been added to your balance. Reason: ${reason}`;
   
+  await db.insert(notificationsTable).values({
+    recipientType: "usher",
+    recipientId: usherId,
+    type: "financial",
+    message: body,
+  });
+
   await sendPushToUsher(usherId, {
     title, 
     body, 
@@ -152,9 +159,19 @@ router.post("/admin/payouts", requireSuperAdmin, async (req, res) => {
 
   await audit(req.user!.id, "CREATE_PAYOUT", "payouts", payout.id);
 
+  const title = "Payout Initiated";
+  const body = `A payout of EGP ${parsed.data.amount} has been initiated via ${parsed.data.method}.`;
+
+  await db.insert(notificationsTable).values({
+    recipientType: "usher",
+    recipientId: parsed.data.usherId,
+    type: "financial",
+    message: body,
+  });
+
   await sendPushToUsher(parsed.data.usherId, {
-    title: "Payout Initiated",
-    body: `A payout of EGP ${parsed.data.amount} has been initiated via ${parsed.data.method}.`,
+    title,
+    body,
     data: { type: "payout_initiated", amount: parsed.data.amount.toString() }
   }).catch(e => console.error("[FCM Error]", e));
 
@@ -190,15 +207,31 @@ router.patch("/admin/payouts/:id/status", requireSuperAdmin, async (req, res) =>
   await audit(req.user!.id, "UPDATE_PAYOUT_STATUS", "payouts", payout.id, `status=${parsed.data.status}`);
 
   if (parsed.data.status === "paid" && existing.status !== "paid") {
+    const title = "Payout Completed 💰";
+    const body = `Your payout of EGP ${existing.amount} has been completed!`;
+    await db.insert(notificationsTable).values({
+      recipientType: "usher",
+      recipientId: existing.usherId,
+      type: "financial",
+      message: body,
+    });
     await sendPushToUsher(existing.usherId, {
-      title: "Payout Completed \uD83D\uDCB0",
-      body: `Your payout of EGP ${existing.amount} has been completed!`,
+      title,
+      body,
       data: { type: "payout_completed", amount: existing.amount.toString() }
     }).catch(e => console.error("[FCM Error]", e));
   } else if (parsed.data.status === "cancelled" && existing.status !== "cancelled") {
+    const title = "Payout Cancelled";
+    const body = `Your payout of EGP ${existing.amount} was cancelled. The amount has been refunded to your balance.`;
+    await db.insert(notificationsTable).values({
+      recipientType: "usher",
+      recipientId: existing.usherId,
+      type: "financial",
+      message: body,
+    });
     await sendPushToUsher(existing.usherId, {
-      title: "Payout Cancelled",
-      body: `Your payout of EGP ${existing.amount} was cancelled. The amount has been refunded to your balance.`,
+      title,
+      body,
       data: { type: "payout_cancelled", amount: existing.amount.toString() }
     }).catch(e => console.error("[FCM Error]", e));
   }

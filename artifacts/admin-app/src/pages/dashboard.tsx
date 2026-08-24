@@ -5,7 +5,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 
 export default function Dashboard() {
-  const { data, isLoading } = useGetAdminDashboard();
+  const { data, isLoading } = useGetAdminDashboard({
+    query: { refetchInterval: 30000 } // Auto-refresh every 30 seconds
+  });
   const { data: me } = useGetMe();
   const isSuper = me?.type === "admin" && me?.role === "super_admin";
 
