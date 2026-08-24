@@ -65,7 +65,7 @@
 
       if (video) {
         video.addEventListener('ended', hideSplash);
-        setTimeout(hideSplash, 5000);
+        setTimeout(hideSplash, 30000);
         video.play().catch(function() { hideSplash(); });
       } else {
         hideSplash();
