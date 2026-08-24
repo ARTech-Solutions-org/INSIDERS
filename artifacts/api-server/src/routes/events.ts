@@ -145,8 +145,8 @@ router.patch("/events/:id", requireAdmin, async (req, res) => {
           
           // Helper to normalize and compare dates
           if (key === 'startTime' || key === 'endTime') {
-             const vTime = val ? new Date(val).getTime() : null;
-             const eTime = existVal ? new Date(existVal).getTime() : null;
+             const vTime = val ? new Date(val as string | number | Date).getTime() : null;
+             const eTime = existVal ? new Date(existVal as string | number | Date).getTime() : null;
              return vTime !== eTime;
           }
           
