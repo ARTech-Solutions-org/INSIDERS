@@ -3004,6 +3004,10 @@ components:
           type: boolean
         role:
           type: string
+        overriddenPay:
+          type:
+          - integer
+          - 'null'
         checkinTime:
           type:
           - string

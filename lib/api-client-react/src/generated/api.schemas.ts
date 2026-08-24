@@ -595,6 +595,8 @@ export interface MyAssignment {
   isTeamLead?: boolean;
   role?: string;
   /** @nullable */
+  overriddenPay?: number | null;
+  /** @nullable */
   checkinTime?: string | null;
   /** @nullable */
   checkoutTime?: string | null;
