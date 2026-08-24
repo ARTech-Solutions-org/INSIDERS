@@ -5,8 +5,8 @@
  */
 
 // 1. PWA App Shell Caching
-const CACHE_NAME = "insiders-shell-v6";
-const SHELL_ASSETS = ["/", "/insiders-logo.png", "/favicon.svg", "/favicon-white.svg", "/manifest.json"];
+const CACHE_NAME = "insiders-shell-v7";
+const SHELL_ASSETS = ["/", "/insiders-logo.png", "/favicon.svg", "/favicon-white.svg", "/manifest.json", "/splash.mp4"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(SHELL_ASSETS)));

@@ -36,8 +36,33 @@
 </head>
 
 <body>
+  <div id="splash-screen" style="position: fixed; inset: 0; background-color: #ffffff; z-index: 9999; display: flex; align-items: center; justify-content: center; transition: opacity 0.5s ease;">
+    <video id="splash-video" src="/splash.mp4" muted autoplay playsinline style="width: 100vw; max-width: 100%; object-fit: contain; pointer-events: none;"></video>
+  </div>
   <div id="root"></div>
   <script type="module" src="/src/main.tsx"></script>
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const splash = document.getElementById('splash-screen');
+      const video = document.getElementById('splash-video');
+      let isHidden = false;
+      
+      const hideSplash = () => {
+        if (isHidden || !splash) return;
+        isHidden = true;
+        splash.style.opacity = '0';
+        setTimeout(() => splash.remove(), 500);
+      };
+
+      if (video) {
+        video.addEventListener('ended', hideSplash);
+        setTimeout(hideSplash, 8000); // 8s max fallback
+        video.play().catch(() => hideSplash());
+      } else {
+        hideSplash();
+      }
+    });
+  </script>
 </body>
 
 </html>
