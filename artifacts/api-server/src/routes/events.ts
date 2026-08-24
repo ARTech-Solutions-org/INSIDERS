@@ -372,6 +372,10 @@ router.post("/events/:id/assignments", requireAdmin, async (req, res) => {
       const [lockedEvent] = await tx.select().from(eventsTable).where(eq(eventsTable.id, eventId));
       if (!lockedEvent) throw new Error("Not found");
 
+      const [usher] = await tx.select({ status: ushersTable.status }).from(ushersTable).where(eq(ushersTable.id, parsed.data.usherId));
+      if (!usher) throw new Error("Usher not found");
+      if (usher.status !== "active") throw new Error("Cannot assign usher because their account is not active.");
+
       const currentAssignments = await tx.select({
         role: eventAssignmentsTable.role,
         overriddenPay: eventAssignmentsTable.overriddenPay
@@ -425,8 +429,10 @@ router.post("/events/:id/assignments", requireAdmin, async (req, res) => {
   } catch (err: any) {
     if (err.code === "23505") { // unique violation
       res.status(409).json({ error: "This usher is already assigned to this event." });
-    } else if (err.message.startsWith("Budget exceeded:")) {
+    } else if (err.message.startsWith("Budget exceeded:") || err.message.startsWith("Cannot assign usher")) {
       res.status(400).json({ error: err.message });
+    } else if (err.message === "Usher not found") {
+      res.status(404).json({ error: err.message });
     } else {
       res.status(500).json({ error: "Failed to assign usher." });
     }
@@ -614,8 +620,8 @@ router.post("/events/:id/smart-assign-batch", requireAdmin, async (req, res) => 
     busyUsherIds.add(oa.usherId);
   }
 
-  // Get all ushers
-  let ushers = await db.select().from(ushersTable);
+  // Get all active ushers
+  let ushers = await db.select().from(ushersTable).where(eq(ushersTable.status, "active"));
 
   // Apply simple filters
   ushers = ushers.filter(u => {
@@ -738,8 +744,12 @@ router.get("/events/:id/smart-candidates", requireAdmin, async (req, res) => {
     const [event] = await db.select().from(eventsTable).where(eq(eventsTable.id, eventId));
     if (!event) { res.status(404).json({ error: "Not found" }); return; }
     
-    // Fetch up to 100 ushers
-    const activeUshers = await db.select().from(ushersTable).orderBy(desc(ushersTable.avgRating)).limit(100);
+    // Fetch up to 100 active ushers
+    const activeUshers = await db.select()
+      .from(ushersTable)
+      .where(eq(ushersTable.status, "active"))
+      .orderBy(desc(ushersTable.avgRating))
+      .limit(100);
     
     // Fetch currently assigned ushers to exclude them
     const currentAssignments = await db.select({ usherId: eventAssignmentsTable.usherId }).from(eventAssignmentsTable).where(eq(eventAssignmentsTable.eventId, eventId));
