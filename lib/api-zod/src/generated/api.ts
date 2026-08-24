@@ -2923,8 +2923,16 @@ export const ListExpiringDocumentsResponse = zod.array(ListExpiringDocumentsResp
 
 
 /**
- * @summary Get admin dashboard overview stats
+ * Returns dashboard metrics based on admin role (sensitive fields like balance stripped if not super_admin/finance).
+ * @summary Get admin dashboard statistics
  */
+export const getAdminDashboardQueryMonthRegExp = new RegExp('^\\d{4}-\\d{2}$');
+
+
+export const GetAdminDashboardQueryParams = zod.object({
+  "month": zod.coerce.string().regex(getAdminDashboardQueryMonthRegExp).optional().describe('Month to filter time-bound metrics (format YYYY-MM). If provided, calculates metrics for that specific month.')
+})
+
 export const GetAdminDashboardResponse = zod.object({
   "totalActiveUshers": zod.number().int(),
   "pendingApprovals": zod.number().int(),

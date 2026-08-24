@@ -306,21 +306,44 @@ router.get("/admin/dashboard", requireAdmin, async (req, res) => {
   const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
   const todayEnd = new Date(); todayEnd.setHours(23, 59, 59, 999);
   
-  const [{ totalEvents }] = await db.select({ totalEvents: sql<number>`count(*)::int` }).from(eventsTable);
+  const filterMonth = req.query.month as string;
+  let eventFilter = undefined;
+  let assignmentFilter = undefined;
+  
+  if (filterMonth && /^\\d{4}-\\d{2}$/.test(filterMonth)) {
+    const [year, month] = filterMonth.split("-").map(Number);
+    const start = new Date(year, month - 1, 1);
+    const end = new Date(year, month, 0, 23, 59, 59, 999);
+    eventFilter = and(gte(eventsTable.startTime, start), lte(eventsTable.startTime, end));
+    assignmentFilter = inArray(eventAssignmentsTable.eventId, db.select({ id: eventsTable.id }).from(eventsTable).where(eventFilter));
+  }
+
+  const [{ totalEvents }] = await db.select({ totalEvents: sql<number>`count(*)::int` }).from(eventsTable).where(eventFilter);
   const [{ ongoingEvents }] = await db.select({ ongoingEvents: sql<number>`count(*)::int` }).from(eventsTable).where(and(gte(eventsTable.startTime, todayStart), lte(eventsTable.startTime, todayEnd)));
   const [{ avgUsherRating }] = await db.select({ avgUsherRating: sql<number>`coalesce(avg(avg_rating), 0)::float` }).from(ushersTable).where(eq(ushersTable.status, "active"));
   
   const [{ waitlistCount }] = await db.select({ waitlistCount: sql<number>`count(*)::int` }).from(waitlistTable);
-  const [{ completedJobsCount }] = await db.select({ completedJobsCount: sql<number>`count(*)::int` }).from(eventAssignmentsTable).where(or(eq(eventAssignmentsTable.status, "completed"), eq(eventAssignmentsTable.status, "checked_in")));
-  const [{ cancelledJobsCount }] = await db.select({ cancelledJobsCount: sql<number>`count(*)::int` }).from(eventAssignmentsTable).where(or(eq(eventAssignmentsTable.status, "cancelled"), eq(eventAssignmentsTable.status, "declined"), eq(eventAssignmentsTable.status, "no_show")));
+  const [{ completedJobsCount }] = await db.select({ completedJobsCount: sql<number>`count(*)::int` }).from(eventAssignmentsTable).where(and(or(eq(eventAssignmentsTable.status, "completed"), eq(eventAssignmentsTable.status, "checked_in")), assignmentFilter));
+  const [{ cancelledJobsCount }] = await db.select({ cancelledJobsCount: sql<number>`count(*)::int` }).from(eventAssignmentsTable).where(and(or(eq(eventAssignmentsTable.status, "cancelled"), eq(eventAssignmentsTable.status, "declined"), eq(eventAssignmentsTable.status, "no_show")), assignmentFilter));
 
   if (hasFinanceAccess) {
     const [{ balanceOwed }] = await db.select({ balanceOwed: sql<number>`coalesce(sum(balance), 0)::float` }).from(ushersTable).where(gte(ushersTable.balance, 0));
     const recentActivity = await db.select({ id: auditLogTable.id, adminId: auditLogTable.adminId, actionType: auditLogTable.actionType, targetTable: auditLogTable.targetTable, targetId: auditLogTable.targetId, details: auditLogTable.details, createdAt: auditLogTable.createdAt, adminName: adminsTable.name }).from(auditLogTable).leftJoin(adminsTable, eq(auditLogTable.adminId, adminsTable.id)).orderBy(desc(auditLogTable.createdAt)).limit(10);
     
     const [{ pendingPayouts }] = await db.select({ pendingPayouts: sql<number>`count(*)::int` }).from(payoutsTable).where(eq(payoutsTable.status, "pending"));
-    const thisMonthStart = new Date(); thisMonthStart.setDate(1); thisMonthStart.setHours(0, 0, 0, 0);
-    const [{ totalPaidOutThisMonth }] = await db.select({ totalPaidOutThisMonth: sql<number>`coalesce(sum(amount), 0)::float` }).from(payoutsTable).where(and(eq(payoutsTable.status, "completed"), gte(payoutsTable.paidAt, thisMonthStart)));
+    
+    let payoutFilter = undefined;
+    if (filterMonth && /^\\d{4}-\\d{2}$/.test(filterMonth)) {
+      const [year, month] = filterMonth.split("-").map(Number);
+      const start = new Date(year, month - 1, 1);
+      const end = new Date(year, month, 0, 23, 59, 59, 999);
+      payoutFilter = and(gte(payoutsTable.paidAt, start), lte(payoutsTable.paidAt, end));
+    } else {
+      const thisMonthStart = new Date(); thisMonthStart.setDate(1); thisMonthStart.setHours(0, 0, 0, 0);
+      payoutFilter = gte(payoutsTable.paidAt, thisMonthStart);
+    }
+    
+    const [{ totalPaidOutThisMonth }] = await db.select({ totalPaidOutThisMonth: sql<number>`coalesce(sum(amount), 0)::float` }).from(payoutsTable).where(and(eq(payoutsTable.status, "completed"), payoutFilter));
 
     res.json({ totalActiveUshers: active, pendingApprovals: pending, upcomingEventsThisWeek: upcoming, totalBalanceOwed: balanceOwed, recentActivity, eventTrends, totalEvents, ongoingEvents, avgUsherRating, pendingPayouts, totalPaidOutThisMonth, waitlistCount, completedJobsCount, cancelledJobsCount });
   } else {

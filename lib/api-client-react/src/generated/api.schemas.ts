@@ -987,3 +987,11 @@ export type ListExpiringDocumentsParams = {
 days?: number;
 };
 
+export type GetAdminDashboardParams = {
+/**
+ * Month to filter time-bound metrics (format YYYY-MM). If provided, calculates metrics for that specific month.
+ * @pattern ^\d{4}-\d{2}$
+ */
+month?: string;
+};
+

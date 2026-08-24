@@ -1,13 +1,29 @@
+import { useState, useMemo } from "react";
 import { useGetAdminDashboard, useGetMe, getGetAdminDashboardQueryKey } from "@workspace/api-client-react";
 import { Users, Calendar, AlertTriangle, Activity, CheckCircle, Clock, TrendingUp, Star, CreditCard, Banknote, ClipboardList, CheckSquare, XSquare } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { format } from "date-fns";
+import { format, subMonths } from "date-fns";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function Dashboard() {
-  const { data, isLoading } = useGetAdminDashboard({
-    query: { queryKey: getGetAdminDashboardQueryKey(), refetchInterval: 30000 } // Auto-refresh every 30 seconds
-  });
+  const [selectedMonth, setSelectedMonth] = useState<string>("all");
+  
+  const monthOptions = useMemo(() => {
+    const arr = [{ value: "all", label: "All Time" }];
+    const now = new Date();
+    for (let i = 0; i < 12; i++) {
+      const d = subMonths(now, i);
+      arr.push({ value: format(d, "yyyy-MM"), label: format(d, "MMMM yyyy") });
+    }
+    return arr;
+  }, []);
+
+  const { data, isLoading } = useGetAdminDashboard(
+    { month: selectedMonth === "all" ? undefined : selectedMonth },
+    { query: { queryKey: [...getGetAdminDashboardQueryKey(), selectedMonth], refetchInterval: 30000 } }
+  );
+  
   const { data: me } = useGetMe();
 
   const isSuper = me?.type === "admin" && me?.role === "super_admin";
@@ -39,9 +55,26 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">Overview of system operations and upcoming events.</p>
+      <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground">Overview of system operations and upcoming events.</p>
+        </div>
+        
+        <div className="w-[200px]">
+          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select Month" />
+            </SelectTrigger>
+            <SelectContent>
+              {monthOptions.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className="space-y-8">
@@ -101,12 +134,12 @@ export default function Dashboard() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Events</CardTitle>
+                <CardTitle className="text-sm font-medium">{selectedMonth === "all" ? "Total Events" : "Events Started"}</CardTitle>
                 <Activity className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{data?.totalEvents || 0}</div>
-                <p className="text-xs text-muted-foreground mt-1">all time events</p>
+                <p className="text-xs text-muted-foreground mt-1">{selectedMonth === "all" ? "all time events" : "in selected month"}</p>
               </CardContent>
             </Card>
 
@@ -139,7 +172,7 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-green-600">{data?.completedJobsCount || 0}</div>
-                <p className="text-xs text-muted-foreground mt-1">successful shifts</p>
+                <p className="text-xs text-muted-foreground mt-1">{selectedMonth === "all" ? "successful shifts" : "in selected month"}</p>
               </CardContent>
             </Card>
 
@@ -150,7 +183,7 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-destructive">{data?.cancelledJobsCount || 0}</div>
-                <p className="text-xs text-muted-foreground mt-1">cancelled or no-show</p>
+                <p className="text-xs text-muted-foreground mt-1">{selectedMonth === "all" ? "cancelled or no-show" : "in selected month"}</p>
               </CardContent>
             </Card>
           </div>
@@ -185,12 +218,12 @@ export default function Dashboard() {
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-green-600">Paid This Month</CardTitle>
+                  <CardTitle className="text-sm font-medium text-green-600">{selectedMonth === "all" ? "Paid This Month" : "Paid Out"}</CardTitle>
                   <CreditCard className="h-4 w-4 text-green-600" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold text-green-600">EGP {data?.totalPaidOutThisMonth?.toLocaleString() || 0}</div>
-                  <p className="text-xs text-muted-foreground mt-1">completed payouts</p>
+                  <p className="text-xs text-muted-foreground mt-1">{selectedMonth === "all" ? "completed payouts this month" : "in selected month"}</p>
                 </CardContent>
               </Card>
             </div>

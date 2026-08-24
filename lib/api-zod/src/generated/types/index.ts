@@ -45,6 +45,7 @@ export * from './eventTeam';
 export * from './eventTeamInput';
 export * from './eventUpdate';
 export * from './expiringDocument';
+export * from './getAdminDashboardParams';
 export * from './getSmartCandidatesParams';
 export * from './gpsCheckinInput';
 export * from './healthStatus';
