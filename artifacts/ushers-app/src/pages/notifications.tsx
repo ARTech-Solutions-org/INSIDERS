@@ -40,12 +40,13 @@ export default function Notifications() {
     }
   };
 
-  const getIcon = (type: string) => {
+  const getIcon = (type: string, className?: string) => {
+    const sizeClass = className || "w-5 h-5";
     switch (type) {
-      case 'assignment': return <CalendarClock className="w-5 h-5 text-secondary" />;
-      case 'balance': return <Banknote className="w-5 h-5 text-green-600" />;
-      case 'penalty': return <ShieldAlert className="w-5 h-5 text-destructive" />;
-      default: return <CircleAlert className="w-5 h-5 text-foreground" />;
+      case 'assignment': return <CalendarClock className={`${sizeClass} text-secondary`} />;
+      case 'balance': return <Banknote className={`${sizeClass} text-green-600`} />;
+      case 'penalty': return <ShieldAlert className={`${sizeClass} text-destructive`} />;
+      default: return <CircleAlert className={`${sizeClass} text-foreground`} />;
     }
   };
 
@@ -106,26 +107,27 @@ export default function Notifications() {
       )}
 
       <Dialog open={!!selectedNotification} onOpenChange={(open) => !open && setSelectedNotification(null)}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 border rounded-full flex items-center justify-center shrink-0 bg-background border-border">
-                {selectedNotification && getIcon(selectedNotification.type)}
-              </div>
-              <DialogTitle className="uppercase tracking-widest text-lg">Alert Detail</DialogTitle>
+        <DialogContent className="sm:max-w-md p-0 overflow-hidden border-border/50 rounded-3xl w-[90vw] max-w-[400px]">
+          <div className="bg-muted/30 p-8 flex flex-col items-center justify-center text-center border-b border-border/50 relative">
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background/20 pointer-events-none" />
+            <div className="w-20 h-20 border-2 rounded-full flex items-center justify-center shrink-0 bg-background border-border mb-5 shadow-sm relative z-10">
+              {selectedNotification && getIcon(selectedNotification.type, "w-10 h-10")}
             </div>
-          </DialogHeader>
-          <div className="py-4">
-            <p className="text-sm leading-relaxed text-foreground">
+            <DialogTitle className="uppercase tracking-[0.2em] text-2xl font-bold brand-display relative z-10">
+              Alert Detail
+            </DialogTitle>
+          </div>
+          <div className="p-8">
+            <p className="text-[15px] leading-relaxed text-foreground/90 font-medium text-center">
               {selectedNotification?.message}
             </p>
           </div>
-          <DialogFooter className="sm:justify-between items-center mt-2 border-t pt-4">
-            <span className="text-xs font-mono text-muted-foreground uppercase tracking-widest">
+          <DialogFooter className="bg-muted/10 p-5 border-t border-border/50 flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
+            <span className="text-[11px] font-mono text-muted-foreground uppercase tracking-widest text-center sm:text-left w-full sm:w-auto">
               {selectedNotification && format(new Date(selectedNotification.sentAt), 'MMM d, yyyy h:mm a')}
             </span>
-            <Button type="button" variant="secondary" onClick={() => setSelectedNotification(null)} className="uppercase tracking-widest text-xs font-bold">
-              Close
+            <Button type="button" variant="default" onClick={() => setSelectedNotification(null)} className="uppercase tracking-widest text-xs font-bold w-full sm:w-auto rounded-xl">
+              Done
             </Button>
           </DialogFooter>
         </DialogContent>
