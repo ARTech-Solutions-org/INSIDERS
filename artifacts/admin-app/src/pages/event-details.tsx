@@ -1002,32 +1002,35 @@ export default function EventDetails() {
                           </select>
                         )}
                         {!hasStarted && (
-                          <div className="flex gap-1 mt-1">
-                            <select 
-                              className="text-[10px] border rounded px-1 py-0.5 bg-muted/20"
-                              value={assignment.role || "regular"}
-                              onChange={(e) => {
+                          <div className="flex items-center gap-1 mt-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className={`h-6 w-6 rounded-full shrink-0 ${assignment.role === 'leader' ? 'text-amber-500 bg-amber-500/10 hover:bg-amber-500/20 hover:text-amber-600' : 'text-muted-foreground hover:bg-muted'}`}
+                              onClick={() => {
                                 updateAssignment({ 
                                   id: eventId, 
                                   assignmentId: assignment.id, 
                                   data: { 
                                     usherId: assignment.usherId, 
-                                    role: e.target.value as "regular" | "leader" 
+                                    role: assignment.role === 'leader' ? 'regular' : 'leader' 
                                   } 
                                 });
                               }}
+                              title={assignment.role === 'leader' ? "Leader (Click to make Regular)" : "Regular (Click to make Leader)"}
                             >
-                              <option value="regular">Regular</option>
-                              <option value="leader">Leader</option>
-                            </select>
+                              <Crown className="w-4 h-4" />
+                            </Button>
                             <Input
                               type="number"
-                              className="h-5 w-16 text-[10px] px-1 py-0"
-                              placeholder="Pay (EGP)"
-                              value={assignment.overriddenPay ?? ""}
+                              className="h-6 w-16 text-xs px-1.5 py-0 bg-muted/20"
+                              placeholder="Pay"
+                              defaultValue={assignment.overriddenPay ?? ""}
+                              key={`pay-${assignment.id}-${assignment.overriddenPay}`}
                               onBlur={(e) => {
-                                const val = e.target.value ? parseInt(e.target.value, 10) : undefined;
-                                if (val !== assignment.overriddenPay) {
+                                const valStr = e.target.value;
+                                const val = valStr ? parseInt(valStr, 10) : null;
+                                if (!isNaN(val as any) && val !== (assignment.overriddenPay ?? null)) {
                                   updateAssignment({ 
                                     id: eventId, 
                                     assignmentId: assignment.id, 
@@ -1038,10 +1041,8 @@ export default function EventDetails() {
                                   });
                                 }
                               }}
-                              onChange={(e) => {
-                                // Just a visual update until blur
-                                const v = e.target.value ? parseInt(e.target.value, 10) : undefined;
-                                assignment.overriddenPay = v;
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') e.currentTarget.blur();
                               }}
                             />
                           </div>
