@@ -1,4 +1,4 @@
-import { useGetAdminDashboard, useGetMe } from "@workspace/api-client-react";
+import { useGetAdminDashboard, useGetMe, getGetAdminDashboardQueryKey } from "@workspace/api-client-react";
 import { Users, Calendar, AlertTriangle, Activity, CheckCircle, Clock, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -6,7 +6,7 @@ import { format } from "date-fns";
 
 export default function Dashboard() {
   const { data, isLoading } = useGetAdminDashboard({
-    query: { refetchInterval: 30000 } // Auto-refresh every 30 seconds
+    query: { queryKey: getGetAdminDashboardQueryKey(), refetchInterval: 30000 } // Auto-refresh every 30 seconds
   });
   const { data: me } = useGetMe();
   const isSuper = me?.type === "admin" && me?.role === "super_admin";
