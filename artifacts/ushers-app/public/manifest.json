@@ -10,16 +10,16 @@
   "theme_color": "#0a0a0a",
   "icons": [
     {
-      "src": "/insiders-logo.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
     },
     {
-      "src": "/insiders-logo.png",
+      "src": "/favicon-white.svg",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/svg+xml",
+      "purpose": "maskable"
     }
   ],
   "categories": ["business", "productivity"],
