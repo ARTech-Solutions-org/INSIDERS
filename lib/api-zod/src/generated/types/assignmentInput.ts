@@ -11,5 +11,6 @@ export interface AssignmentInput {
   eventTeamId?: number | null;
   isTeamLead?: boolean;
   role?: string;
-  overriddenPay?: number;
+  /** @nullable */
+  overriddenPay?: number | null;
 }

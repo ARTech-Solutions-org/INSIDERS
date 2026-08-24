@@ -1245,7 +1245,7 @@ export const AssignUsherToEventBody = zod.object({
   "eventTeamId": zod.int().nullish(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
-  "overriddenPay": zod.number().optional()
+  "overriddenPay": zod.number().nullish()
 })
 
 export const AssignUsherToEventResponse = zod.object({
@@ -1305,7 +1305,7 @@ export const UpdateAssignmentBody = zod.object({
   "eventTeamId": zod.int().nullish(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
-  "overriddenPay": zod.number().optional()
+  "overriddenPay": zod.number().nullish()
 })
 
 export const UpdateAssignmentResponse = zod.object({
@@ -1502,7 +1502,7 @@ export const SmartAssignBatchBody = zod.object({
   "count": zod.int().describe('Number of ushers to assign'),
   "eventTeamId": zod.int().optional(),
   "role": zod.enum(['regular', 'leader']).optional(),
-  "overriddenPay": zod.number().optional(),
+  "overriddenPay": zod.number().nullish(),
   "gender": zod.enum(['male', 'female']).optional(),
   "minRating": zod.number().optional(),
   "minCompletedEvents": zod.int().optional(),

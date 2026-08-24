@@ -78,6 +78,43 @@ import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { LocationPicker } from "@/components/ui/location-picker";
 
+function AssignmentPayInput({ assignment, updateAssignment, eventId }: { assignment: any, updateAssignment: any, eventId: number }) {
+  const [val, setVal] = useState(assignment.overriddenPay ?? "");
+
+  // Sync with external updates
+  useEffect(() => {
+    setVal(assignment.overriddenPay ?? "");
+  }, [assignment.overriddenPay]);
+
+  const handleBlur = () => {
+    const newVal = val === "" ? null : parseInt(val as string, 10);
+    if (!isNaN(newVal as any) && newVal !== (assignment.overriddenPay ?? null)) {
+      updateAssignment({ 
+        id: eventId, 
+        assignmentId: assignment.id, 
+        data: { 
+          usherId: assignment.usherId,
+          overriddenPay: newVal 
+        } 
+      });
+    }
+  };
+
+  return (
+    <Input
+      type="number"
+      className="h-6 w-16 text-xs px-1.5 py-0 bg-muted/20"
+      placeholder="Pay"
+      value={val}
+      onChange={(e) => setVal(e.target.value)}
+      onBlur={handleBlur}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') e.currentTarget.blur();
+      }}
+    />
+  );
+}
+
 export default function EventDetails() {
   const [, params] = useRoute("/events/:id");
   const eventId = params?.id ? parseInt(params.id, 10) : 0;
@@ -1021,30 +1058,7 @@ export default function EventDetails() {
                             >
                               <Crown className="w-4 h-4" />
                             </Button>
-                            <Input
-                              type="number"
-                              className="h-6 w-16 text-xs px-1.5 py-0 bg-muted/20"
-                              placeholder="Pay"
-                              defaultValue={assignment.overriddenPay ?? ""}
-                              key={`pay-${assignment.id}-${assignment.overriddenPay}`}
-                              onBlur={(e) => {
-                                const valStr = e.target.value;
-                                const val = valStr ? parseInt(valStr, 10) : null;
-                                if (!isNaN(val as any) && val !== (assignment.overriddenPay ?? null)) {
-                                  updateAssignment({ 
-                                    id: eventId, 
-                                    assignmentId: assignment.id, 
-                                    data: { 
-                                      usherId: assignment.usherId,
-                                      overriddenPay: val 
-                                    } 
-                                  });
-                                }
-                              }}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') e.currentTarget.blur();
-                              }}
-                            />
+                            <AssignmentPayInput assignment={assignment} updateAssignment={updateAssignment} eventId={eventId} />
                           </div>
                         )}
 

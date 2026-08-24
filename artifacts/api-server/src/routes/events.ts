@@ -476,11 +476,14 @@ router.patch("/events/:id/assignments/:assignmentId", requireAdmin, async (req, 
           else spent += lockedEvent.regularRate || 0;
         }
 
+        const roleToUse = parsed.data.role || existingAssignment.role;
+        const defaultRate = roleToUse === "leader" ? (lockedEvent.leaderRate || 0) : (lockedEvent.regularRate || 0);
+        
         const newCost = parsed.data.overriddenPay !== undefined
-          ? parsed.data.overriddenPay ?? 0
+          ? (parsed.data.overriddenPay !== null ? parsed.data.overriddenPay : defaultRate)
           : existingAssignment.overriddenPay != null 
             ? existingAssignment.overriddenPay 
-            : ((parsed.data.role || existingAssignment.role) === "leader" ? (lockedEvent.leaderRate || 0) : (lockedEvent.regularRate || 0));
+            : defaultRate;
 
         if (lockedEvent.budget && spent + newCost > lockedEvent.budget) {
           throw new Error("Budget exceeded: Cannot update assignment because it would exceed the event budget.");

@@ -555,7 +555,8 @@ export interface AssignmentInput {
   eventTeamId?: number | null;
   isTeamLead?: boolean;
   role?: string;
-  overriddenPay?: number;
+  /** @nullable */
+  overriddenPay?: number | null;
 }
 
 export interface MyWaitlistEntry {
@@ -632,7 +633,8 @@ export interface SmartAssignFilters {
   count: number;
   eventTeamId?: number;
   role?: SmartAssignFiltersRole;
-  overriddenPay?: number;
+  /** @nullable */
+  overriddenPay?: number | null;
   gender?: SmartAssignFiltersGender;
   minRating?: number;
   minCompletedEvents?: number;
