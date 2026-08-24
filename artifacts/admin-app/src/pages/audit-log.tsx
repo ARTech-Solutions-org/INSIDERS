@@ -51,20 +51,19 @@ export default function AuditLog() {
                 <TableHead>Admin</TableHead>
                 <TableHead>Action</TableHead>
                 <TableHead>Target</TableHead>
-                <TableHead>Client</TableHead>
                 <TableHead className="max-w-[300px]">Details</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                  <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
                     Loading audit logs...
                   </TableCell>
                 </TableRow>
               ) : data?.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                  <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
                     No audit logs found.
                   </TableCell>
                 </TableRow>
@@ -99,9 +98,6 @@ export default function AuditLog() {
                           {log.targetName ? log.targetTable : ''} <span className="font-mono">#{log.targetId}</span>
                         </span>
                       </div>
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      <span className="text-[10px] truncate max-w-[150px]" title={log.userAgent || ''}>{log.userAgent || 'Unknown Agent'}</span>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground max-w-[300px] truncate" title={log.details || ''}>
                       {log.details ? (
