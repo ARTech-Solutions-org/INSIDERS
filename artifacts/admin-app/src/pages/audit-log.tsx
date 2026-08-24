@@ -13,9 +13,9 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 
 export default function AuditLog() {
-  const [adminId, setAdminId] = useState("");
+  const [adminName, setAdminName] = useState("");
   const { data, isLoading } = useListAuditLog(
-    { adminId: adminId ? parseInt(adminId) : undefined },
+    { adminName: adminName ? adminName : undefined },
     { query: { enabled: true } as any }
   );
 
@@ -33,11 +33,11 @@ export default function AuditLog() {
         <div className="relative max-w-xs w-full">
           <User className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input 
-            placeholder="Filter by Admin ID..."
+            placeholder="Filter by Admin Name..."
             className="pl-8"
-            value={adminId}
-            onChange={(e) => setAdminId(e.target.value)}
-            type="number"
+            value={adminName}
+            onChange={(e) => setAdminName(e.target.value)}
+            type="text"
           />
         </div>
       </div>

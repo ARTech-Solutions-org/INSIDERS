@@ -2879,7 +2879,7 @@ export const SendBroadcastResponse = zod.object({
  * @summary List audit log entries (admin)
  */
 export const ListAuditLogQueryParams = zod.object({
-  "adminId": zod.coerce.number().int().optional(),
+  "adminName": zod.coerce.string().optional(),
   "actionType": zod.coerce.string().optional(),
   "from": zod.date().optional(),
   "to": zod.date().optional(),

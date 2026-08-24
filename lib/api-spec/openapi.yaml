@@ -1684,10 +1684,10 @@ paths:
       operationId: listAuditLog
       summary: List audit log entries (admin)
       parameters:
-      - name: adminId
+      - name: adminName
         in: query
         schema:
-          type: integer
+          type: string
       - name: actionType
         in: query
         schema:

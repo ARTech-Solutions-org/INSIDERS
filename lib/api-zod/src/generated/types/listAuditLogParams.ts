@@ -6,7 +6,7 @@
  */
 
 export type ListAuditLogParams = {
-adminId?: number;
+adminName?: string;
 actionType?: string;
 from?: Date;
 to?: Date;

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
 import { db, adminsTable, adminInvitationsTable, broadcastMessagesTable, auditLogTable, usherDocumentsTable, ushersTable, notificationsTable, eventsTable, eventAssignmentsTable, ratingsTable, payoutsTable, systemSettingsTable, DEFAULT_RATING_CONFIG } from "@workspace/db";
-import { eq, lte, and, desc, gte, sql, lt, inArray, isNull, or } from "drizzle-orm";
+import { eq, lte, and, desc, gte, sql, lt, inArray, isNull, or, ilike } from "drizzle-orm";
 import { requireAdmin, requireSuperAdmin } from "../middleware/auth.js";
 import { audit } from "../lib/audit.js";
 import { CreateAdminBody, UpdateAdminBody, SendBroadcastBody } from "@workspace/api-zod";
@@ -232,9 +232,40 @@ router.get("/fcm-debug", async (req, res) => {
 
 // GET /audit-log — super_admin only
 router.get("/audit-log", requireSuperAdmin, async (req, res) => {
-  const { adminId, actionType, from, to, page = "1", limit = "50" } = req.query as Record<string, string>;
+  const { adminName, actionType, from, to, page = "1", limit = "50" } = req.query as Record<string, string>;
   const offset = (parseInt(page) - 1) * parseInt(limit);
-  const rows = await db.select({ id: auditLogTable.id, adminId: auditLogTable.adminId, actionType: auditLogTable.actionType, targetTable: auditLogTable.targetTable, targetId: auditLogTable.targetId, details: auditLogTable.details, createdAt: auditLogTable.createdAt, adminName: adminsTable.name }).from(auditLogTable).leftJoin(adminsTable, eq(auditLogTable.adminId, adminsTable.id)).orderBy(desc(auditLogTable.createdAt)).limit(parseInt(limit)).offset(offset);
+  
+  const conditions = [];
+  if (adminName) {
+    conditions.push(ilike(adminsTable.name, `%${adminName}%`));
+  }
+  if (actionType) {
+    conditions.push(eq(auditLogTable.actionType, actionType));
+  }
+  if (from) {
+    conditions.push(gte(auditLogTable.createdAt, new Date(from)));
+  }
+  if (to) {
+    conditions.push(lte(auditLogTable.createdAt, new Date(to)));
+  }
+
+  const rows = await db.select({ 
+    id: auditLogTable.id, 
+    adminId: auditLogTable.adminId, 
+    actionType: auditLogTable.actionType, 
+    targetTable: auditLogTable.targetTable, 
+    targetId: auditLogTable.targetId, 
+    details: auditLogTable.details, 
+    createdAt: auditLogTable.createdAt, 
+    adminName: adminsTable.name 
+  })
+  .from(auditLogTable)
+  .leftJoin(adminsTable, eq(auditLogTable.adminId, adminsTable.id))
+  .where(conditions.length > 0 ? and(...conditions) : undefined)
+  .orderBy(desc(auditLogTable.createdAt))
+  .limit(parseInt(limit))
+  .offset(offset);
+  
   res.json(rows);
 });
 

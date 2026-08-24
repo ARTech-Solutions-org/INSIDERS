@@ -967,7 +967,7 @@ export type VerifyAdminInvitation200 = {
 };
 
 export type ListAuditLogParams = {
-adminId?: number;
+adminName?: string;
 actionType?: string;
 from?: string;
 to?: string;
