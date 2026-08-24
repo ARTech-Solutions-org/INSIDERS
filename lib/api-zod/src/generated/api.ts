@@ -2929,6 +2929,11 @@ export const GetAdminDashboardResponse = zod.object({
   "totalActiveUshers": zod.number().int(),
   "pendingApprovals": zod.number().int(),
   "upcomingEventsThisWeek": zod.number().int(),
+  "totalEvents": zod.number().int(),
+  "ongoingEvents": zod.number().int(),
+  "avgUsherRating": zod.number(),
+  "pendingPayouts": zod.number().int().nullable(),
+  "totalPaidOutThisMonth": zod.number().nullable(),
   "totalBalanceOwed": zod.number(),
   "expiringDocumentCount": zod.number().int().optional(),
   "recentActivity": zod.array(zod.object({

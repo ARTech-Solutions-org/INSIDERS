@@ -11,6 +11,11 @@ export interface AdminDashboard {
   totalActiveUshers: number;
   pendingApprovals: number;
   upcomingEventsThisWeek: number;
+  totalEvents: number;
+  ongoingEvents: number;
+  avgUsherRating: number;
+  pendingPayouts: number | null;
+  totalPaidOutThisMonth: number | null;
   totalBalanceOwed: number;
   expiringDocumentCount?: number;
   recentActivity: AuditLogEntry[];

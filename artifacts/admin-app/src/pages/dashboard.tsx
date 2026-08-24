@@ -1,5 +1,5 @@
 import { useGetAdminDashboard, useGetMe, getGetAdminDashboardQueryKey } from "@workspace/api-client-react";
-import { Users, Calendar, AlertTriangle, Activity, CheckCircle, Clock, TrendingUp } from "lucide-react";
+import { Users, Calendar, AlertTriangle, Activity, CheckCircle, Clock, TrendingUp, Star, CreditCard, Banknote } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
@@ -44,7 +44,8 @@ export default function Dashboard() {
         <p className="text-muted-foreground">Overview of system operations and upcoming events.</p>
       </div>
 
-      <div className={`grid gap-4 md:grid-cols-2 ${hasFinanceAccess ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {/* General Admin Stats */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Ushers</CardTitle>
@@ -66,6 +67,39 @@ export default function Dashboard() {
             <p className="text-xs text-muted-foreground mt-1">awaiting review</p>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Avg Usher Rating</CardTitle>
+            <Star className="h-4 w-4 text-yellow-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{data?.avgUsherRating?.toFixed(1) || "0.0"}</div>
+            <p className="text-xs text-muted-foreground mt-1">out of 5.0</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Events</CardTitle>
+            <Activity className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{data?.totalEvents || 0}</div>
+            <p className="text-xs text-muted-foreground mt-1">all time events</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-primary">Ongoing Events</CardTitle>
+            <CheckCircle className="h-4 w-4 text-primary" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-primary">{data?.ongoingEvents || 0}</div>
+            <p className="text-xs text-muted-foreground mt-1">happening today</p>
+          </CardContent>
+        </Card>
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -78,18 +112,42 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Balance Owed — super_admin only */}
+        {/* Finance Stats — super_admin only */}
         {hasFinanceAccess && (
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-primary">Balance Owed</CardTitle>
-              <TrendingUp className="h-4 w-4 text-primary" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">EGP {data?.totalBalanceOwed?.toLocaleString() || 0}</div>
-              <p className="text-xs text-muted-foreground mt-1">total usher balance</p>
-            </CardContent>
-          </Card>
+          <>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-destructive">Balance Owed</CardTitle>
+                <Banknote className="h-4 w-4 text-destructive" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-destructive">EGP {data?.totalBalanceOwed?.toLocaleString() || 0}</div>
+                <p className="text-xs text-muted-foreground mt-1">total usher balance</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-amber-500">Pending Payouts</CardTitle>
+                <Clock className="h-4 w-4 text-amber-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-amber-500">{data?.pendingPayouts || 0}</div>
+                <p className="text-xs text-muted-foreground mt-1">requests waiting</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-green-600">Paid This Month</CardTitle>
+                <CreditCard className="h-4 w-4 text-green-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">EGP {data?.totalPaidOutThisMonth?.toLocaleString() || 0}</div>
+                <p className="text-xs text-muted-foreground mt-1">completed payouts</p>
+              </CardContent>
+            </Card>
+          </>
         )}
       </div>
 

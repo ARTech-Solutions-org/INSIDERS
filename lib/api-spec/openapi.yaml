@@ -3635,6 +3635,11 @@ components:
       - totalBalanceOwed
       - recentActivity
       - eventTrends
+      - totalEvents
+      - ongoingEvents
+      - avgUsherRating
+      - pendingPayouts
+      - totalPaidOutThisMonth
       properties:
         totalActiveUshers:
           type: integer
@@ -3642,6 +3647,18 @@ components:
           type: integer
         upcomingEventsThisWeek:
           type: integer
+        totalEvents:
+          type: integer
+        ongoingEvents:
+          type: integer
+        avgUsherRating:
+          type: number
+        pendingPayouts:
+          type: integer
+          nullable: true
+        totalPaidOutThisMonth:
+          type: number
+          nullable: true
         totalBalanceOwed:
           type: number
         expiringDocumentCount:

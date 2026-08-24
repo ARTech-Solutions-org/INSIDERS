@@ -303,12 +303,24 @@ router.get("/admin/dashboard", requireAdmin, async (req, res) => {
   const isSuperAdmin = callerAdmin?.role === "super_admin";
   const hasFinanceAccess = isSuperAdmin || callerAdmin?.canManageFinance;
 
+  const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+  const todayEnd = new Date(); todayEnd.setHours(23, 59, 59, 999);
+  
+  const [{ totalEvents }] = await db.select({ totalEvents: sql<number>`count(*)::int` }).from(eventsTable);
+  const [{ ongoingEvents }] = await db.select({ ongoingEvents: sql<number>`count(*)::int` }).from(eventsTable).where(and(gte(eventsTable.startTime, todayStart), lte(eventsTable.startTime, todayEnd)));
+  const [{ avgUsherRating }] = await db.select({ avgUsherRating: sql<number>`coalesce(avg(avg_rating), 0)::float` }).from(ushersTable).where(eq(ushersTable.status, "active"));
+
   if (hasFinanceAccess) {
     const [{ balanceOwed }] = await db.select({ balanceOwed: sql<number>`coalesce(sum(balance), 0)::float` }).from(ushersTable).where(gte(ushersTable.balance, 0));
     const recentActivity = await db.select({ id: auditLogTable.id, adminId: auditLogTable.adminId, actionType: auditLogTable.actionType, targetTable: auditLogTable.targetTable, targetId: auditLogTable.targetId, details: auditLogTable.details, createdAt: auditLogTable.createdAt, adminName: adminsTable.name }).from(auditLogTable).leftJoin(adminsTable, eq(auditLogTable.adminId, adminsTable.id)).orderBy(desc(auditLogTable.createdAt)).limit(10);
-    res.json({ totalActiveUshers: active, pendingApprovals: pending, upcomingEventsThisWeek: upcoming, totalBalanceOwed: balanceOwed, recentActivity, eventTrends });
+    
+    const [{ pendingPayouts }] = await db.select({ pendingPayouts: sql<number>`count(*)::int` }).from(payoutsTable).where(eq(payoutsTable.status, "pending"));
+    const thisMonthStart = new Date(); thisMonthStart.setDate(1); thisMonthStart.setHours(0, 0, 0, 0);
+    const [{ totalPaidOutThisMonth }] = await db.select({ totalPaidOutThisMonth: sql<number>`coalesce(sum(amount), 0)::float` }).from(payoutsTable).where(and(eq(payoutsTable.status, "completed"), gte(payoutsTable.paidAt, thisMonthStart)));
+
+    res.json({ totalActiveUshers: active, pendingApprovals: pending, upcomingEventsThisWeek: upcoming, totalBalanceOwed: balanceOwed, recentActivity, eventTrends, totalEvents, ongoingEvents, avgUsherRating, pendingPayouts, totalPaidOutThisMonth });
   } else {
-    res.json({ totalActiveUshers: active, pendingApprovals: pending, upcomingEventsThisWeek: upcoming, totalBalanceOwed: null, recentActivity: null, eventTrends });
+    res.json({ totalActiveUshers: active, pendingApprovals: pending, upcomingEventsThisWeek: upcoming, totalBalanceOwed: null, recentActivity: null, eventTrends, totalEvents, ongoingEvents, avgUsherRating, pendingPayouts: null, totalPaidOutThisMonth: null });
   }
 });
 
