@@ -1,4 +1,4 @@
-import { useListAuditLog } from "@workspace/api-client-react";
+import { useListAuditLog, useListAdmins } from "@workspace/api-client-react";
 import {
   Table,
   TableBody,
@@ -10,10 +10,12 @@ import {
 import { format } from "date-fns";
 import { ShieldAlert, User, Activity } from "lucide-react";
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 
 export default function AuditLog() {
   const [adminName, setAdminName] = useState("");
+  const { data: admins } = useListAdmins();
   const { data, isLoading } = useListAuditLog(
     { adminName: adminName ? adminName : undefined },
     { query: { enabled: true } as any }
@@ -30,15 +32,21 @@ export default function AuditLog() {
       </div>
 
       <div className="flex items-center gap-4">
-        <div className="relative max-w-xs w-full">
-          <User className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input 
-            placeholder="Filter by Admin Name..."
-            className="pl-8"
-            value={adminName}
-            onChange={(e) => setAdminName(e.target.value)}
-            type="text"
-          />
+        <div className="relative max-w-xs w-full flex items-center gap-2">
+          <Select value={adminName} onValueChange={(value) => setAdminName(value === "ALL_ADMINS" ? "" : value)}>
+            <SelectTrigger className="w-[250px]">
+              <User className="w-4 h-4 mr-2 text-muted-foreground" />
+              <SelectValue placeholder="Filter by Admin..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL_ADMINS">All Admins</SelectItem>
+              {admins?.map((admin) => (
+                <SelectItem key={admin.id} value={admin.name || admin.id.toString()}>
+                  {admin.name || `Admin #${admin.id}`}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
