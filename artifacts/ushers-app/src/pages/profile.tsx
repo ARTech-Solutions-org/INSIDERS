@@ -449,6 +449,11 @@ export default function Profile() {
           <LogOut className="w-4 h-4 mr-2" />
           SIGN OUT
         </Button>
+
+        <div className="mt-8 mb-4 flex flex-col items-center justify-center opacity-40">
+          <span className="text-[9px] uppercase tracking-widest text-muted-foreground mb-1">Powered By</span>
+          <img src="/powered-by.png" alt="Powered By" className="h-6 object-contain" />
+        </div>
       </div>
 
       <ImageCropper

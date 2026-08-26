@@ -88,10 +88,14 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
               <p className="text-xs text-sidebar-foreground/60 capitalize">{user?.role?.replace('_', ' ')}</p>
             </div>
           </div>
-           <Button variant="outline" className="w-full justify-start text-sidebar-foreground uppercase tracking-wider font-bold rounded-none" onClick={() => logout()}>
+          <Button variant="outline" className="w-full justify-start text-sidebar-foreground uppercase tracking-wider font-bold rounded-none" onClick={() => logout()}>
             <LogOut className="w-4 h-4 mr-2" />
             Logout
           </Button>
+          <div className="mt-4 flex flex-col items-center justify-center opacity-40">
+            <span className="text-[9px] uppercase tracking-widest text-sidebar-foreground/60 mb-1">Powered By</span>
+            <img src="/powered-by.png" alt="Powered By" className="h-6 object-contain" />
+          </div>
         </div>
       </div>
 
