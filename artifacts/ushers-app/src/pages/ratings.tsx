@@ -1,6 +1,6 @@
 import React from 'react';
 import { useListMyRatings, useGetMyUsherProfile } from '@workspace/api-client-react';
-import { Star, MessageSquare, Calendar, Award } from 'lucide-react';
+import { Star, StarHalf, MessageSquare, Calendar, Award } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 
@@ -40,12 +40,22 @@ export default function Ratings() {
 
   const renderStars = (value: number, size: string = 'w-4 h-4') => (
     <div className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map(star => (
-        <Star
-          key={star}
-          className={`${size} ${star <= value ? 'text-accent fill-accent' : 'text-muted fill-muted'}`}
-        />
-      ))}
+      {[1, 2, 3, 4, 5].map(star => {
+        if (value >= star) {
+          return <Star key={star} className={`${size} text-accent fill-accent`} />;
+        } else if (value >= star - 0.5) {
+          return (
+            <div key={star} className="relative">
+              <Star className={`${size} text-muted fill-muted`} />
+              <div className="absolute top-0 left-0 overflow-hidden w-[50%]">
+                <Star className={`${size} text-accent fill-accent`} />
+              </div>
+            </div>
+          );
+        } else {
+          return <Star key={star} className={`${size} text-muted fill-muted`} />;
+        }
+      })}
     </div>
   );
 
@@ -101,7 +111,7 @@ export default function Ratings() {
               {avgRating !== null ? avgRating.toFixed(2) : '—'}
               <span className="text-sm font-normal text-muted-foreground ml-1">/ 5.00</span>
             </p>
-            {renderStars(Math.round(avgRating ?? 0), 'w-5 h-5')}
+            {renderStars(avgRating ?? 0, 'w-5 h-5')}
           </div>
           <div className="text-right">
             <p className="text-2xl font-bold text-foreground">{eventRatings.length}</p>
@@ -147,7 +157,7 @@ export default function Ratings() {
                         <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
                           Event Rating
                         </p>
-                        {renderStars(Math.round(ev.avgScore))}
+                        {renderStars(ev.avgScore)}
                       </div>
                       <div className={`font-bold text-xl px-3 py-1 rounded-lg mr-2 ${
                         ev.avgScore >= 4 ? 'bg-green-500/10 text-green-600'
