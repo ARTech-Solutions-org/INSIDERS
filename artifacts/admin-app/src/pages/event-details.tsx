@@ -978,7 +978,7 @@ export default function EventDetails() {
                           onClick={() => {
                             const assignment = event.assignments?.find((a: any) => a.usherId === sug.id);
                             if (assignment) {
-                              updateAssignment({ id: eventId, assignmentId: assignment.id, data: { usherId: assignment.usherId, eventTeamId: selectedTeamId, isTeamLead: true } });
+                              updateAssignment({ id: eventId, assignmentId: assignment.id, data: { usherId: assignment.usherId, eventTeamId: selectedTeamId, isTeamLead: true, role: 'leader' } });
                             }
                           }}
                         >
@@ -1094,18 +1094,21 @@ export default function EventDetails() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className={`h-6 w-6 rounded-full shrink-0 ${assignment.role === 'leader' ? 'text-amber-500 bg-amber-500/10 hover:bg-amber-500/20 hover:text-amber-600' : 'text-muted-foreground hover:bg-muted'}`}
+                              className={`h-6 w-6 rounded-full shrink-0 ${(assignment.isTeamLead || assignment.role === 'leader') ? 'text-amber-500 bg-amber-500/10 hover:bg-amber-500/20 hover:text-amber-600' : 'text-muted-foreground hover:bg-muted'}`}
                               onClick={() => {
+                                const isCurrentlyLead = assignment.isTeamLead || assignment.role === 'leader';
                                 updateAssignment({ 
                                   id: eventId, 
                                   assignmentId: assignment.id, 
                                   data: { 
-                                    usherId: assignment.usherId, 
-                                    role: assignment.role === 'leader' ? 'regular' : 'leader' 
+                                    usherId: assignment.usherId,
+                                    eventTeamId: assignment.eventTeamId,
+                                    role: isCurrentlyLead ? 'regular' : 'leader',
+                                    isTeamLead: !isCurrentlyLead,
                                   } 
                                 });
                               }}
-                              title={assignment.role === 'leader' ? "Leader (Click to make Regular)" : "Regular (Click to make Leader)"}
+                              title={(assignment.isTeamLead || assignment.role === 'leader') ? "Team Leader (Click to demote)" : "Make Team Leader"}
                             >
                               <Crown className="w-4 h-4" />
                             </Button>
