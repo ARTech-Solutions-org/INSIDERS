@@ -37,41 +37,8 @@
 </head>
 
 <body>
-  <div id="splash-screen" style="position: fixed; inset: 0; background-color: #000; z-index: 9999; display: flex; align-items: center; justify-content: center;">
-    <video id="splash-video" src="/splash.mp4" muted autoplay playsinline style="height: 100vh; width: auto; pointer-events: none; display: block;"></video>
-  </div>
   <div id="root"></div>
   <script type="module" src="/src/main.tsx"></script>
-  <script>
-    (function() {
-      var splash = document.getElementById('splash-screen');
-      
-      // Only show splash on first open (new session), not on refresh
-      if (sessionStorage.getItem('splash_shown')) {
-        if (splash) splash.remove();
-        return;
-      }
-      sessionStorage.setItem('splash_shown', '1');
-
-      var video = document.getElementById('splash-video');
-      var isHidden = false;
-      
-      function hideSplash() {
-        if (isHidden || !splash) return;
-        isHidden = true;
-        splash.style.opacity = '0';
-        setTimeout(function() { if (splash) splash.remove(); }, 400);
-      }
-
-      if (video) {
-        video.addEventListener('ended', hideSplash);
-        setTimeout(hideSplash, 30000);
-        video.play().catch(function() { hideSplash(); });
-      } else {
-        hideSplash();
-      }
-    })();
-  </script>
 </body>
 
 </html>
