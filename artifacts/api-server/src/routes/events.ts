@@ -807,6 +807,7 @@ router.post("/events/:id/smart-assign-batch", requireAdmin, async (req, res) => 
 
 // GET /events/:id/smart-candidates
 router.get("/events/:id/smart-candidates", requireAdmin, async (req, res) => {
+  const baseUrl = `${req.protocol}://${req.get('host')}`;
   try {
     const eventId = parseInt(req.params.id as string, 10);
     const [event] = await db.select().from(eventsTable).where(eq(eventsTable.id, eventId));
@@ -877,7 +878,9 @@ router.get("/events/:id/smart-candidates", requireAdmin, async (req, res) => {
       id: u.id, 
       fullName: u.fullName, 
       avgRating: u.avgRating ?? 0, 
-      profilePhotoUrl: u.profilePhotoUrl, 
+      profilePhotoUrl: u.profilePhotoKey 
+        ? `${baseUrl}/api/uploads/read?key=${encodeURIComponent(u.profilePhotoKey)}`
+        : (u.profilePhotoUrl ?? null),
       phone: u.phone, 
       status: u.status ?? "active", 
       isAvailable, 
