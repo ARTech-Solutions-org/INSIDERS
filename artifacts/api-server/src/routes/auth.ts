@@ -230,7 +230,7 @@ router.get("/auth/me", requireAuth, async (req, res) => {
   if (user.type === "usher") {
     const [usher] = await db.select().from(ushersTable).where(eq(ushersTable.id, user.id));
     if (!usher) { res.status(401).json({ error: "Not found" }); return; }
-    res.json({ type: "usher", id: usher.id, name: usher.fullName, email: usher.email, status: usher.status, role: null });
+    res.json({ type: "usher", id: usher.id, name: usher.fullName, email: usher.email, status: usher.status, balance: usher.balance, role: null });
   } else {
     const [admin] = await db.select().from(adminsTable).where(eq(adminsTable.id, user.id));
     if (!admin) { res.status(401).json({ error: "Not found" }); return; }
