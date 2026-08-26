@@ -175,9 +175,10 @@ export default function EventDetails() {
 
   
   const totalSpent = (event?.assignments || []).reduce((acc: number, a: any) => {
-    if (a.status !== 'assigned' && a.status !== 'accepted' && a.status !== 'checked_in') return acc;
+    if (!['assigned', 'accepted', 'checked_in', 'completed'].includes(a.status)) return acc;
     const baseRate = a.role === 'leader' || a.isTeamLead ? (event?.leaderRate || 0) : (event?.regularRate || 0);
-    return acc + (a.overriddenPay ?? baseRate);
+    const pay = a.overriddenPay != null ? Number(a.overriddenPay) : baseRate;
+    return acc + pay;
   }, 0);
   
   const isBudgetExceeded = event?.budget && totalSpent > event.budget;
