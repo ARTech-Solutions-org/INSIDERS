@@ -56,7 +56,14 @@ router.post("/ratings/holder/:token", async (req, res) => {
 router.get("/my/ratings", requireAuth, async (req, res) => {
   const usherId = req.user!.id;
   const assignments = await db
-    .select({ id: eventAssignmentsTable.id, eventId: eventAssignmentsTable.eventId })
+    .select({ 
+      id: eventAssignmentsTable.id, 
+      eventId: eventAssignmentsTable.eventId,
+      status: eventAssignmentsTable.status,
+      lateArrivalMinutes: eventAssignmentsTable.lateArrivalMinutes,
+      earlyLeaveMinutes: eventAssignmentsTable.earlyLeaveMinutes,
+      checkinTime: eventAssignmentsTable.checkinTime
+    })
     .from(eventAssignmentsTable)
     .where(eq(eventAssignmentsTable.usherId, usherId));
   
@@ -65,8 +72,6 @@ router.get("/my/ratings", requireAuth, async (req, res) => {
   const assignmentIds = assignments.map(a => a.id);
   const ratings = await db.select().from(ratingsTable).where(inArray(ratingsTable.eventAssignmentId, assignmentIds));
   
-  if (!ratings.length) { res.json([]); return; }
-
   // Load event info for each assignment
   const eventIds = [...new Set(assignments.map(a => a.eventId))];
   const events = await db
@@ -76,10 +81,57 @@ router.get("/my/ratings", requireAuth, async (req, res) => {
   const eventMap = new Map(events.map(e => [e.id, e]));
   const assignmentMap = new Map(assignments.map(a => [a.id, a]));
 
-  const result = ratings.map(r => {
+  const result: any[] = ratings.map(r => {
     const assignment = assignmentMap.get(r.eventAssignmentId);
     const event = assignment ? eventMap.get(assignment.eventId) : undefined;
     return { ...r, eventTitle: event?.title ?? null, eventStartTime: event?.startTime ?? null };
+  });
+
+  // Inject synthetic system ratings for completed assignments
+  for (const a of assignments) {
+    if (a.status === 'completed' && a.checkinTime) {
+      // Check if there is already a system rating in the DB for this assignment (legacy support)
+      if (ratings.some(r => r.eventAssignmentId === a.id && r.ratedByType === 'system')) {
+        continue;
+      }
+
+      let score = 5;
+      let notes = [];
+      const late = a.lateArrivalMinutes || 0;
+      const early = a.earlyLeaveMinutes || 0;
+      
+      // Basic heuristic mirroring auto-rating engine
+      if (late > 0) {
+        score -= Math.ceil(late / 30);
+        notes.push(`Checked in ${late} mins late`);
+      }
+      if (early > 0) {
+        score -= Math.ceil(early / 30);
+        notes.push(`Checked out ${early} mins early`);
+      }
+      
+      score = Math.max(0, Math.min(5, score));
+      
+      if (notes.length > 0 || score < 5) {
+        const event = eventMap.get(a.eventId);
+        result.push({
+          id: -a.id, // negative ID to ensure uniqueness for React key
+          eventAssignmentId: a.id,
+          ratedByType: 'system',
+          ratingValue: score,
+          comment: `System Auto-Rating: ${notes.length > 0 ? notes.join(', ') : 'Punctuality affected score.'}`,
+          eventTitle: event?.title ?? null,
+          eventStartTime: event?.startTime ?? null
+        });
+      }
+    }
+  }
+
+  // Sort by event start time descending
+  result.sort((a, b) => {
+    const timeA = a.eventStartTime ? new Date(a.eventStartTime).getTime() : 0;
+    const timeB = b.eventStartTime ? new Date(b.eventStartTime).getTime() : 0;
+    return timeB - timeA;
   });
 
   res.json(result);

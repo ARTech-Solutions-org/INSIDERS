@@ -1,5 +1,5 @@
 import React from 'react';
-import { useListMyRatings } from '@workspace/api-client-react';
+import { useListMyRatings, useGetMyUsherProfile } from '@workspace/api-client-react';
 import { Star, MessageSquare, Calendar, Award } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
@@ -14,7 +14,10 @@ function ratedByLabel(type: string) {
 }
 
 export default function Ratings() {
-  const { data: ratings, isLoading } = useListMyRatings();
+  const { data: ratings, isLoading: isLoadingRatings } = useListMyRatings();
+  const { data: profile, isLoading: isLoadingProfile } = useGetMyUsherProfile();
+
+  const isLoading = isLoadingRatings || isLoadingProfile;
 
   const renderStars = (value: number, size: string = 'w-4 h-4') => (
     <div className="flex items-center gap-0.5">
@@ -28,19 +31,17 @@ export default function Ratings() {
   );
 
   const safeRatings: any[] = Array.isArray(ratings) ? ratings : [];
-  const avgRating = safeRatings.length > 0
-    ? safeRatings.reduce((s, r) => s + r.ratingValue, 0) / safeRatings.length
-    : null;
+
+  const avgRating = profile?.avgRating ?? null;
 
   return (
     <div className="p-4 flex flex-col h-full">
-      <div className="pt-3 mb-5">
-        <p className="brand-meta text-accent mb-2">Feedback loop</p>
+      <div className="flex items-center gap-3 mb-6">
         <h1 className="brand-display text-4xl text-foreground">My Ratings</h1>
       </div>
 
       {/* Summary card */}
-      {!isLoading && safeRatings.length > 0 && (
+      {!isLoading && avgRating !== null && (
         <div className="bg-gradient-to-br from-accent/20 to-accent/5 border border-accent/20 rounded-3xl p-5 flex items-center gap-5 mb-5 shadow-sm">
           <div className="w-14 h-14 rounded-full bg-accent/20 flex items-center justify-center shrink-0">
             <Award className="w-7 h-7 text-accent" />
