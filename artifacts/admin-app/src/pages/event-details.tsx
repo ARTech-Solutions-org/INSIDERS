@@ -23,7 +23,8 @@ import {
   getListWaitlistQueryKey,
   useGetEventFeedbackLink,
   useCreateEventFeedbackLink,
-  getGetEventFeedbackLinkQueryKey
+  getGetEventFeedbackLinkQueryKey,
+  useAdminCheckout
 } from "@workspace/api-client-react";
 import { useQueryClient, useQueries } from "@tanstack/react-query";
 import { useGetMe } from "@workspace/api-client-react";
@@ -72,7 +73,8 @@ import {
   Link as LinkIcon,
   Copy,
   RefreshCw,
-  MessageSquare
+  MessageSquare,
+  LogOut
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -213,6 +215,19 @@ export default function EventDetails() {
       },
       onError: (err: any) => {
         toast({ title: "Error", description: err.message, variant: "destructive" });
+      }
+    }
+  });
+
+  const { mutate: adminCheckout, isPending: isAdminCheckingOut } = useAdminCheckout({
+    mutation: {
+      onSuccess: () => {
+        toast({ title: "Checked out successfully." });
+        queryClient.invalidateQueries({ queryKey: getListEventAssignmentsQueryKey(eventId) as any });
+        refetch();
+      },
+      onError: (err: any) => {
+        toast({ title: "Failed to checkout.", description: err.response?.data?.error || err.message, variant: "destructive" });
       }
     }
   });
@@ -1048,6 +1063,22 @@ export default function EventDetails() {
 
                       <div className="flex flex-col items-end gap-1">
                         <div className="flex items-center gap-2">
+                          {assignment.checkinTime && !assignment.checkoutTime && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 text-xs gap-1 text-primary hover:bg-primary/10"
+                              disabled={isAdminCheckingOut}
+                              onClick={() => {
+                                if (confirm(`Force checkout for ${assignment.usher?.fullName}?`)) {
+                                  adminCheckout({ id: eventId, assignmentId: assignment.id });
+                                }
+                              }}
+                            >
+                              <LogOut className="w-3.5 h-3.5" />
+                              Checkout
+                            </Button>
+                          )}
                           <Button 
                             size="sm" 
                             variant="ghost" 
