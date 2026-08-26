@@ -292,19 +292,21 @@ export default function PublicFeedback() {
                       <div className="grid gap-4 sm:grid-cols-2">
                         {team.ushers.map((usher) => (
                           <div key={usher.id} className="group bg-muted hover:bg-muted/50 rounded-2xl p-5 transition-all duration-300 border border-transparent hover:border-border">
-                            <div className="flex justify-between items-center gap-3">
-                              <div className="flex items-center gap-3 overflow-hidden">
-                                <div className="w-10 h-10 rounded-full bg-muted border border-border flex-shrink-0 flex items-center justify-center text-muted-foreground group-hover:text-primary group-hover:border-amber-500/30 transition-colors">
-                                  <User className="w-4 h-4" />
+                            <div className="flex justify-between items-center gap-2 sm:gap-3">
+                              <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-muted border border-border flex-shrink-0 flex items-center justify-center text-muted-foreground group-hover:text-primary group-hover:border-primary/30 transition-colors">
+                                  <User className="w-4 h-4 sm:w-4 sm:h-4" />
                                 </div>
-                                <span className="font-medium text-foreground/80 text-sm truncate group-hover:text-foreground transition-colors" title={usher.name}>{usher.name}</span>
+                                <span className="font-medium text-foreground/80 text-xs sm:text-sm truncate group-hover:text-foreground transition-colors" title={usher.name}>{usher.name}</span>
                               </div>
-                              <StarRating 
-                                value={usherOverrides[usher.id]?.rating || 0} 
-                                onChange={(r) => handleUsherRatingChange(usher.id, team.id, r)}
-                                size="sm"
-                                disabled={submitMutation.isPending} 
-                              />
+                              <div className="shrink-0">
+                                <StarRating 
+                                  value={usherOverrides[usher.id]?.rating || 0} 
+                                  onChange={(r) => handleUsherRatingChange(usher.id, team.id, r)}
+                                  size="sm"
+                                  disabled={submitMutation.isPending} 
+                                />
+                              </div>
                             </div>
                             {usherOverrides[usher.id]?.rating > 0 && (
                               <div className="mt-4 animate-in fade-in duration-500">
