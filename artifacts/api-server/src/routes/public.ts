@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db, eventFeedbackLinksTable, eventsTable, eventTeamsTable, eventAssignmentsTable, ushersTable, eventFeedbackTable } from "@workspace/db";
-import { eq, and, isNull } from "drizzle-orm";
+import { eq, and, isNull, inArray } from "drizzle-orm";
 import { SubmitPublicEventFeedbackBody } from "@workspace/api-zod";
 import { recalculateUsherCompositeRating } from "../lib/auto-rating-engine.js";
 
@@ -35,7 +35,15 @@ router.get("/feedback/:token", async (req, res) => {
   }
 
   const teams = await db.select().from(eventTeamsTable).where(eq(eventTeamsTable.eventId, event.id));
-  const assignments = await db.select().from(eventAssignmentsTable).where(eq(eventAssignmentsTable.eventId, event.id));
+  const assignments = await db
+    .select()
+    .from(eventAssignmentsTable)
+    .where(
+      and(
+        eq(eventAssignmentsTable.eventId, event.id),
+        inArray(eventAssignmentsTable.status, ["checked_in", "completed"])
+      )
+    );
   const ushers = await db.select().from(ushersTable);
 
   const teamsWithUshers = teams.map(t => {
