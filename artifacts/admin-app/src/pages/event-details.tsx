@@ -1082,7 +1082,7 @@ export default function EventDetails() {
                             value={assignment.eventTeamId || ""}
                             onChange={(e) => {
                               const tid = e.target.value ? parseInt(e.target.value, 10) : null;
-                              updateAssignment({ id: eventId, assignmentId: assignment.id, data: { usherId: assignment.usherId, eventTeamId: tid, isTeamLead: false } });
+                              updateAssignment({ id: eventId, assignmentId: assignment.id, data: { usherId: assignment.usherId, eventTeamId: tid, isTeamLead: false, role: 'regular' } });
                             }}
                           >
                             <option value="">Assign to team...</option>

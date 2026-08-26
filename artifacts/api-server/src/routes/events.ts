@@ -528,8 +528,11 @@ router.patch("/events/:id/assignments/:assignmentId", requireAdmin, async (req, 
 
       if (parsed.data.isTeamLead && parsed.data.eventTeamId) {
         await tx.update(eventAssignmentsTable)
-          .set({ isTeamLead: false })
-          .where(eq(eventAssignmentsTable.eventTeamId, parsed.data.eventTeamId));
+          .set({ isTeamLead: false, role: 'regular' })
+          .where(and(
+            eq(eventAssignmentsTable.eventTeamId, parsed.data.eventTeamId),
+            ne(eventAssignmentsTable.id, assignmentId)
+          ));
       }
 
       const [updated] = await tx.update(eventAssignmentsTable)
