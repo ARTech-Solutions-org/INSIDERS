@@ -101,6 +101,9 @@ router.get("/my/assignments", requireUsher, async (req, res) => {
     finalResult = result.filter(item => statuses.includes(item.status));
   }
 
+  // Never show draft events to ushers
+  finalResult = finalResult.filter(item => item.event?.status !== "draft");
+
   res.json(finalResult);
 });
 

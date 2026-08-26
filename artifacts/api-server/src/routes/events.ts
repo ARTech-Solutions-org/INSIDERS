@@ -83,6 +83,11 @@ router.get("/events/:id", requireAuth, async (req, res) => {
   if (!event) { res.status(404).json({ error: "Not found" }); return; }
 
   if (req.user!.type === "usher") {
+    // Draft events are not visible to ushers
+    if (event.status === "draft") {
+      res.status(404).json({ error: "Not found" });
+      return;
+    }
     const [isAssigned] = await db.select().from(eventAssignmentsTable).where(
       and(eq(eventAssignmentsTable.eventId, event.id), eq(eventAssignmentsTable.usherId, req.user!.id))
     );
