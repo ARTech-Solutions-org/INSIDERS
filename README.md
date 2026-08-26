@@ -1,7 +1,5 @@
 <div align="center">
   <img src="./readme-assets/insiders-logo-white.png" alt="INSIDERS Logo" width="200" />
-  <h1>INSIDERS</h1>
-  <p><strong>We Command The Crowd.</strong></p>
 </div>
 
 ## Table of Contents
