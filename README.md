@@ -11,7 +11,6 @@
 - [Key Features](#key-features)
 - [How It Works (User Journey)](#how-it-works-user-journey)
 - [Branding](#branding)
-- [Contact & Support](#contact--support)
 
 ---
 
@@ -108,11 +107,4 @@ INSIDERS is built around a sleek, premium, and minimalistic visual identity. The
 
 ![INSIDERS Visual Identity](./readme-assets/branding-overview.png)
 
----
 
-## Contact & Support
-For support, inquiries, or feature requests, please reach out to the management team.
-
-- **Email:** support@insiders.com *(Placeholder)*
-- **Phone:** +20 100 000 0000 *(Placeholder)*
-- **Website:** www.insiders.com *(Placeholder)*
