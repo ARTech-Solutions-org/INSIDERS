@@ -10,6 +10,7 @@ import {
   useUsherCheckout,
   useCancelAssignment,
   useTeamCheckinMember,
+  useGetMe,
   getListMyAssignmentsQueryKey,
   MyAssignment
 } from '@workspace/api-client-react';
@@ -28,6 +29,7 @@ export default function EventDetail() {
   const [, params] = useRoute('/events/:id');
   const eventId = params?.id ? parseInt(params.id, 10) : 0;
   const queryClient = useQueryClient();
+  const { data: user } = useGetMe();
 
   const { data: assignmentsData, isLoading: isAssignmentsLoading } = useListMyAssignments({});
   const assignmentsList: MyAssignment[] = Array.isArray(assignmentsData)
@@ -676,7 +678,7 @@ export default function EventDetail() {
                             <p className="font-bold text-sm tracking-wide uppercase truncate">
                               {member.fullName}
                             </p>
-                            {member.id === assignment?.id && (
+                            {member.id === user?.id && (
                               <span className="brand-meta text-primary mt-0.5 block">(You)</span>
                             )}
                             {member.isTeamLead && <span className="brand-meta text-secondary mt-0.5 block">TEAM LEAD</span>}
@@ -702,7 +704,7 @@ export default function EventDetail() {
                               Check In
                             </Button>
                           )}
-                          {member.phone && member.id !== assignment?.id && (
+                          {member.phone && member.id !== user?.id && (
                             <a href={`tel:${member.phone}`} className="p-2 bg-primary/10 rounded-xl text-primary border border-primary/20 hover:bg-primary/20 transition-colors shrink-0">
                               <Phone className="w-4 h-4" />
                             </a>
