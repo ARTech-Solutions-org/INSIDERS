@@ -29,6 +29,7 @@ async function buildMyAssignment(assignment: any) {
     id: ushersTable.id, 
     fullName: ushersTable.fullName, 
     profilePhotoUrl: ushersTable.profilePhotoUrl, 
+    profilePhotoKey: ushersTable.profilePhotoKey, 
     isTeamLead: eventAssignmentsTable.isTeamLead,
     phone: ushersTable.phone,
     status: eventAssignmentsTable.status,

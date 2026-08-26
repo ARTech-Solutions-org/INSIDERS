@@ -25,6 +25,12 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 
+const getImageUrl = (key?: string | null) => {
+  if (!key) return undefined;
+  const baseUrl = import.meta.env.VITE_API_URL?.replace(/\/+$/, '') || '';
+  return `${baseUrl}/api/uploads/read?key=${encodeURIComponent(key)}`;
+};
+
 export default function EventDetail() {
   const [, params] = useRoute('/events/:id');
   const eventId = params?.id ? parseInt(params.id, 10) : 0;
@@ -668,8 +674,8 @@ export default function EventDetail() {
                       {teamMembers.map((member: any) => (
                         <div key={member.id} className="flex items-center gap-4">
                           <div className="w-10 h-10 bg-muted rounded-full overflow-hidden flex items-center justify-center border border-border shrink-0">
-                            {member.profilePhotoUrl ? (
-                              <img src={member.profilePhotoUrl} alt={member.fullName} className="w-full h-full object-cover" />
+                            {member.profilePhotoUrl || member.profilePhotoKey ? (
+                              <img src={getImageUrl(member.profilePhotoKey) || member.profilePhotoUrl || undefined} alt={member.fullName} className="w-full h-full object-cover" />
                             ) : (
                               <span className="brand-display text-sm text-muted-foreground">{member.fullName.charAt(0)}</span>
                             )}

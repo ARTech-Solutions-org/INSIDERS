@@ -117,6 +117,12 @@ function AssignmentPayInput({ assignment, updateAssignment, eventId }: { assignm
   );
 }
 
+const getImageUrl = (key?: string | null) => {
+  if (!key) return undefined;
+  const baseUrl = import.meta.env.VITE_API_URL?.replace(/\/+$/, '') || '';
+  return `${baseUrl}/api/uploads/read?key=${encodeURIComponent(key)}`;
+};
+
 export default function EventDetails() {
   const [, params] = useRoute("/events/:id");
   const eventId = params?.id ? parseInt(params.id, 10) : 0;
@@ -1054,7 +1060,7 @@ export default function EventDetails() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-9 w-9">
-                          <AvatarImage src={assignment.usher?.profilePhotoUrl || undefined} />
+                          <AvatarImage src={getImageUrl(assignment.usher?.profilePhotoKey) || assignment.usher?.profilePhotoUrl || undefined} />
                           <AvatarFallback className="bg-primary/10 text-primary">
                             {assignment.usher?.fullName?.charAt(0) || '?'}
                           </AvatarFallback>
@@ -1361,7 +1367,7 @@ export default function EventDetails() {
                     <div key={data.id} className="flex justify-between items-center p-3 rounded-xl border hover:border-primary/50 hover:bg-muted/30 transition-all">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-10 w-10 border border-primary/10">
-                          <AvatarImage src={data.profilePhotoUrl || undefined} />
+                          <AvatarImage src={getImageUrl(data.profilePhotoKey) || data.profilePhotoUrl || undefined} />
                           <AvatarFallback className="bg-primary/5 text-primary">{data.fullName?.substring(0,2)}</AvatarFallback>
                         </Avatar>
                         <div>
@@ -1407,7 +1413,7 @@ export default function EventDetails() {
                           {index + 1}
                         </div>
                         <Avatar className="h-10 w-10">
-                          <AvatarImage src={w.usher?.profilePhotoUrl || undefined} />
+                          <AvatarImage src={getImageUrl(w.usher?.profilePhotoKey) || w.usher?.profilePhotoUrl || undefined} />
                           <AvatarFallback>{w.usher?.fullName?.substring(0,2)}</AvatarFallback>
                         </Avatar>
                         <div>
