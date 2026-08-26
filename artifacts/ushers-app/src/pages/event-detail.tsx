@@ -674,8 +674,11 @@ export default function EventDetail() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-bold text-sm tracking-wide uppercase truncate">
-                              {member.fullName} {member.id === assignment?.event?.usherId ? '(You)' : ''}
+                              {member.fullName}
                             </p>
+                            {member.id === assignment?.id && (
+                              <span className="brand-meta text-primary mt-0.5 block">(You)</span>
+                            )}
                             {member.isTeamLead && <span className="brand-meta text-secondary mt-0.5 block">TEAM LEAD</span>}
                             {member.status === 'checked_in' && !member.isTeamLead && (
                               <span className="brand-meta text-emerald-500 mt-0.5 block">CHECKED IN</span>
@@ -699,7 +702,7 @@ export default function EventDetail() {
                               Check In
                             </Button>
                           )}
-                          {((assignment?.isTeamLead && member.phone) || (member.isTeamLead && member.phone)) && (
+                          {member.phone && member.id !== assignment?.id && (
                             <a href={`tel:${member.phone}`} className="p-2 bg-primary/10 rounded-xl text-primary border border-primary/20 hover:bg-primary/20 transition-colors shrink-0">
                               <Phone className="w-4 h-4" />
                             </a>
