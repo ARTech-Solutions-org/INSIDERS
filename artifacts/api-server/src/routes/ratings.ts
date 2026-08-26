@@ -103,12 +103,14 @@ router.get("/my/ratings", requireAuth, async (req, res) => {
       
       // Basic heuristic mirroring auto-rating engine
       if (late > 0) {
-        score -= Math.ceil(late / 30);
-        notes.push(`Checked in ${late} mins late`);
+        const deduction = Math.ceil(late / 30);
+        score -= deduction;
+        notes.push(`Checked in ${late} mins late (-${deduction} star${deduction > 1 ? 's' : ''})`);
       }
       if (early > 0) {
-        score -= Math.ceil(early / 30);
-        notes.push(`Checked out ${early} mins early`);
+        const deduction = Math.ceil(early / 30);
+        score -= deduction;
+        notes.push(`Checked out ${early} mins early (-${deduction} star${deduction > 1 ? 's' : ''})`);
       }
       
       score = Math.max(0, Math.min(5, score));
