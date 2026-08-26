@@ -514,12 +514,14 @@ export default function EventDetails() {
             <Badge 
               variant="outline" 
               className={
-                event.status === "published" 
-                  ? "bg-green-500/10 text-green-600 border-green-200 capitalize" 
-                  : "bg-amber-500/10 text-amber-600 border-amber-200 capitalize"
+                isCompleted 
+                  ? "bg-slate-500/10 text-slate-600 border-slate-200 capitalize"
+                  : event.status === "published" 
+                    ? "bg-green-500/10 text-green-600 border-green-200 capitalize" 
+                    : "bg-amber-500/10 text-amber-600 border-amber-200 capitalize"
               }
             >
-              {event.status}
+              {isCompleted ? "completed" : event.status}
             </Badge>
           </div>
           <div className="flex items-center gap-4 text-sm text-muted-foreground ml-11">

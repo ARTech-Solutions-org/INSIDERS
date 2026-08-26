@@ -204,7 +204,7 @@ export default function Events() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {getStatusBadge(event.status || undefined)}
+                      {getStatusBadge(new Date(event.endTime) < new Date() ? 'completed' : (event.status || undefined))}
                     </TableCell>
                     <TableCell className="text-sm font-medium">
                       EGP {event.budget?.toLocaleString() || '0'}
