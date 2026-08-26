@@ -37,7 +37,7 @@ async function buildMyAssignment(assignment: any) {
     .innerJoin(ushersTable, eq(eventAssignmentsTable.usherId, ushersTable.id))
     .where(and(
       eq(eventAssignmentsTable.eventId, assignment.eventId), 
-      inArray(eventAssignmentsTable.status, ["assigned", "accepted", "checked_in", "checked_out"])
+      inArray(eventAssignmentsTable.status, ["assigned", "accepted", "checked_in", "checked_out", "completed"])
     ));
 
   // Keep teamMembers populated for backward compatibility, but include everyone in the team (even current user)
