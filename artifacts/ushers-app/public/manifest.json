@@ -16,10 +16,16 @@
       "purpose": "any"
     },
     {
-      "src": "/favicon-white.svg",
+      "src": "/pwa-icon.svg",
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "maskable"
+    },
+    {
+      "src": "/pwa-icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
     }
   ],
   "categories": ["business", "productivity"],
