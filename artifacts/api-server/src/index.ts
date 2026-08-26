@@ -1,5 +1,7 @@
 import app from "./app.js";
 import { logger } from "./lib/logger.js";
+import { db, eventsTable } from "@workspace/db";
+import { and, lt, ne } from "drizzle-orm";
 
 const rawPort = process.env["PORT"];
 
@@ -14,6 +16,23 @@ const port = Number(rawPort);
 if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
+
+// Background worker to auto-close events whose end time has passed
+setInterval(async () => {
+  try {
+    await db
+      .update(eventsTable)
+      .set({ status: "completed" })
+      .where(
+        and(
+          lt(eventsTable.endTime, new Date()),
+          ne(eventsTable.status, "completed")
+        )
+      );
+  } catch (err) {
+    logger.error({ err }, "Error auto-closing events");
+  }
+}, 60 * 1000); // Check every minute
 
 app.listen(port, (err) => {
   if (err) {
