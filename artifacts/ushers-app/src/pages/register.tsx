@@ -141,7 +141,8 @@ const uploadToR2 = async (file: File, type: string) => {
   });
   if (!uploadRes.ok) throw new Error('Failed to upload file');
   
-  return { url: url.split('?')[0], key };
+  // Return the read url
+  return { url: `${baseUrl}/api/uploads/read?key=${encodeURIComponent(key)}`, key };
 };
 
 export default function Register() {
