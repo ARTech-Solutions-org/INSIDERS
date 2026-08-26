@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { db, ratingsTable, eventAssignmentsTable, ushersTable, eventHolderLinksTable, eventsTable } from "@workspace/db";
+import { db, ratingsTable, eventAssignmentsTable, ushersTable, eventHolderLinksTable, eventsTable, eventFeedbackTable } from "@workspace/db";
 import { eq, avg, inArray } from "drizzle-orm";
 import { requireAuth } from "../middleware/auth.js";
 import { CreateRatingBody, SubmitHolderRatingBody } from "@workspace/api-zod";
@@ -59,6 +59,7 @@ router.get("/my/ratings", requireAuth, async (req, res) => {
     .select({ 
       id: eventAssignmentsTable.id, 
       eventId: eventAssignmentsTable.eventId,
+      eventTeamId: eventAssignmentsTable.eventTeamId,
       status: eventAssignmentsTable.status,
       lateArrivalMinutes: eventAssignmentsTable.lateArrivalMinutes,
       earlyLeaveMinutes: eventAssignmentsTable.earlyLeaveMinutes,
@@ -123,6 +124,77 @@ router.get("/my/ratings", requireAuth, async (req, res) => {
           eventTitle: event?.title ?? null,
           eventStartTime: event?.startTime ?? null
         });
+      }
+    }
+  }
+
+  // Inject client ratings from eventFeedbackTable
+  if (eventIds.length > 0) {
+    const feedbackRows = await db
+      .select({ 
+        eventId: eventFeedbackTable.eventId,
+        usherOverrides: eventFeedbackTable.usherOverrides,
+        teamRatings: eventFeedbackTable.teamRatings
+      })
+      .from(eventFeedbackTable)
+      .where(inArray(eventFeedbackTable.eventId, eventIds));
+
+    for (const row of feedbackRows) {
+      const assignment = assignments.find(a => a.eventId === row.eventId);
+      if (!assignment) continue;
+      
+      let overrideRating: number | null = null;
+      let overrideComment: string | null = null;
+      
+      // Check if usher has an explicit override
+      if (row.usherOverrides) {
+        try {
+          const overrides = typeof row.usherOverrides === "string" 
+            ? JSON.parse(row.usherOverrides) 
+            : (row.usherOverrides as any[]);
+          const match = overrides.find((o: any) => o.usherId === usherId);
+          if (match && match.rating > 0) {
+            overrideRating = match.rating;
+            overrideComment = match.comments || null;
+          }
+        } catch {}
+      }
+
+      if (overrideRating !== null) {
+        const event = eventMap.get(row.eventId);
+        result.push({
+          id: -(assignment.id * 1000), // unique ID for React key
+          eventAssignmentId: assignment.id,
+          ratedByType: 'client',
+          ratingValue: overrideRating,
+          comment: overrideComment || "Client specific rating for you.",
+          eventTitle: event?.title ?? null,
+          eventStartTime: event?.startTime ?? null
+        });
+      } else if (row.teamRatings) {
+        // Fallback to their team rating for that event
+        try {
+          const teamId = (assignment as any).eventTeamId || 0; 
+          // Note: we need to get eventTeamId from assignments, but it's not currently selected!
+          // We must update the assignment select above to include eventTeamId.
+          const teamRatings = typeof row.teamRatings === "string"
+            ? JSON.parse(row.teamRatings)
+            : (row.teamRatings as any[]);
+          
+          const match = teamRatings.find((t: any) => t.teamId === teamId);
+          if (match && match.rating > 0) {
+            const event = eventMap.get(row.eventId);
+            result.push({
+              id: -(assignment.id * 1000), // unique ID for React key
+              eventAssignmentId: assignment.id,
+              ratedByType: 'client',
+              ratingValue: match.rating,
+              comment: match.comments || "Client rating for your team.",
+              eventTitle: event?.title ?? null,
+              eventStartTime: event?.startTime ?? null
+            });
+          }
+        } catch {}
       }
     }
   }
