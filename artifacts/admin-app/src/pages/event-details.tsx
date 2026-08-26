@@ -854,6 +854,57 @@ export default function EventDetails() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Details Column 2 */}
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="w-5 h-5 text-primary" />
+                  Attendance Summary
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {(() => {
+                  const totalAssigned = event.assignments?.length || 0;
+                  const checkedInCount = event.assignments?.filter((a: any) => ["checked_in", "completed"].includes(a.status)).length || 0;
+                  const pendingCount = event.assignments?.filter((a: any) => ["assigned", "accepted"].includes(a.status)).length || 0;
+                  const canceledCount = event.assignments?.filter((a: any) => a.status === "cancelled").length || 0;
+                  const lateCount = event.assignments?.filter((a: any) => 
+                    a.lateArrivalMinutes > 0 || 
+                    (["assigned", "accepted"].includes(a.status) && new Date() > new Date(event.startTime))
+                  ).length || 0;
+
+                  return (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-muted rounded-lg p-4 text-center">
+                        <div className="text-3xl font-bold">{totalAssigned}</div>
+                        <div className="text-xs text-muted-foreground uppercase tracking-wider mt-1">Total Assigned</div>
+                      </div>
+                      <div className="bg-primary/10 text-primary rounded-lg p-4 text-center">
+                        <div className="text-3xl font-bold">{checkedInCount}</div>
+                        <div className="text-xs uppercase tracking-wider mt-1">Checked In</div>
+                      </div>
+                      <div className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 rounded-lg p-4 text-center">
+                        <div className="text-3xl font-bold">{pendingCount}</div>
+                        <div className="text-xs uppercase tracking-wider mt-1">Pending</div>
+                      </div>
+                      <div className="bg-destructive/10 text-destructive rounded-lg p-4 text-center">
+                        <div className="text-3xl font-bold">{lateCount}</div>
+                        <div className="text-xs uppercase tracking-wider mt-1">Late / No-Show</div>
+                      </div>
+                      {canceledCount > 0 && (
+                        <div className="bg-muted rounded-lg p-4 text-center col-span-2">
+                          <div className="text-xl font-bold text-muted-foreground">{canceledCount}</div>
+                          <div className="text-xs text-muted-foreground uppercase tracking-wider mt-1">Canceled</div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="staffing" className="grid md:grid-cols-3 gap-6 mt-6 min-h-0 flex-1 overflow-auto">
