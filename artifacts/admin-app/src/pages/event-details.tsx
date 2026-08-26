@@ -1036,7 +1036,7 @@ export default function EventDetails() {
                               <Star className="w-3 h-3 text-secondary mr-1 fill-current" />
                               {assignment.usher?.avgRating?.toFixed(1) || 'N/A'}
                             </span>
-                            <span className="capitalize text-[10px] bg-muted px-1.5 py-0.5 rounded-full">{assignment.status.replace('_', ' ')}</span>
+                            <span className="capitalize text-[10px] bg-muted px-1.5 py-0.5 rounded-full">{assignment.status === 'assigned' ? 'Pending' : assignment.status.replace('_', ' ')}</span>
                             {event.status === 'completed' && assignment.checkinTime && !assignment.checkoutTime && (
                               <Badge variant="destructive" className="text-[9px] h-4 px-1.5 leading-none shadow-sm animate-pulse">
                                 MISSED CHECKOUT
