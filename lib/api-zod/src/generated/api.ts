@@ -1075,13 +1075,15 @@ export const CreateEventTeamParams = zod.object({
 })
 
 export const CreateEventTeamBody = zod.object({
-  "name": zod.string()
+  "name": zod.string(),
+  "instructions": zod.string().optional()
 })
 
 export const CreateEventTeamResponse = zod.object({
   "id": zod.number().int(),
   "eventId": zod.number().int(),
   "name": zod.string(),
+  "instructions": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 })
 

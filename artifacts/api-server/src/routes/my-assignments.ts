@@ -21,26 +21,30 @@ async function buildMyAssignment(assignment: any) {
   if (assignment.eventTeamId) {
     const [t] = await db.select().from(eventTeamsTable).where(eq(eventTeamsTable.id, assignment.eventTeamId));
     team = t || null;
-    
-    teamRows = await db.select({ 
-      id: ushersTable.id, 
-      fullName: ushersTable.fullName, 
-      profilePhotoUrl: ushersTable.profilePhotoUrl, 
-      isTeamLead: eventAssignmentsTable.isTeamLead,
-      phone: ushersTable.phone,
-      status: eventAssignmentsTable.status
-    }).from(eventAssignmentsTable)
-      .innerJoin(ushersTable, eq(eventAssignmentsTable.usherId, ushersTable.id))
-      .where(and(
-        eq(eventAssignmentsTable.eventId, assignment.eventId), 
-        eq(eventAssignmentsTable.eventTeamId, assignment.eventTeamId),
-        ne(eventAssignmentsTable.usherId, assignment.usherId),
-        inArray(eventAssignmentsTable.status, ["accepted", "checked_in", "checked_out"])
-      ));
   }
+  
+  const allTeams = await db.select().from(eventTeamsTable).where(eq(eventTeamsTable.eventId, assignment.eventId));
+  
+  const allEventMembers = await db.select({
+    id: ushersTable.id, 
+    fullName: ushersTable.fullName, 
+    profilePhotoUrl: ushersTable.profilePhotoUrl, 
+    isTeamLead: eventAssignmentsTable.isTeamLead,
+    phone: ushersTable.phone,
+    status: eventAssignmentsTable.status,
+    eventTeamId: eventAssignmentsTable.eventTeamId
+  }).from(eventAssignmentsTable)
+    .innerJoin(ushersTable, eq(eventAssignmentsTable.usherId, ushersTable.id))
+    .where(and(
+      eq(eventAssignmentsTable.eventId, assignment.eventId), 
+      inArray(eventAssignmentsTable.status, ["assigned", "accepted", "checked_in", "checked_out"])
+    ));
+
+  // Keep teamMembers populated for backward compatibility, but include everyone in the team (even current user)
+  teamRows = allEventMembers.filter(m => m.eventTeamId === assignment.eventTeamId);
 
   const eventDetail = { ...event, assignments: [], deductionRules };
-  return { id: assignment.id, eventId: assignment.eventId, status: assignment.status, isTeamLead: assignment.isTeamLead, role: assignment.role, overriddenPay: assignment.overriddenPay, checkinTime: assignment.checkinTime, checkoutTime: assignment.checkoutTime, checkinMethod: assignment.checkinMethod, event: eventDetail, teamMembers: teamRows, team };
+  return { id: assignment.id, eventId: assignment.eventId, status: assignment.status, isTeamLead: assignment.isTeamLead, role: assignment.role, overriddenPay: assignment.overriddenPay, checkinTime: assignment.checkinTime, checkoutTime: assignment.checkoutTime, checkinMethod: assignment.checkinMethod, event: eventDetail, teamMembers: teamRows, team, allTeams, allEventMembers };
 }
 
 function haversineMeters(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -287,6 +291,7 @@ router.post("/my/assignments/:assignmentId/checkout", requireUsher, async (req, 
         type: "credit",
         reason: `Completed event: ${event.title}`
       });
+      await db.update(ushersTable).set({ balance: sql`${ushersTable.balance} + ${amount}` }).where(eq(ushersTable.id, assignment.usherId));
     }
   }
 

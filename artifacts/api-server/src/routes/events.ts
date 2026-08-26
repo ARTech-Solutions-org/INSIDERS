@@ -129,6 +129,10 @@ router.patch("/events/:id", requireAdmin, async (req, res) => {
       const lockedFields = Array.isArray(existing.superAdminLockedFields) ? existing.superAdminLockedFields : [];
       
       if (!isSuperAdmin) {
+        if (parsed.data.status === "published" && existing.status !== "published") {
+          throw new Error("Forbidden: Only Super Admins can publish events.");
+        }
+        
         const attemptedLockedFields = Object.keys(parsed.data).filter(key => {
           const val = parsed.data[key as keyof typeof parsed.data];
           const existVal = existing[key as keyof typeof existing];
@@ -282,7 +286,7 @@ router.post("/events/:id/teams", requireAdmin, async (req, res) => {
   const eventId = parseInt(req.params.id as string, 10);
   const parsed = CreateEventTeamBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.flatten() }); return; }
-  const [team] = await db.insert(eventTeamsTable).values({ eventId, name: parsed.data.name }).returning();
+  const [team] = await db.insert(eventTeamsTable).values({ eventId, name: parsed.data.name, instructions: parsed.data.instructions }).returning();
   await audit(req.user!.id, "CREATE_TEAM", "event_teams", team.id);
   res.status(201).json(team);
 });
@@ -613,6 +617,7 @@ router.post("/events/:id/assignments/:assignmentId/checkout", requireAdmin, asyn
           type: "credit",
           reason: `Completed event: ${event.title} (Admin checkout)`
         });
+        await db.update(ushersTable).set({ balance: sql`${ushersTable.balance} + ${amount}` }).where(eq(ushersTable.id, assignment.usherId));
       }
     }
   }

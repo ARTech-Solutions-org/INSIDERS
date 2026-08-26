@@ -176,7 +176,8 @@ export default function EventDetails() {
   
   const totalSpent = (event?.assignments || []).reduce((acc: number, a: any) => {
     if (a.status !== 'assigned' && a.status !== 'accepted' && a.status !== 'checked_in') return acc;
-    return acc + (a.role === 'leader' ? (event?.leaderRate || 0) : (event?.regularRate || 0));
+    const baseRate = a.role === 'leader' || a.isTeamLead ? (event?.leaderRate || 0) : (event?.regularRate || 0);
+    return acc + (a.overriddenPay ?? baseRate);
   }, 0);
   
   const isBudgetExceeded = event?.budget && totalSpent > event.budget;
@@ -285,6 +286,7 @@ export default function EventDetails() {
 
 
   const [newTeamName, setNewTeamName] = useState("");
+  const [newTeamInstructions, setNewTeamInstructions] = useState("");
   const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
 
   const { data: teams, refetch: refetchTeams } = useListEventTeams(eventId, { query: { enabled: !!eventId } as any });
@@ -294,6 +296,7 @@ export default function EventDetails() {
       onSuccess: () => {
         toast({ title: "Team created!" });
         setNewTeamName("");
+        setNewTeamInstructions("");
         refetchTeams();
       }
     }
@@ -471,6 +474,10 @@ export default function EventDetails() {
   };
 
   const handlePublishToggle = () => {
+    if (user?.role !== "super_admin") {
+      toast({ title: "Forbidden", description: "Only Super Admins can publish events.", variant: "destructive" });
+      return;
+    }
     const newStatus = event?.status === "published" ? "draft" : "published";
     updateEvent({
       id: eventId,
@@ -719,7 +726,7 @@ export default function EventDetails() {
           <Button 
             variant={event.status === "published" ? "outline" : "default"} 
             className="gap-2"
-            disabled={isUpdating || isCompleted}
+            disabled={isUpdating || isCompleted || user?.role !== "super_admin"}
             onClick={handlePublishToggle}
           >
             {isUpdating ? (
@@ -929,18 +936,26 @@ export default function EventDetails() {
               </CardTitle>
             </CardHeader>
             <CardContent className="flex-1 overflow-auto p-4 space-y-4">
-              <div className="flex gap-2">
-                <Input 
-                  placeholder="New Team Name" 
-                  value={newTeamName} 
-                  onChange={e => setNewTeamName(e.target.value)} 
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <Input 
+                    placeholder="New Team Name" 
+                    value={newTeamName} 
+                    onChange={e => setNewTeamName(e.target.value)} 
+                  />
+                  <Button 
+                    disabled={!newTeamName.trim() || isCreatingTeam} 
+                    onClick={() => createTeam({ id: eventId, data: { name: newTeamName, instructions: newTeamInstructions || undefined } })}
+                  >
+                    Add
+                  </Button>
+                </div>
+                <Textarea 
+                  placeholder="Team Instructions (Optional)" 
+                  value={newTeamInstructions} 
+                  onChange={e => setNewTeamInstructions(e.target.value)} 
+                  className="text-sm min-h-[60px]"
                 />
-                <Button 
-                  disabled={!newTeamName.trim() || isCreatingTeam} 
-                  onClick={() => createTeam({ id: eventId, data: { name: newTeamName } })}
-                >
-                  Add
-                </Button>
               </div>
 
               <div className="space-y-2">

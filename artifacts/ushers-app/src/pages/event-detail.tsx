@@ -57,7 +57,7 @@ export default function EventDetail() {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   React.useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 10000);
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
@@ -647,56 +647,72 @@ export default function EventDetail() {
           )}
 
           {/* Team Members */}
-          {assignment?.teamMembers && assignment.teamMembers.length > 0 && (
-            <div className="bg-card border border-border rounded-2xl p-5 shadow-sm">
-              <h2 className="brand-display text-xl uppercase tracking-wide border-b border-border/50 pb-3 mb-4">
-                TEAM {assignment.team?.name ? `- ${assignment.team.name}` : ''}
-              </h2>
-              <div className="space-y-4">
-                {assignment.teamMembers.map((member: any) => (
-                  <div key={member.id} className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-muted rounded-full overflow-hidden flex items-center justify-center border border-border">
-                      {member.profilePhotoUrl ? (
-                        <img src={member.profilePhotoUrl} alt={member.fullName} className="w-full h-full object-cover" />
-                      ) : (
-                        <span className="brand-display text-sm text-muted-foreground">{member.fullName.charAt(0)}</span>
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-bold text-sm tracking-wide uppercase">
-                        {member.fullName}
+          {(assignment as any)?.allTeams && (assignment as any).allTeams.length > 0 && (
+            <div className="space-y-4">
+              {(assignment as any).allTeams.map((t: any) => {
+                const teamMembers = (assignment as any).allEventMembers?.filter((m: any) => m.eventTeamId === t.id) || [];
+                return (
+                  <div key={t.id} className="bg-card border border-border rounded-2xl p-5 shadow-sm">
+                    <h2 className="brand-display text-xl uppercase tracking-wide border-b border-border/50 pb-3 mb-2">
+                      {t.name}
+                    </h2>
+                    {t.instructions && (
+                      <p className="text-sm text-muted-foreground mb-4 bg-muted/30 p-3 rounded-lg border border-border/40">
+                        <span className="font-bold text-foreground block mb-1">INSTRUCTIONS:</span>
+                        {t.instructions}
                       </p>
-                      {member.isTeamLead && <span className="brand-meta text-secondary mt-0.5 block">TEAM LEAD</span>}
-                      {member.status === 'checked_in' && !member.isTeamLead && (
-                        <span className="brand-meta text-emerald-500 mt-0.5 block">CHECKED IN</span>
+                    )}
+                    <div className="space-y-4 mt-2">
+                      {teamMembers.map((member: any) => (
+                        <div key={member.id} className="flex items-center gap-4">
+                          <div className="w-10 h-10 bg-muted rounded-full overflow-hidden flex items-center justify-center border border-border shrink-0">
+                            {member.profilePhotoUrl ? (
+                              <img src={member.profilePhotoUrl} alt={member.fullName} className="w-full h-full object-cover" />
+                            ) : (
+                              <span className="brand-display text-sm text-muted-foreground">{member.fullName.charAt(0)}</span>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-bold text-sm tracking-wide uppercase truncate">
+                              {member.fullName} {member.id === assignment?.event?.usherId ? '(You)' : ''}
+                            </p>
+                            {member.isTeamLead && <span className="brand-meta text-secondary mt-0.5 block">TEAM LEAD</span>}
+                            {member.status === 'checked_in' && !member.isTeamLead && (
+                              <span className="brand-meta text-emerald-500 mt-0.5 block">CHECKED IN</span>
+                            )}
+                          </div>
+                          {assignment?.isTeamLead && !member.isTeamLead && (member.status === 'accepted' || member.status === 'assigned') && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-8 rounded-lg shrink-0 border-primary/20 text-primary hover:bg-primary/10"
+                              onClick={async () => {
+                                try {
+                                  await teamCheckinMember({ assignmentId: assignment.id, usherId: member.id });
+                                  queryClient.invalidateQueries({ queryKey: getListMyAssignmentsQueryKey() });
+                                  toast.success(`Checked in ${member.fullName}`);
+                                } catch (err: any) {
+                                  toast.error(err.response?.data?.error || `Failed to check in ${member.fullName}`);
+                                }
+                              }}
+                            >
+                              Check In
+                            </Button>
+                          )}
+                          {((assignment?.isTeamLead && member.phone) || (member.isTeamLead && member.phone)) && (
+                            <a href={`tel:${member.phone}`} className="p-2 bg-primary/10 rounded-xl text-primary border border-primary/20 hover:bg-primary/20 transition-colors shrink-0">
+                              <Phone className="w-4 h-4" />
+                            </a>
+                          )}
+                        </div>
+                      ))}
+                      {teamMembers.length === 0 && (
+                        <p className="text-sm text-muted-foreground italic">No members assigned.</p>
                       )}
                     </div>
-                    {assignment?.isTeamLead && !member.isTeamLead && (member.status === 'accepted' || member.status === 'assigned') && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-8 rounded-lg shrink-0 border-primary/20 text-primary hover:bg-primary/10"
-                        onClick={async () => {
-                          try {
-                            await teamCheckinMember({ assignmentId: assignment.id, usherId: member.id });
-                            queryClient.invalidateQueries({ queryKey: getListMyAssignmentsQueryKey() });
-                            toast.success(`Checked in ${member.fullName}`);
-                          } catch (err: any) {
-                            toast.error(err.response?.data?.error || `Failed to check in ${member.fullName}`);
-                          }
-                        }}
-                      >
-                        Check In
-                      </Button>
-                    )}
-                    {assignment?.isTeamLead && member.phone && (
-                      <a href={`tel:${member.phone}`} className="p-2 bg-primary/10 rounded-xl text-primary border border-primary/20 hover:bg-primary/20 transition-colors shrink-0">
-                        <Phone className="w-4 h-4" />
-                      </a>
-                    )}
                   </div>
-                ))}
-              </div>
+                );
+              })}
             </div>
           )}
 

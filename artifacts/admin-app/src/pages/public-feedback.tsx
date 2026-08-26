@@ -343,15 +343,15 @@ export default function PublicFeedback() {
         </form>
       </div>
 
-      {/* Floating Action Bar */}
+      {/* Action Bar */}
       <div className={cn(
-        "fixed bottom-0 left-0 right-0 p-6 sm:p-8 bg-gradient-to-t from-background via-background/95 to-transparent flex justify-center pointer-events-none transition-all duration-700 z-50",
-        generalRating > 0 ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0"
+        "mt-16 flex justify-center transition-all duration-700",
+        generalRating > 0 ? "opacity-100" : "opacity-0 pointer-events-none hidden"
       )}>
         <Button 
           onClick={() => handleSubmit()}
           size="lg" 
-          className="w-full max-w-md rounded-full h-16 text-base font-medium shadow-md pointer-events-auto bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground transition-all duration-300 active:scale-[0.98] border border-primary/20"
+          className="w-full max-w-md rounded-full h-16 text-base font-medium shadow-md bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground transition-all duration-300 active:scale-[0.98] border border-primary/20"
           disabled={submitMutation.isPending || generalRating === 0}
         >
           {submitMutation.isPending ? (
