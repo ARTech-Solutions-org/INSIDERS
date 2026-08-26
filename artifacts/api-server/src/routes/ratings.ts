@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { db, ratingsTable, eventAssignmentsTable, ushersTable, eventHolderLinksTable, eventsTable, eventFeedbackTable } from "@workspace/db";
+import { db, ratingsTable, eventAssignmentsTable, ushersTable, eventHolderLinksTable, eventsTable, eventFeedbackTable, systemSettingsTable, DEFAULT_RATING_CONFIG } from "@workspace/db";
 import { eq, avg, inArray } from "drizzle-orm";
 import { requireAuth } from "../middleware/auth.js";
 import { CreateRatingBody, SubmitHolderRatingBody } from "@workspace/api-zod";
@@ -88,6 +88,13 @@ router.get("/my/ratings", requireAuth, async (req, res) => {
     return { ...r, eventTitle: event?.title ?? null, eventStartTime: event?.startTime ?? null };
   });
 
+  // Load rating config
+  const [configRow] = await db
+    .select()
+    .from(systemSettingsTable)
+    .where(eq(systemSettingsTable.key, "ratingConfig"));
+  const ratingConfig = configRow ? (configRow.value as typeof DEFAULT_RATING_CONFIG) : DEFAULT_RATING_CONFIG;
+
   // Inject synthetic system ratings for completed assignments
   for (const a of assignments) {
     if (a.status === 'completed' && a.checkinTime) {
@@ -100,18 +107,26 @@ router.get("/my/ratings", requireAuth, async (req, res) => {
       let notes = [];
       const late = a.lateArrivalMinutes || 0;
       const early = a.earlyLeaveMinutes || 0;
+      const { gracePeriodMinutes, punctualityPenaltyPerInterval, punctualityIntervalMinutes } = ratingConfig;
       
-      // Basic heuristic mirroring auto-rating engine
-      if (late > 0) {
-        const deduction = Math.ceil(late / 30);
-        score -= deduction;
-        notes.push(`Checked in ${late} mins late (-${deduction} star${deduction > 1 ? 's' : ''})`);
+      const lateBeyondGrace = Math.max(0, late - gracePeriodMinutes);
+      if (lateBeyondGrace > 0) {
+        const deduction = Math.floor(lateBeyondGrace / punctualityIntervalMinutes) * punctualityPenaltyPerInterval;
+        if (deduction > 0) {
+          score -= deduction;
+          notes.push(`Checked in ${late} mins late (-${deduction} star${deduction > 1 ? 's' : ''})`);
+        }
       }
-      if (early > 0) {
-        const deduction = Math.ceil(early / 30);
-        score -= deduction;
-        notes.push(`Checked out ${early} mins early (-${deduction} star${deduction > 1 ? 's' : ''})`);
+      
+      const earlyBeyondGrace = Math.max(0, early - gracePeriodMinutes);
+      if (earlyBeyondGrace > 0) {
+        const deduction = Math.floor(earlyBeyondGrace / punctualityIntervalMinutes) * punctualityPenaltyPerInterval;
+        if (deduction > 0) {
+          score -= deduction;
+          notes.push(`Checked out ${early} mins early (-${deduction} star${deduction > 1 ? 's' : ''})`);
+        }
       }
+      
       
       score = Math.max(0, Math.min(5, score));
       
