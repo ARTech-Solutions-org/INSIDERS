@@ -18,7 +18,7 @@ if (Number.isNaN(port) || port <= 0) {
 }
 
 // Background worker to auto-close events whose end time has passed
-setInterval(async () => {
+const autoCloseEvents = async () => {
   try {
     await db
       .update(eventsTable)
@@ -32,7 +32,12 @@ setInterval(async () => {
   } catch (err) {
     logger.error({ err }, "Error auto-closing events");
   }
-}, 60 * 1000); // Check every minute
+};
+
+// Run immediately on startup
+autoCloseEvents();
+// Then run every minute
+setInterval(autoCloseEvents, 60 * 1000);
 
 app.listen(port, (err) => {
   if (err) {
