@@ -271,6 +271,22 @@ router.post("/my/assignments/:assignmentId/checkout", requireUsher, async (req, 
     : 0;
   const [updated] = await db.update(eventAssignmentsTable).set({ checkoutTime: checkoutNow, checkoutLat: lat ? Number(lat) : null, checkoutLng: lng ? Number(lng) : null, status: "completed", earlyLeaveMinutes } as any).where(eq(eventAssignmentsTable.id, assignment.id)).returning();
   if (!updated) { res.status(404).json({ error: "Not found" }); return; }
+
+  // Automatically add balance payout
+  if (assignment.status !== "completed") {
+    const baseRate = assignment.isTeamLead ? (event.leaderRate || 0) : (event.regularRate || 0);
+    const amount = assignment.overriddenPay ?? baseRate;
+    if (amount > 0) {
+      await db.insert(balanceTransactionsTable).values({
+        usherId: assignment.usherId,
+        eventAssignmentId: assignment.id,
+        amount,
+        type: "credit",
+        reason: `Completed event: ${event.title}`
+      });
+    }
+  }
+
   // Trigger composite rating recalculation (fire-and-forget)
   recalculateUsherCompositeRating(assignment.usherId).catch(() => {});
   res.json(await buildMyAssignment(updated));

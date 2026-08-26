@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { randomBytes } from "crypto";
-import { db, eventsTable, eventAssignmentsTable, deductionRulesTable, eventHolderLinksTable, waitlistTable, ushersTable, usherAvailabilityTable, eventTeamsTable, adminsTable, eventFeedbackLinksTable } from "@workspace/db";
+import { db, eventsTable, eventAssignmentsTable, deductionRulesTable, eventHolderLinksTable, waitlistTable, ushersTable, usherAvailabilityTable, eventTeamsTable, adminsTable, eventFeedbackLinksTable, balanceTransactionsTable } from "@workspace/db";
 import { eq, and, gte, sql, desc, lt, gt, ne, inArray, lte } from "drizzle-orm";
 import { requireAdmin, requireAuth } from "../middleware/auth.js";
 import { audit } from "../lib/audit.js";
@@ -587,7 +587,28 @@ router.post("/events/:id/assignments/:assignmentId/checkin", requireAdmin, async
 // POST /events/:id/assignments/:assignmentId/checkout - admin manual
 router.post("/events/:id/assignments/:assignmentId/checkout", requireAdmin, async (req, res) => {
   const assignmentId = parseInt(req.params.assignmentId as string, 10);
+  const [existingAssignment] = await db.select().from(eventAssignmentsTable).where(eq(eventAssignmentsTable.id, assignmentId));
+  if (!existingAssignment) { res.status(404).json({ error: "Not found" }); return; }
+
   const [assignment] = await db.update(eventAssignmentsTable).set({ checkoutTime: new Date(), status: "completed" }).where(eq(eventAssignmentsTable.id, assignmentId)).returning();
+  
+  if (existingAssignment.status !== "completed") {
+    const [event] = await db.select().from(eventsTable).where(eq(eventsTable.id, assignment.eventId));
+    if (event) {
+      const baseRate = assignment.isTeamLead ? (event.leaderRate || 0) : (event.regularRate || 0);
+      const amount = assignment.overriddenPay ?? baseRate;
+      if (amount > 0) {
+        await db.insert(balanceTransactionsTable).values({
+          usherId: assignment.usherId,
+          eventAssignmentId: assignment.id,
+          amount,
+          type: "credit",
+          reason: `Completed event: ${event.title} (Admin checkout)`
+        });
+      }
+    }
+  }
+
   await audit(req.user!.id, "ADMIN_CHECKOUT", "event_assignments", assignment.id);
   res.json(assignment);
 });
