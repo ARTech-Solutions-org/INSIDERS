@@ -870,10 +870,7 @@ export default function EventDetails() {
                   const checkedInCount = event.assignments?.filter((a: any) => ["checked_in", "completed"].includes(a.status)).length || 0;
                   const pendingCount = event.assignments?.filter((a: any) => ["assigned", "accepted"].includes(a.status)).length || 0;
                   const canceledCount = event.assignments?.filter((a: any) => a.status === "cancelled").length || 0;
-                  const lateCount = event.assignments?.filter((a: any) => 
-                    a.lateArrivalMinutes > 0 || 
-                    (["assigned", "accepted"].includes(a.status) && new Date() > new Date(event.startTime))
-                  ).length || 0;
+                  const lateCount = event.assignments?.filter((a: any) => a.lateArrivalMinutes > 0).length || 0;
 
                   return (
                     <div className="grid grid-cols-2 gap-4">
