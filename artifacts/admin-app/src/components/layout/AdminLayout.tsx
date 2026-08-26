@@ -94,7 +94,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           </Button>
           <div className="mt-4 flex flex-col items-center justify-center opacity-40">
             <span className="text-[9px] uppercase tracking-widest text-sidebar-foreground/60 mb-1">Powered By</span>
-            <img src="/powered-by.png" alt="Powered By" className="h-6 object-contain" />
+            <img src="/powered-by.png" alt="Powered By" className="h-6 object-contain brightness-0 dark:invert" />
           </div>
         </div>
       </div>
