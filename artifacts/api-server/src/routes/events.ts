@@ -100,7 +100,7 @@ router.get("/events/:id", requireAuth, async (req, res) => {
     }
   }
 
-  const assignments = await db.select({ id: eventAssignmentsTable.id, eventId: eventAssignmentsTable.eventId, eventTeamId: eventAssignmentsTable.eventTeamId, usherId: eventAssignmentsTable.usherId, status: eventAssignmentsTable.status, role: eventAssignmentsTable.role, overriddenPay: eventAssignmentsTable.overriddenPay, isTeamLead: eventAssignmentsTable.isTeamLead, checkinTime: eventAssignmentsTable.checkinTime, checkinLat: eventAssignmentsTable.checkinLat, checkinLng: eventAssignmentsTable.checkinLng, checkinMethod: eventAssignmentsTable.checkinMethod, checkoutTime: eventAssignmentsTable.checkoutTime, checkoutLat: eventAssignmentsTable.checkoutLat, checkoutLng: eventAssignmentsTable.checkoutLng, lateArrivalMinutes: eventAssignmentsTable.lateArrivalMinutes, usher: { id: ushersTable.id, fullName: ushersTable.fullName, email: ushersTable.email, phone: ushersTable.phone, status: ushersTable.status, avgRating: ushersTable.avgRating, balance: ushersTable.balance, nationalIdNumber: ushersTable.nationalIdNumber, nationalIdDocUrl: ushersTable.nationalIdDocUrl, profilePhotoUrl: ushersTable.profilePhotoUrl, createdAt: ushersTable.createdAt } }).from(eventAssignmentsTable).leftJoin(ushersTable, eq(eventAssignmentsTable.usherId, ushersTable.id)).where(eq(eventAssignmentsTable.eventId, event.id));
+  const assignments = await db.select({ id: eventAssignmentsTable.id, eventId: eventAssignmentsTable.eventId, eventTeamId: eventAssignmentsTable.eventTeamId, usherId: eventAssignmentsTable.usherId, status: eventAssignmentsTable.status, role: eventAssignmentsTable.role, overriddenPay: eventAssignmentsTable.overriddenPay, isTeamLead: eventAssignmentsTable.isTeamLead, checkinTime: eventAssignmentsTable.checkinTime, checkinLat: eventAssignmentsTable.checkinLat, checkinLng: eventAssignmentsTable.checkinLng, checkinMethod: eventAssignmentsTable.checkinMethod, checkoutTime: eventAssignmentsTable.checkoutTime, checkoutLat: eventAssignmentsTable.checkoutLat, checkoutLng: eventAssignmentsTable.checkoutLng, lateArrivalMinutes: eventAssignmentsTable.lateArrivalMinutes, usher: { id: ushersTable.id, fullName: ushersTable.fullName, email: ushersTable.email, phone: ushersTable.phone, status: ushersTable.status, avgRating: ushersTable.avgRating, balance: ushersTable.balance, nationalIdNumber: ushersTable.nationalIdNumber, nationalIdDocUrl: ushersTable.nationalIdDocUrl, profilePhotoUrl: ushersTable.profilePhotoUrl, profilePhotoKey: ushersTable.profilePhotoKey, createdAt: ushersTable.createdAt } }).from(eventAssignmentsTable).leftJoin(ushersTable, eq(eventAssignmentsTable.usherId, ushersTable.id)).where(eq(eventAssignmentsTable.eventId, event.id));
   const deductionRules = await db.select().from(deductionRulesTable).where(eq(deductionRulesTable.eventId, event.id));
   res.json(buildEventDetail(event, assignments, deductionRules));
 });
@@ -270,7 +270,7 @@ router.get("/events/holder/:token", async (req, res) => {
   const [link] = await db.select().from(eventHolderLinksTable).where(eq(eventHolderLinksTable.uniqueToken, token));
   if (!link) { res.status(404).json({ error: "Not found" }); return; }
   const [event] = await db.select().from(eventsTable).where(eq(eventsTable.id, link.eventId));
-  const assignments = await db.select({ id: ushersTable.id, fullName: ushersTable.fullName, profilePhotoUrl: ushersTable.profilePhotoUrl }).from(eventAssignmentsTable).innerJoin(ushersTable, eq(eventAssignmentsTable.usherId, ushersTable.id)).where(and(eq(eventAssignmentsTable.eventId, link.eventId), eq(eventAssignmentsTable.status, "checked_in")));
+  const assignments = await db.select({ id: ushersTable.id, fullName: ushersTable.fullName, profilePhotoUrl: ushersTable.profilePhotoUrl, profilePhotoKey: ushersTable.profilePhotoKey }).from(eventAssignmentsTable).innerJoin(ushersTable, eq(eventAssignmentsTable.usherId, ushersTable.id)).where(and(eq(eventAssignmentsTable.eventId, link.eventId), eq(eventAssignmentsTable.status, "checked_in")));
   res.json({ event: { title: event.title, startTime: event.startTime, endTime: event.endTime }, ushers: assignments });
 });
 
@@ -352,6 +352,7 @@ router.get("/events/:id/teams/:teamId/leader-suggestions", requireAdmin, async (
       fullName: u.fullName,
       avgRating: u.avgRating || 0,
       profilePhotoUrl: u.profilePhotoUrl,
+      profilePhotoKey: u.profilePhotoKey,
       phone: u.phone,
       status: u.status || "active",
       isAvailable: true, // They are already assigned to the event
@@ -366,7 +367,7 @@ router.get("/events/:id/teams/:teamId/leader-suggestions", requireAdmin, async (
 // GET /events/:id/assignments
 router.get("/events/:id/assignments", requireAdmin, async (req, res) => {
   const eventId = parseInt(req.params.id as string, 10);
-  const assignments = await db.select({ id: eventAssignmentsTable.id, eventId: eventAssignmentsTable.eventId, eventTeamId: eventAssignmentsTable.eventTeamId, usherId: eventAssignmentsTable.usherId, status: eventAssignmentsTable.status, role: eventAssignmentsTable.role, overriddenPay: eventAssignmentsTable.overriddenPay, isTeamLead: eventAssignmentsTable.isTeamLead, checkinTime: eventAssignmentsTable.checkinTime, checkinLat: eventAssignmentsTable.checkinLat, checkinLng: eventAssignmentsTable.checkinLng, checkinMethod: eventAssignmentsTable.checkinMethod, checkoutTime: eventAssignmentsTable.checkoutTime, checkoutLat: eventAssignmentsTable.checkoutLat, checkoutLng: eventAssignmentsTable.checkoutLng, usher: { id: ushersTable.id, fullName: ushersTable.fullName, email: ushersTable.email, phone: ushersTable.phone, status: ushersTable.status, avgRating: ushersTable.avgRating, balance: ushersTable.balance, nationalIdNumber: ushersTable.nationalIdNumber, nationalIdDocUrl: ushersTable.nationalIdDocUrl, profilePhotoUrl: ushersTable.profilePhotoUrl, createdAt: ushersTable.createdAt } }).from(eventAssignmentsTable).leftJoin(ushersTable, eq(eventAssignmentsTable.usherId, ushersTable.id)).where(eq(eventAssignmentsTable.eventId, eventId));
+  const assignments = await db.select({ id: eventAssignmentsTable.id, eventId: eventAssignmentsTable.eventId, eventTeamId: eventAssignmentsTable.eventTeamId, usherId: eventAssignmentsTable.usherId, status: eventAssignmentsTable.status, role: eventAssignmentsTable.role, overriddenPay: eventAssignmentsTable.overriddenPay, isTeamLead: eventAssignmentsTable.isTeamLead, checkinTime: eventAssignmentsTable.checkinTime, checkinLat: eventAssignmentsTable.checkinLat, checkinLng: eventAssignmentsTable.checkinLng, checkinMethod: eventAssignmentsTable.checkinMethod, checkoutTime: eventAssignmentsTable.checkoutTime, checkoutLat: eventAssignmentsTable.checkoutLat, checkoutLng: eventAssignmentsTable.checkoutLng, usher: { id: ushersTable.id, fullName: ushersTable.fullName, email: ushersTable.email, phone: ushersTable.phone, status: ushersTable.status, avgRating: ushersTable.avgRating, balance: ushersTable.balance, nationalIdNumber: ushersTable.nationalIdNumber, nationalIdDocUrl: ushersTable.nationalIdDocUrl, profilePhotoUrl: ushersTable.profilePhotoUrl, profilePhotoKey: ushersTable.profilePhotoKey, createdAt: ushersTable.createdAt } }).from(eventAssignmentsTable).leftJoin(ushersTable, eq(eventAssignmentsTable.usherId, ushersTable.id)).where(eq(eventAssignmentsTable.eventId, eventId));
   res.json(assignments);
 });
 
@@ -878,9 +879,8 @@ router.get("/events/:id/smart-candidates", requireAdmin, async (req, res) => {
       id: u.id, 
       fullName: u.fullName, 
       avgRating: u.avgRating ?? 0, 
-      profilePhotoUrl: u.profilePhotoKey 
-        ? `${baseUrl}/api/uploads/read?key=${encodeURIComponent(u.profilePhotoKey)}`
-        : (u.profilePhotoUrl ?? null),
+      profilePhotoUrl: u.profilePhotoUrl,
+      profilePhotoKey: u.profilePhotoKey,
       phone: u.phone, 
       status: u.status ?? "active", 
       isAvailable, 
@@ -898,7 +898,7 @@ router.get("/events/:id/smart-candidates", requireAdmin, async (req, res) => {
 // GET /events/:id/waitlist
 router.get("/events/:id/waitlist", requireAdmin, async (req, res) => {
   const eventId = parseInt(req.params.id as string, 10);
-  const entries = await db.select({ id: waitlistTable.id, eventId: waitlistTable.eventId, usherId: waitlistTable.usherId, priorityOrder: waitlistTable.priorityOrder, status: waitlistTable.status, usher: { id: ushersTable.id, fullName: ushersTable.fullName, email: ushersTable.email, phone: ushersTable.phone, status: ushersTable.status, avgRating: ushersTable.avgRating, balance: ushersTable.balance, nationalIdNumber: ushersTable.nationalIdNumber, nationalIdDocUrl: ushersTable.nationalIdDocUrl, profilePhotoUrl: ushersTable.profilePhotoUrl, createdAt: ushersTable.createdAt } }).from(waitlistTable).leftJoin(ushersTable, eq(waitlistTable.usherId, ushersTable.id)).where(eq(waitlistTable.eventId, eventId));
+  const entries = await db.select({ id: waitlistTable.id, eventId: waitlistTable.eventId, usherId: waitlistTable.usherId, priorityOrder: waitlistTable.priorityOrder, status: waitlistTable.status, usher: { id: ushersTable.id, fullName: ushersTable.fullName, email: ushersTable.email, phone: ushersTable.phone, status: ushersTable.status, avgRating: ushersTable.avgRating, balance: ushersTable.balance, nationalIdNumber: ushersTable.nationalIdNumber, nationalIdDocUrl: ushersTable.nationalIdDocUrl, profilePhotoUrl: ushersTable.profilePhotoUrl, profilePhotoKey: ushersTable.profilePhotoKey, createdAt: ushersTable.createdAt } }).from(waitlistTable).leftJoin(ushersTable, eq(waitlistTable.usherId, ushersTable.id)).where(eq(waitlistTable.eventId, eventId));
   res.json(entries);
 });
 

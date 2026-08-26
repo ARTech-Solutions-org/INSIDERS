@@ -1006,7 +1006,13 @@ export default function EventDetails() {
                   <div className="space-y-2">
                     {leaderSuggestions.map((sug: any) => (
                       <div key={sug.id} className="flex justify-between items-center border p-2 rounded text-xs bg-amber-50/50">
-                        <span>{sug.fullName} <span className="text-muted-foreground ml-1">({(sug.matchScore * 100).toFixed(0)}% match)</span></span>
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-7 w-7 shrink-0">
+                            <AvatarImage src={getImageUrl(sug.profilePhotoKey) || sug.profilePhotoUrl || undefined} />
+                            <AvatarFallback className="text-[10px] bg-amber-100 text-amber-800">{sug.fullName?.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <span>{sug.fullName} <span className="text-muted-foreground ml-1">({(sug.matchScore * 100).toFixed(0)}% match)</span></span>
+                        </div>
                         <Button 
                           size="sm" 
                           variant="outline" 
@@ -1310,6 +1316,7 @@ export default function EventDetails() {
                       <div key={candidate.id} className="p-3 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <Avatar className="h-8 w-8 border border-background">
+                            <AvatarImage src={getImageUrl(candidate.profilePhotoKey) || candidate.profilePhotoUrl || undefined} />
                             <AvatarFallback className="text-xs">{candidate.fullName.charAt(0)}</AvatarFallback>
                           </Avatar>
                           <div>
