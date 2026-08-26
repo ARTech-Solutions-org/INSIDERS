@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./artifacts/ushers-app/public/insiders-logo.png" alt="INSIDERS Logo" width="200" style="filter: invert(1);" />
+  <img src="./readme-assets/insiders-logo-white.png" alt="INSIDERS Logo" width="200" />
   <h1>INSIDERS</h1>
   <p><strong>We Command The Crowd.</strong></p>
 </div>
