@@ -143,7 +143,7 @@ router.get("/admin/payouts", requireFinanceAdmin, async (req, res) => {
 router.post("/admin/payouts", requireFinanceAdmin, async (req, res) => {
   const parsed = CreatePayoutBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.flatten() }); return; }
-  const [payout] = await db.insert(payoutsTable).values({ ...parsed.data, status: "pending" }).returning();
+  const [payout] = await db.insert(payoutsTable).values({ ...parsed.data, status: "paid", paidAt: new Date() }).returning();
   
   // Deduct balance and create transaction
   await db.update(ushersTable).set({ 

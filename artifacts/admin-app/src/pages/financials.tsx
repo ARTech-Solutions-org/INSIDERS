@@ -203,27 +203,15 @@ function CreatePayoutDialog({ usher }: { usher: any }) {
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState(usher.balance > 0 ? usher.balance.toString() : "");
   const [step, setStep] = useState<"form" | "success">("form");
-  const [createdPayoutId, setCreatedPayoutId] = useState<number | null>(null);
   const method = usher.paymentMethod || "cash";
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
-  const { mutate: updateStatus, isPending: isUpdating } = useUpdatePayoutStatus({
-    mutation: {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: getListAllPayoutsQueryKey({ status: 'pending' }) as any });
-        queryClient.invalidateQueries({ queryKey: getListAllPayoutsQueryKey({ status: 'paid' }) as any });
-        queryClient.invalidateQueries({ queryKey: getListUshersQueryKey() as any });
-        handleOpenChange(false);
-      }
-    }
-  });
   
   const { mutate: createPayout, isPending } = useCreatePayout({
     mutation: {
-      onSuccess: (data: any) => {
+      onSuccess: () => {
         toast({ title: "Payout Created", description: `Successfully created payout for ${usher.fullName}.` });
-        setCreatedPayoutId(data.id);
+        queryClient.invalidateQueries({ queryKey: getListAllPayoutsQueryKey({ status: 'paid' }) as any });
         queryClient.invalidateQueries({ queryKey: getListUshersQueryKey() as any });
         setStep("success");
       },
@@ -326,20 +314,7 @@ function CreatePayoutDialog({ usher }: { usher: any }) {
               )}
             </div>
             <DialogFooter>
-              <Button 
-                type="button" 
-                className="w-full"
-                disabled={isUpdating}
-                onClick={() => {
-                  if (createdPayoutId) {
-                    updateStatus({ id: createdPayoutId, data: { status: 'paid', paidAt: new Date().toISOString() } });
-                  } else {
-                    handleOpenChange(false);
-                  }
-                }}
-              >
-                {isUpdating ? "Confirming..." : "Done - Mark as Paid"}
-              </Button>
+              <Button type="button" className="w-full" onClick={() => handleOpenChange(false)}>Done</Button>
             </DialogFooter>
           </div>
         )}
