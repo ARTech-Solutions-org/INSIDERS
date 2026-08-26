@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Check, ChevronRight, User } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 
 // Custom premium star
 function CustomStar({ filled, className }: { filled: boolean, className?: string }) {
@@ -295,7 +296,14 @@ export default function PublicFeedback() {
                               <div className="flex flex-col gap-3">
                                 <div className="flex items-center gap-3">
                                   {(usher as any).photoUrl ? (
-                                    <img src={(usher as any).photoUrl} alt={usher.name} className="w-10 h-10 rounded-full object-cover border border-border" />
+                                    <Dialog>
+                                      <DialogTrigger asChild>
+                                        <img src={(usher as any).photoUrl} alt={usher.name} className="w-10 h-10 rounded-full object-cover border border-border cursor-pointer hover:opacity-80 transition-opacity" />
+                                      </DialogTrigger>
+                                      <DialogContent className="sm:max-w-md p-1 bg-transparent border-none shadow-none flex justify-center overflow-hidden">
+                                        <img src={(usher as any).photoUrl} alt={usher.name} className="max-w-[90vw] max-h-[80vh] object-contain rounded-xl shadow-2xl ring-1 ring-white/10" />
+                                      </DialogContent>
+                                    </Dialog>
                                   ) : (
                                     <div className="w-10 h-10 rounded-full bg-muted border border-border flex-shrink-0 flex items-center justify-center text-muted-foreground group-hover:text-primary group-hover:border-primary/30 transition-colors">
                                       <User className="w-4 h-4" />
