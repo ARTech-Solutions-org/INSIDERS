@@ -292,13 +292,17 @@ export default function PublicFeedback() {
                       <div className="grid gap-4 sm:grid-cols-2">
                         {team.ushers.map((usher) => (
                           <div key={usher.id} className="group bg-muted hover:bg-muted/50 rounded-2xl p-5 transition-all duration-300 border border-transparent hover:border-border">
-                            <div className="flex flex-col gap-3">
-                              <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-muted border border-border flex-shrink-0 flex items-center justify-center text-muted-foreground group-hover:text-primary group-hover:border-primary/30 transition-colors">
-                                  <User className="w-4 h-4" />
+                              <div className="flex flex-col gap-3">
+                                <div className="flex items-center gap-3">
+                                  {(usher as any).photoUrl ? (
+                                    <img src={(usher as any).photoUrl} alt={usher.name} className="w-10 h-10 rounded-full object-cover border border-border" />
+                                  ) : (
+                                    <div className="w-10 h-10 rounded-full bg-muted border border-border flex-shrink-0 flex items-center justify-center text-muted-foreground group-hover:text-primary group-hover:border-primary/30 transition-colors">
+                                      <User className="w-4 h-4" />
+                                    </div>
+                                  )}
+                                  <span className="font-medium text-foreground/80 text-sm group-hover:text-foreground transition-colors break-words flex-1" title={usher.name}>{usher.name}</span>
                                 </div>
-                                <span className="font-medium text-foreground/80 text-sm group-hover:text-foreground transition-colors break-words flex-1" title={usher.name}>{usher.name}</span>
-                              </div>
                               <div className="flex justify-start pl-[52px]">
                                 <StarRating 
                                   value={usherOverrides[usher.id]?.rating || 0} 

@@ -38,6 +38,7 @@ export interface EventFeedbackLink {
 export type PublicEventFeedbackDetailsTeamsItemUshersItem = {
   id: number;
   name: string;
+  photoUrl?: string | null;
 };
 
 export type PublicEventFeedbackDetailsTeamsItem = {

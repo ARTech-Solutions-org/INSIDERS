@@ -50,7 +50,7 @@ router.get("/feedback/:token", async (req, res) => {
     const teamAssignments = assignments.filter(a => a.eventTeamId === t.id);
     const teamUshers = teamAssignments.map(a => {
       const u = ushers.find(u => u.id === a.usherId);
-      return { id: a.usherId, name: u?.fullName || "Unknown" };
+      return { id: a.usherId, name: u?.fullName || "Unknown", photoUrl: u?.profilePhotoUrl || null };
     });
     return { id: t.id, name: t.name, ushers: teamUshers };
   });
@@ -59,7 +59,7 @@ router.get("/feedback/:token", async (req, res) => {
   if (unassignedAssignments.length > 0) {
     const unassignedUshers = unassignedAssignments.map(a => {
       const u = ushers.find(u => u.id === a.usherId);
-      return { id: a.usherId, name: u?.fullName || "Unknown" };
+      return { id: a.usherId, name: u?.fullName || "Unknown", photoUrl: u?.profilePhotoUrl || null };
     });
     teamsWithUshers.push({
       id: 0,
