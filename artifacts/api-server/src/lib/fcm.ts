@@ -81,7 +81,7 @@ export async function sendPushToUsher(usherId: number, payload: PushPayload): Pr
       notification: { title: payload.title, body: payload.body },
       data: payload.data,
       webpush: {
-        notification: { title: payload.title, body: payload.body, icon: "/insiders-logo.png" },
+        notification: { title: payload.title, body: payload.body, icon: "/pwa-icon-512.png", badge: "/notification-badge.png" },
       },
     });
 
