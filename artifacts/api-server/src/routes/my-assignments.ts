@@ -291,7 +291,7 @@ router.post("/my/assignments/:assignmentId/checkout", requireUsher, async (req, 
         type: "credit",
         reason: `Completed event: ${event.title}`
       });
-      await db.update(ushersTable).set({ balance: sql`${ushersTable.balance} + ${amount}` }).where(eq(ushersTable.id, assignment.usherId));
+      await db.update(ushersTable).set({ balance: sql`COALESCE(${ushersTable.balance}, 0) + ${amount}` }).where(eq(ushersTable.id, assignment.usherId));
     }
   }
 
