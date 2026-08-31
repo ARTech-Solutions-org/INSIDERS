@@ -26,7 +26,6 @@ import type {
   AdminRegistrationBody,
   AdminUpdate,
   AssignmentInput,
-  AssignmentWithUsher,
   AuditLogEntry,
   AuthResult,
   BalanceSummary,
@@ -71,19 +70,16 @@ import type {
   ListUshersParams,
   LoginInput,
   MyAssignment,
-  MyWaitlistEntry,
   Notification,
   Payout,
   PayoutInput,
   PayoutStatusUpdate,
-  PromoteWaitlistBody,
   PublicEventFeedbackDetails,
   PublicFeedbackSubmitBody,
   Rating,
   RatingConfig,
   RatingInput,
   ReliabilityEventsResult,
-  RemoveFromWaitlist200,
   RequestPayoutInput,
   SmartAssignFilters,
   SubmitPublicEventFeedback200,
@@ -103,9 +99,7 @@ import type {
   UsherStatusUpdate,
   UsherUpdate,
   VerifyAdminInvitation200,
-  VerifyAdminInvitationParams,
-  WaitlistEntry,
-  WaitlistInput
+  VerifyAdminInvitationParams
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -571,148 +565,6 @@ export const useLogout = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getLogoutMutationOptions(options));
-    }
-
-export const getAcceptWaitlistUrl = (waitlistId: number,) => {
-
-
-
-
-  return `/api/my/waitlists/${waitlistId}/accept`
-}
-
-/**
- * @summary Accept a waitlist offer
- */
-export const acceptWaitlist = async (waitlistId: number, options?: Parameters<typeof customFetch>[1]): Promise<MyWaitlistEntry> => {
-
-  return customFetch<MyWaitlistEntry>(getAcceptWaitlistUrl(waitlistId),
-  {
-    ...options,
-    method: 'POST'
-
-
-  }
-);}
-
-
-
-
-
-export const getAcceptWaitlistMutationOptions = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptWaitlist>>, TError,{waitlistId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof acceptWaitlist>>, TError,{waitlistId: number}, TContext> => {
-
-const mutationKey = ['acceptWaitlist'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof acceptWaitlist>>, {waitlistId: number}> = (props) => {
-          const {waitlistId} = props ?? {};
-
-          return  acceptWaitlist(waitlistId,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AcceptWaitlistMutationResult = NonNullable<Awaited<ReturnType<typeof acceptWaitlist>>>
-
-    export type AcceptWaitlistMutationError = ErrorType<unknown>
-
-    /**
- * @summary Accept a waitlist offer
- */
-export const useAcceptWaitlist = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptWaitlist>>, TError,{waitlistId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
- ): UseMutationResult<
-        Awaited<ReturnType<typeof acceptWaitlist>>,
-        TError,
-        {waitlistId: number},
-        TContext
-      > => {
-      return useMutation(getAcceptWaitlistMutationOptions(options));
-    }
-
-export const getRejectWaitlistUrl = (waitlistId: number,) => {
-
-
-
-
-  return `/api/my/waitlists/${waitlistId}/reject`
-}
-
-/**
- * @summary Reject a waitlist offer
- */
-export const rejectWaitlist = async (waitlistId: number, options?: Parameters<typeof customFetch>[1]): Promise<MyWaitlistEntry> => {
-
-  return customFetch<MyWaitlistEntry>(getRejectWaitlistUrl(waitlistId),
-  {
-    ...options,
-    method: 'POST'
-
-
-  }
-);}
-
-
-
-
-
-export const getRejectWaitlistMutationOptions = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rejectWaitlist>>, TError,{waitlistId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof rejectWaitlist>>, TError,{waitlistId: number}, TContext> => {
-
-const mutationKey = ['rejectWaitlist'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof rejectWaitlist>>, {waitlistId: number}> = (props) => {
-          const {waitlistId} = props ?? {};
-
-          return  rejectWaitlist(waitlistId,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type RejectWaitlistMutationResult = NonNullable<Awaited<ReturnType<typeof rejectWaitlist>>>
-
-    export type RejectWaitlistMutationError = ErrorType<unknown>
-
-    /**
- * @summary Reject a waitlist offer
- */
-export const useRejectWaitlist = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rejectWaitlist>>, TError,{waitlistId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
- ): UseMutationResult<
-        Awaited<ReturnType<typeof rejectWaitlist>>,
-        TError,
-        {waitlistId: number},
-        TContext
-      > => {
-      return useMutation(getRejectWaitlistMutationOptions(options));
     }
 
 export const getListUshersUrl = (params?: ListUshersParams,) => {
@@ -3335,153 +3187,6 @@ export function useGetTeamLeaderSuggestions<TData = Awaited<ReturnType<typeof ge
 
 
 
-export const getRemoveFromWaitlistUrl = (id: number,
-    waitlistId: number,) => {
-
-
-
-
-  return `/api/events/${id}/waitlist/${waitlistId}`
-}
-
-/**
- * @summary Remove usher from waitlist (admin)
- */
-export const removeFromWaitlist = async (id: number,
-    waitlistId: number, options?: Parameters<typeof customFetch>[1]): Promise<RemoveFromWaitlist200> => {
-
-  return customFetch<RemoveFromWaitlist200>(getRemoveFromWaitlistUrl(id,waitlistId),
-  {
-    ...options,
-    method: 'DELETE'
-
-
-  }
-);}
-
-
-
-
-
-export const getRemoveFromWaitlistMutationOptions = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeFromWaitlist>>, TError,{id: number;waitlistId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof removeFromWaitlist>>, TError,{id: number;waitlistId: number}, TContext> => {
-
-const mutationKey = ['removeFromWaitlist'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof removeFromWaitlist>>, {id: number;waitlistId: number}> = (props) => {
-          const {id,waitlistId} = props ?? {};
-
-          return  removeFromWaitlist(id,waitlistId,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type RemoveFromWaitlistMutationResult = NonNullable<Awaited<ReturnType<typeof removeFromWaitlist>>>
-
-    export type RemoveFromWaitlistMutationError = ErrorType<unknown>
-
-    /**
- * @summary Remove usher from waitlist (admin)
- */
-export const useRemoveFromWaitlist = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeFromWaitlist>>, TError,{id: number;waitlistId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
- ): UseMutationResult<
-        Awaited<ReturnType<typeof removeFromWaitlist>>,
-        TError,
-        {id: number;waitlistId: number},
-        TContext
-      > => {
-      return useMutation(getRemoveFromWaitlistMutationOptions(options));
-    }
-
-export const getPromoteWaitlistUrl = (id: number,
-    waitlistId: number,) => {
-
-
-
-
-  return `/api/events/${id}/waitlist/${waitlistId}/promote`
-}
-
-/**
- * @summary Promote usher from waitlist to assigned (admin)
- */
-export const promoteWaitlist = async (id: number,
-    waitlistId: number,
-    promoteWaitlistBody?: PromoteWaitlistBody, options?: Parameters<typeof customFetch>[1]): Promise<AssignmentWithUsher> => {
-
-  return customFetch<AssignmentWithUsher>(getPromoteWaitlistUrl(id,waitlistId),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(promoteWaitlistBody)
-  }
-);}
-
-
-
-
-
-export const getPromoteWaitlistMutationOptions = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof promoteWaitlist>>, TError,{id: number;waitlistId: number;data?: BodyType<PromoteWaitlistBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof promoteWaitlist>>, TError,{id: number;waitlistId: number;data?: BodyType<PromoteWaitlistBody>}, TContext> => {
-
-const mutationKey = ['promoteWaitlist'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof promoteWaitlist>>, {id: number;waitlistId: number;data?: BodyType<PromoteWaitlistBody>}> = (props) => {
-          const {id,waitlistId,data} = props ?? {};
-
-          return  promoteWaitlist(id,waitlistId,data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type PromoteWaitlistMutationResult = NonNullable<Awaited<ReturnType<typeof promoteWaitlist>>>
-    export type PromoteWaitlistMutationBody = BodyType<PromoteWaitlistBody> | undefined
-    export type PromoteWaitlistMutationError = ErrorType<unknown>
-
-    /**
- * @summary Promote usher from waitlist to assigned (admin)
- */
-export const usePromoteWaitlist = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof promoteWaitlist>>, TError,{id: number;waitlistId: number;data?: BodyType<PromoteWaitlistBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
- ): UseMutationResult<
-        Awaited<ReturnType<typeof promoteWaitlist>>,
-        TError,
-        {id: number;waitlistId: number;data?: BodyType<PromoteWaitlistBody>},
-        TContext
-      > => {
-      return useMutation(getPromoteWaitlistMutationOptions(options));
-    }
-
 export const getListEventAssignmentsUrl = (id: number,) => {
 
 
@@ -4085,155 +3790,6 @@ export const useSmartAssignBatch = <TError = ErrorType<unknown>,
       return useMutation(getSmartAssignBatchMutationOptions(options));
     }
 
-export const getListWaitlistUrl = (id: number,) => {
-
-
-
-
-  return `/api/events/${id}/waitlist`
-}
-
-/**
- * @summary List waitlist for event (admin)
- */
-export const listWaitlist = async (id: number, options?: Parameters<typeof customFetch>[1]): Promise<WaitlistEntry[]> => {
-
-  return customFetch<WaitlistEntry[]>(getListWaitlistUrl(id),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getListWaitlistQueryKey = (id: number,) => {
-    return [
-    `/api/events/${id}/waitlist`
-    ] as const;
-    }
-
-
-export const getListWaitlistQueryOptions = <TData = Awaited<ReturnType<typeof listWaitlist>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listWaitlist>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getListWaitlistQueryKey(id);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listWaitlist>>> = ({ signal }) => listWaitlist(id, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listWaitlist>>, TError, TData> & { queryKey: QueryKey }
-}
-
-export type ListWaitlistQueryResult = NonNullable<Awaited<ReturnType<typeof listWaitlist>>>
-export type ListWaitlistQueryError = ErrorType<unknown>
-
-
-/**
- * @summary List waitlist for event (admin)
- */
-
-export function useListWaitlist<TData = Awaited<ReturnType<typeof listWaitlist>>, TError = ErrorType<unknown>>(
- id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listWaitlist>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
-
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-
-  const queryOptions = getListWaitlistQueryOptions(id,options)
-
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const getAddToWaitlistUrl = (id: number,) => {
-
-
-
-
-  return `/api/events/${id}/waitlist`
-}
-
-/**
- * @summary Add usher to waitlist (admin)
- */
-export const addToWaitlist = async (id: number,
-    waitlistInput: WaitlistInput, options?: Parameters<typeof customFetch>[1]): Promise<WaitlistEntry> => {
-
-  return customFetch<WaitlistEntry>(getAddToWaitlistUrl(id),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(waitlistInput)
-  }
-);}
-
-
-
-
-
-export const getAddToWaitlistMutationOptions = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addToWaitlist>>, TError,{id: number;data: BodyType<WaitlistInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof addToWaitlist>>, TError,{id: number;data: BodyType<WaitlistInput>}, TContext> => {
-
-const mutationKey = ['addToWaitlist'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addToWaitlist>>, {id: number;data: BodyType<WaitlistInput>}> = (props) => {
-          const {id,data} = props ?? {};
-
-          return  addToWaitlist(id,data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AddToWaitlistMutationResult = NonNullable<Awaited<ReturnType<typeof addToWaitlist>>>
-    export type AddToWaitlistMutationBody = BodyType<WaitlistInput>
-    export type AddToWaitlistMutationError = ErrorType<unknown>
-
-    /**
- * @summary Add usher to waitlist (admin)
- */
-export const useAddToWaitlist = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addToWaitlist>>, TError,{id: number;data: BodyType<WaitlistInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
- ): UseMutationResult<
-        Awaited<ReturnType<typeof addToWaitlist>>,
-        TError,
-        {id: number;data: BodyType<WaitlistInput>},
-        TContext
-      > => {
-      return useMutation(getAddToWaitlistMutationOptions(options));
-    }
-
 export const getListMyAssignmentsUrl = (params?: ListMyAssignmentsParams,) => {
   const normalizedParams = new URLSearchParams();
 
@@ -4306,83 +3862,6 @@ export function useListMyAssignments<TData = Awaited<ReturnType<typeof listMyAss
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getListMyAssignmentsQueryOptions(params,options)
-
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const getListMyWaitlistsUrl = () => {
-
-
-
-
-  return `/api/my/waitlists`
-}
-
-/**
- * @summary List events the usher is waitlisted for
- */
-export const listMyWaitlists = async ( options?: Parameters<typeof customFetch>[1]): Promise<MyWaitlistEntry[]> => {
-
-  return customFetch<MyWaitlistEntry[]>(getListMyWaitlistsUrl(),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getListMyWaitlistsQueryKey = () => {
-    return [
-    `/api/my/waitlists`
-    ] as const;
-    }
-
-
-export const getListMyWaitlistsQueryOptions = <TData = Awaited<ReturnType<typeof listMyWaitlists>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listMyWaitlists>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getListMyWaitlistsQueryKey();
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listMyWaitlists>>> = ({ signal }) => listMyWaitlists({ signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listMyWaitlists>>, TError, TData> & { queryKey: QueryKey }
-}
-
-export type ListMyWaitlistsQueryResult = NonNullable<Awaited<ReturnType<typeof listMyWaitlists>>>
-export type ListMyWaitlistsQueryError = ErrorType<unknown>
-
-
-/**
- * @summary List events the usher is waitlisted for
- */
-
-export function useListMyWaitlists<TData = Awaited<ReturnType<typeof listMyWaitlists>>, TError = ErrorType<unknown>>(
-  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listMyWaitlists>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
-
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-
-  const queryOptions = getListMyWaitlistsQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
@@ -7260,4 +6739,75 @@ export function useGetUsherReliabilityEvents<TData = Awaited<ReturnType<typeof g
 
 
 
+
+export const getApplyToEventUrl = (id: number,) => {
+
+
+
+
+  return `/api/events/${id}/apply`
+}
+
+/**
+ * @summary Apply to work at an event (Usher)
+ */
+export const applyToEvent = async (id: number, options?: Parameters<typeof customFetch>[1]): Promise<EventAssignment> => {
+
+  return customFetch<EventAssignment>(getApplyToEventUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getApplyToEventMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof applyToEvent>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof applyToEvent>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['applyToEvent'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof applyToEvent>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  applyToEvent(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ApplyToEventMutationResult = NonNullable<Awaited<ReturnType<typeof applyToEvent>>>
+
+    export type ApplyToEventMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Apply to work at an event (Usher)
+ */
+export const useApplyToEvent = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof applyToEvent>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof applyToEvent>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getApplyToEventMutationOptions(options));
+    }
 

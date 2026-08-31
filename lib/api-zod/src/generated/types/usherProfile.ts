@@ -42,4 +42,6 @@ export interface UsherProfile {
   reliabilityScore?: number | null;
   /** @nullable */
   lastRatingRecalcAt?: Date | null;
+  dressSize?: string | null;
+  shoeSize?: string | null;
 }

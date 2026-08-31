@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { randomBytes } from "crypto";
-import { db, eventsTable, eventAssignmentsTable, deductionRulesTable, eventHolderLinksTable, waitlistTable, ushersTable, usherAvailabilityTable, eventTeamsTable, adminsTable, eventFeedbackLinksTable, balanceTransactionsTable } from "@workspace/db";
+import { db, eventsTable, eventAssignmentsTable, deductionRulesTable, eventHolderLinksTable, ushersTable, usherAvailabilityTable, eventTeamsTable, adminsTable, eventFeedbackLinksTable, balanceTransactionsTable } from "@workspace/db";
 import { eq, and, gte, sql, desc, lt, gt, ne, inArray, lte } from "drizzle-orm";
 import { requireAdmin, requireAuth } from "../middleware/auth.js";
 import { audit } from "../lib/audit.js";
@@ -37,14 +37,25 @@ function buildEventDetail(event: any, assignments: any[], deductionRules: any[])
 
 // GET /events
 router.get("/events", requireAuth, async (req, res) => {
-  // Auto-completion logic moved to the background cron job to prevent slow page loads
-
   const { status, page = "1", limit = "20" } = req.query as Record<string, string>;
   const offset = (parseInt(page) - 1) * parseInt(limit);
   let query = db.select().from(eventsTable).$dynamic().orderBy(desc(eventsTable.startTime));
-  if (status) query = query.where(eq(eventsTable.status, status));
+  
+  if (req.user!.type === "usher") {
+    query = query.where(eq(eventsTable.status, "published"));
+  } else if (status) {
+    query = query.where(eq(eventsTable.status, status));
+  }
+  
   const data = await query.limit(parseInt(limit)).offset(offset);
-  const [{ count }] = await db.select({ count: sql<number>`count(*)::int` }).from(eventsTable);
+  // Count
+  let countQuery = db.select({ count: sql<number>`count(*)::int` }).from(eventsTable).$dynamic();
+  if (req.user!.type === "usher") {
+    countQuery = countQuery.where(eq(eventsTable.status, "published"));
+  } else if (status) {
+    countQuery = countQuery.where(eq(eventsTable.status, status));
+  }
+  const [{ count }] = await countQuery;
   res.json({ data, total: count });
 });
 
@@ -76,32 +87,62 @@ router.post("/events", requireAdmin, async (req, res) => {
 
 // GET /events/:id
 router.get("/events/:id", requireAuth, async (req, res) => {
-  // Auto-completion logic moved to the background cron job to prevent slow page loads
-
   const eventId = parseInt(req.params.id as string, 10);
   const [event] = await db.select().from(eventsTable).where(eq(eventsTable.id, eventId));
   if (!event) { res.status(404).json({ error: "Not found" }); return; }
 
   if (req.user!.type === "usher") {
-    // Draft events are not visible to ushers
     if (event.status === "draft") {
       res.status(404).json({ error: "Not found" });
       return;
     }
-    const [isAssigned] = await db.select().from(eventAssignmentsTable).where(
-      and(eq(eventAssignmentsTable.eventId, event.id), eq(eventAssignmentsTable.usherId, req.user!.id))
-    );
-    const [isWaitlisted] = await db.select().from(waitlistTable).where(
-      and(eq(waitlistTable.eventId, event.id), eq(waitlistTable.usherId, req.user!.id))
-    );
-    if (!isAssigned && !isWaitlisted) {
-      res.status(403).json({ error: "You are not assigned or waitlisted to this event." });
-      return;
-    }
   }
 
-  const assignments = await db.select({ id: eventAssignmentsTable.id, eventId: eventAssignmentsTable.eventId, eventTeamId: eventAssignmentsTable.eventTeamId, usherId: eventAssignmentsTable.usherId, status: eventAssignmentsTable.status, role: eventAssignmentsTable.role, overriddenPay: eventAssignmentsTable.overriddenPay, isTeamLead: eventAssignmentsTable.isTeamLead, checkinTime: eventAssignmentsTable.checkinTime, checkinLat: eventAssignmentsTable.checkinLat, checkinLng: eventAssignmentsTable.checkinLng, checkinMethod: eventAssignmentsTable.checkinMethod, checkoutTime: eventAssignmentsTable.checkoutTime, checkoutLat: eventAssignmentsTable.checkoutLat, checkoutLng: eventAssignmentsTable.checkoutLng, lateArrivalMinutes: eventAssignmentsTable.lateArrivalMinutes, usher: { id: ushersTable.id, fullName: ushersTable.fullName, email: ushersTable.email, phone: ushersTable.phone, status: ushersTable.status, avgRating: ushersTable.avgRating, balance: ushersTable.balance, nationalIdNumber: ushersTable.nationalIdNumber, nationalIdDocUrl: ushersTable.nationalIdDocUrl, profilePhotoUrl: ushersTable.profilePhotoUrl, profilePhotoKey: ushersTable.profilePhotoKey, createdAt: ushersTable.createdAt } }).from(eventAssignmentsTable).leftJoin(ushersTable, eq(eventAssignmentsTable.usherId, ushersTable.id)).where(eq(eventAssignmentsTable.eventId, event.id));
-  const deductionRules = await db.select().from(deductionRulesTable).where(eq(deductionRulesTable.eventId, event.id));
+  const assignments = await db.select({
+    id: eventAssignmentsTable.id,
+    usherId: eventAssignmentsTable.usherId,
+    eventId: eventAssignmentsTable.eventId,
+    eventTeamId: eventAssignmentsTable.eventTeamId,
+    status: eventAssignmentsTable.status,
+    role: eventAssignmentsTable.role,
+    isTeamLead: eventAssignmentsTable.isTeamLead,
+    overriddenPay: eventAssignmentsTable.overriddenPay,
+    checkinTime: eventAssignmentsTable.checkinTime,
+    checkoutTime: eventAssignmentsTable.checkoutTime,
+    checkinLat: eventAssignmentsTable.checkinLat,
+    checkinLng: eventAssignmentsTable.checkinLng,
+usher: {
+      id: ushersTable.id,
+      fullName: ushersTable.fullName,
+      phone: ushersTable.phone,
+      gender: ushersTable.gender,
+      dressSize: ushersTable.dressSize,
+      shoeSize: ushersTable.shoeSize,
+      profilePhotoKey: ushersTable.profilePhotoKey,
+      profilePhotoUrl: ushersTable.profilePhotoUrl,
+      avgRating: ushersTable.avgRating,
+      languages: ushersTable.languages,
+      height: ushersTable.height,
+      dateOfBirth: ushersTable.dateOfBirth,
+      }
+  }).from(eventAssignmentsTable)
+    .innerJoin(ushersTable, eq(eventAssignmentsTable.usherId, ushersTable.id))
+    .where(eq(eventAssignmentsTable.eventId, eventId));
+
+  const deductionRules = await db.select().from(deductionRulesTable).where(eq(deductionRulesTable.eventId, eventId));
+
+  if (req.user!.type === "usher") {
+    // Determine if usher is assigned or applied
+    const myAssignment = assignments.find(a => a.usherId === req.user!.id);
+    if (!myAssignment && event.status !== "published") {
+      res.status(403).json({ error: "You cannot view this event." });
+      return;
+    }
+    // Only return the user's own assignment for privacy
+    res.json(buildEventDetail(event, myAssignment ? [myAssignment] : [], deductionRules));
+    return;
+  }
+
   res.json(buildEventDetail(event, assignments, deductionRules));
 });
 
@@ -286,7 +327,7 @@ router.post("/events/:id/teams", requireAdmin, async (req, res) => {
   const eventId = parseInt(req.params.id as string, 10);
   const parsed = CreateEventTeamBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.flatten() }); return; }
-  const [team] = await db.insert(eventTeamsTable).values({ eventId, name: parsed.data.name, instructions: parsed.data.instructions }).returning();
+  const [team] = await db.insert(eventTeamsTable).values({ eventId, name: parsed.data.name, instructions: (parsed.data as any).instructions }).returning();
   await audit(req.user!.id, "CREATE_TEAM", "event_teams", team.id);
   res.status(201).json(team);
 });
@@ -367,7 +408,10 @@ router.get("/events/:id/teams/:teamId/leader-suggestions", requireAdmin, async (
 // GET /events/:id/assignments
 router.get("/events/:id/assignments", requireAdmin, async (req, res) => {
   const eventId = parseInt(req.params.id as string, 10);
-  const assignments = await db.select({ id: eventAssignmentsTable.id, eventId: eventAssignmentsTable.eventId, eventTeamId: eventAssignmentsTable.eventTeamId, usherId: eventAssignmentsTable.usherId, status: eventAssignmentsTable.status, role: eventAssignmentsTable.role, overriddenPay: eventAssignmentsTable.overriddenPay, isTeamLead: eventAssignmentsTable.isTeamLead, checkinTime: eventAssignmentsTable.checkinTime, checkinLat: eventAssignmentsTable.checkinLat, checkinLng: eventAssignmentsTable.checkinLng, checkinMethod: eventAssignmentsTable.checkinMethod, checkoutTime: eventAssignmentsTable.checkoutTime, checkoutLat: eventAssignmentsTable.checkoutLat, checkoutLng: eventAssignmentsTable.checkoutLng, usher: { id: ushersTable.id, fullName: ushersTable.fullName, email: ushersTable.email, phone: ushersTable.phone, status: ushersTable.status, avgRating: ushersTable.avgRating, balance: ushersTable.balance, nationalIdNumber: ushersTable.nationalIdNumber, nationalIdDocUrl: ushersTable.nationalIdDocUrl, profilePhotoUrl: ushersTable.profilePhotoUrl, profilePhotoKey: ushersTable.profilePhotoKey, createdAt: ushersTable.createdAt } }).from(eventAssignmentsTable).leftJoin(ushersTable, eq(eventAssignmentsTable.usherId, ushersTable.id)).where(eq(eventAssignmentsTable.eventId, eventId));
+  const assignments = await db.select({ id: eventAssignmentsTable.id, eventId: eventAssignmentsTable.eventId, eventTeamId: eventAssignmentsTable.eventTeamId, usherId: eventAssignmentsTable.usherId, status: eventAssignmentsTable.status, role: eventAssignmentsTable.role, overriddenPay: eventAssignmentsTable.overriddenPay, isTeamLead: eventAssignmentsTable.isTeamLead, checkinTime: eventAssignmentsTable.checkinTime, checkinLat: eventAssignmentsTable.checkinLat, checkinLng: eventAssignmentsTable.checkinLng, checkinMethod: eventAssignmentsTable.checkinMethod, checkoutTime: eventAssignmentsTable.checkoutTime, checkoutLat: eventAssignmentsTable.checkoutLat, checkoutLng: eventAssignmentsTable.checkoutLng, usher: { id: ushersTable.id, fullName: ushersTable.fullName, email: ushersTable.email, phone: ushersTable.phone, status: ushersTable.status, avgRating: ushersTable.avgRating,
+      languages: ushersTable.languages,
+      height: ushersTable.height,
+      dateOfBirth: ushersTable.dateOfBirth, balance: ushersTable.balance, nationalIdNumber: ushersTable.nationalIdNumber, nationalIdDocUrl: ushersTable.nationalIdDocUrl, profilePhotoUrl: ushersTable.profilePhotoUrl, profilePhotoKey: ushersTable.profilePhotoKey, createdAt: ushersTable.createdAt, shoeSize: ushersTable.shoeSize, dressSize: ushersTable.dressSize, gender: ushersTable.gender } }).from(eventAssignmentsTable).leftJoin(ushersTable, eq(eventAssignmentsTable.usherId, ushersTable.id)).where(eq(eventAssignmentsTable.eventId, eventId));
   res.json(assignments);
 });
 
@@ -480,6 +524,72 @@ router.post("/events/:id/assignments", requireAdmin, async (req, res) => {
   }
 });
 
+// POST /events/:id/apply
+router.post("/events/:id/apply", requireAuth, async (req, res) => {
+  const eventId = parseInt(req.params.id as string, 10);
+
+  if (req.user!.type !== "usher") {
+    res.status(403).json({ error: "Only ushers can apply for events." });
+    return;
+  }
+
+  const usherId = req.user!.id;
+
+  const [existingEvent] = await db.select().from(eventsTable).where(eq(eventsTable.id, eventId));
+  if (!existingEvent) { res.status(404).json({ error: "Event not found." }); return; }
+  
+  if (existingEvent.status !== "published") {
+    res.status(400).json({ error: "Cannot apply to an unpublished event." });
+    return;
+  }
+
+  if (new Date(existingEvent.endTime) <= new Date() || new Date(existingEvent.startTime) <= new Date()) {
+    res.status(400).json({ error: "Cannot apply to an event that has already started or ended." });
+    return;
+  }
+
+  try {
+    const application = await db.transaction(async (tx) => {
+      // Check for overlapping assignments
+      const overlappingAssignments = await tx.select()
+        .from(eventAssignmentsTable)
+        .innerJoin(eventsTable, eq(eventAssignmentsTable.eventId, eventsTable.id))
+        .where(
+          and(
+            eq(eventAssignmentsTable.usherId, usherId),
+            inArray(eventAssignmentsTable.status, ["assigned", "accepted", "checked_in"]),
+            lt(eventsTable.startTime, existingEvent.endTime),
+            gt(eventsTable.endTime, existingEvent.startTime)
+          )
+        );
+
+      if (overlappingAssignments.length > 0) {
+        throw new Error("You are busy with another event during this time.");
+      }
+
+      const [assigned] = await tx.insert(eventAssignmentsTable).values({ 
+        eventId, 
+        usherId,
+        role: "regular",
+        status: "pending" 
+      }).returning();
+      
+      return assigned;
+    });
+
+    sseManager.broadcast("ASSIGNMENT_CREATED", { id: application.id, eventId });
+    res.status(201).json(application);
+  } catch (err: any) {
+    if (err.code === "23505") { // unique violation
+      res.status(409).json({ error: "You have already applied or are assigned to this event." });
+    } else if (err.message === "You are busy with another event during this time.") {
+      res.status(400).json({ error: err.message });
+    } else {
+      res.status(500).json({ error: "Failed to apply to event." });
+    }
+  }
+});
+
 // PATCH /events/:id/assignments/:assignmentId
 router.patch("/events/:id/assignments/:assignmentId", requireAdmin, async (req, res) => {
   const assignmentId = parseInt(req.params.assignmentId as string, 10);
@@ -545,16 +655,32 @@ router.patch("/events/:id/assignments/:assignmentId", requireAdmin, async (req, 
           eventTeamId: parsed.data.eventTeamId !== undefined ? parsed.data.eventTeamId : existingAssignment.eventTeamId,
           isTeamLead: parsed.data.isTeamLead !== undefined ? parsed.data.isTeamLead : existingAssignment.isTeamLead,
           role: parsed.data.role !== undefined ? parsed.data.role : existingAssignment.role,
-          overriddenPay: parsed.data.overriddenPay !== undefined ? parsed.data.overriddenPay : existingAssignment.overriddenPay
+          overriddenPay: parsed.data.overriddenPay !== undefined ? parsed.data.overriddenPay : existingAssignment.overriddenPay,
+          status: parsed.data.status !== undefined ? (parsed.data.status as any) : existingAssignment.status
         })
         .where(eq(eventAssignmentsTable.id, assignmentId))
         .returning();
 
-      return updated;
+      return { updated, lockedEvent, existingAssignment };
     });
 
     await audit(req.user!.id, "UPDATE_ASSIGNMENT", "event_assignments", assignmentId);
-    res.json(assignment);
+
+    if (assignment.existingAssignment.status === "pending" && parsed.data.status === "assigned") {
+      await sendPushToUsher(assignment.updated.usherId, {
+        title: "Application Approved 🎉",
+        body: `You have been assigned to the event "${assignment.lockedEvent.title}". Check event details.`,
+        data: { eventId: String(eventId), type: "assignment" },
+      });
+    } else if (assignment.existingAssignment.status === "pending" && parsed.data.status === "rejected") {
+      await sendPushToUsher(assignment.updated.usherId, {
+        title: "Application Update",
+        body: `Your application to the event "${assignment.lockedEvent.title}" was not selected.`,
+        data: { eventId: String(eventId), type: "assignment" },
+      });
+    }
+
+    res.json(assignment.updated);
   } catch (err: any) {
     if (err.message.startsWith("Budget exceeded:")) {
       res.status(400).json({ error: err.message });
@@ -893,98 +1019,6 @@ router.get("/events/:id/smart-candidates", requireAdmin, async (req, res) => {
     console.error("Error in smart-candidates:", error);
     res.json([{ id: 9999, fullName: `ERROR: ${error.message}`, isAvailable: true, avgRating: 0 }]);
   }
-});
-
-// GET /events/:id/waitlist
-router.get("/events/:id/waitlist", requireAdmin, async (req, res) => {
-  const eventId = parseInt(req.params.id as string, 10);
-  const entries = await db.select({ id: waitlistTable.id, eventId: waitlistTable.eventId, usherId: waitlistTable.usherId, priorityOrder: waitlistTable.priorityOrder, status: waitlistTable.status, usher: { id: ushersTable.id, fullName: ushersTable.fullName, email: ushersTable.email, phone: ushersTable.phone, status: ushersTable.status, avgRating: ushersTable.avgRating, balance: ushersTable.balance, nationalIdNumber: ushersTable.nationalIdNumber, nationalIdDocUrl: ushersTable.nationalIdDocUrl, profilePhotoUrl: ushersTable.profilePhotoUrl, profilePhotoKey: ushersTable.profilePhotoKey, createdAt: ushersTable.createdAt } }).from(waitlistTable).leftJoin(ushersTable, eq(waitlistTable.usherId, ushersTable.id)).where(eq(waitlistTable.eventId, eventId));
-  res.json(entries);
-});
-
-// POST /events/:id/waitlist
-router.post("/events/:id/waitlist", requireAdmin, async (req, res) => {
-  const { usherId, priorityOrder } = req.body;
-  const eventId = parseInt(req.params.id as string, 10);
-
-  const [existing] = await db.select().from(eventsTable).where(eq(eventsTable.id, eventId));
-  if (!existing) { res.status(404).json({ error: "Not found" }); return; }
-  if (existing.status === "completed" || new Date(existing.endTime) < new Date()) {
-    res.status(400).json({ error: "Cannot add to waitlist of a completed event." });
-    return;
-  }
-
-  const [entry] = await db.insert(waitlistTable).values({ eventId, usherId, priorityOrder }).returning();
-  res.status(201).json(entry);
-});
-
-// DELETE /events/:id/waitlist/:waitlistId
-router.delete("/events/:id/waitlist/:waitlistId", requireAdmin, async (req, res) => {
-  const eventId = parseInt(req.params.id as string, 10);
-  const waitlistId = parseInt(req.params.waitlistId as string, 10);
-
-  const [existing] = await db.select().from(waitlistTable).where(and(eq(waitlistTable.id, waitlistId), eq(waitlistTable.eventId, eventId)));
-  if (!existing) { res.status(404).json({ error: "Not found" }); return; }
-
-  await db.delete(waitlistTable).where(eq(waitlistTable.id, waitlistId));
-  res.json({ success: true });
-});
-
-// POST /events/:id/waitlist/:waitlistId/promote
-router.post("/events/:id/waitlist/:waitlistId/promote", requireAdmin, async (req, res) => {
-  const eventId = parseInt(req.params.id as string, 10);
-  const waitlistId = parseInt(req.params.waitlistId as string, 10);
-  const { eventTeamId, isTeamLead } = req.body;
-
-  const [existing] = await db.select().from(waitlistTable).where(and(eq(waitlistTable.id, waitlistId), eq(waitlistTable.eventId, eventId)));
-  if (!existing) { res.status(404).json({ error: "Waitlist entry not found" }); return; }
-
-  const [event] = await db.select().from(eventsTable).where(eq(eventsTable.id, eventId));
-  if (!event) { res.status(404).json({ error: "Event not found" }); return; }
-
-  const [usher] = await db.select().from(ushersTable).where(eq(ushersTable.id, existing.usherId));
-
-  // Check for overlaps with other events
-  const overlappingAssignments = await db.select()
-    .from(eventAssignmentsTable)
-    .innerJoin(eventsTable, eq(eventAssignmentsTable.eventId, eventsTable.id))
-    .where(
-      and(
-        eq(eventAssignmentsTable.usherId, existing.usherId),
-        inArray(eventAssignmentsTable.status, ["assigned", "accepted", "checked_in"]),
-        lt(eventsTable.startTime, event.endTime),
-        gt(eventsTable.endTime, event.startTime)
-      )
-    );
-
-  if (overlappingAssignments.length > 0) {
-    res.status(400).json({ error: "Cannot promote usher because they are busy with another event during this time." });
-    return;
-  }
-
-  // Remove from waitlist
-  await db.delete(waitlistTable).where(eq(waitlistTable.id, waitlistId));
-
-  // Add to assignments
-  const [assignment] = await db.insert(eventAssignmentsTable).values({
-    eventId,
-    usherId: existing.usherId,
-    eventTeamId: eventTeamId || null,
-    isTeamLead: isTeamLead || false,
-    status: existing.status === "accepted" ? "accepted" : "assigned"
-  }).returning();
-
-  // Send push notification to the promoted usher
-  const [promotedEvent] = await db.select({ title: eventsTable.title }).from(eventsTable).where(eq(eventsTable.id, eventId));
-  if (promotedEvent) {
-    await sendPushToUsher(existing.usherId, {
-      title: "Waitlist Promoted 🎉",
-      body: `You have been promoted for the event "${promotedEvent.title}". Check event details.`,
-      data: { eventId: String(eventId), type: "assignment" },
-    });
-  }
-
-  res.json({ ...assignment, usher });
 });
 
 // GET /events/:id/feedback-link

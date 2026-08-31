@@ -38,7 +38,6 @@ export interface EventFeedbackLink {
 export type PublicEventFeedbackDetailsTeamsItemUshersItem = {
   id: number;
   name: string;
-  photoUrl?: string | null;
 };
 
 export type PublicEventFeedbackDetailsTeamsItem = {
@@ -147,6 +146,8 @@ export interface UsherRegistration {
   profilePhotoKey?: string | null;
   paymentMethod?: UsherRegistrationPaymentMethod;
   paymentMethodDetails?: string;
+  /** @maxLength 20 */
+  dressSize?: string;
 }
 
 export interface UsherProfile {
@@ -186,6 +187,8 @@ export interface UsherProfile {
   reliabilityScore?: number | null;
   /** @nullable */
   lastRatingRecalcAt?: string | null;
+  dressSize?: string | null;
+  shoeSize?: string | null;
 }
 
 export interface AuthResult {
@@ -239,6 +242,9 @@ export interface UsherUpdate {
   profilePhotoKey?: string | null;
   /** @nullable */
   profilePhotoUrl?: string | null;
+  /** @maxLength 20 */
+  dressSize?: string | null;
+  shoeSize?: string | null;
 }
 
 export interface UsherStatusUpdate {
@@ -560,15 +566,7 @@ export interface AssignmentInput {
   role?: string;
   /** @nullable */
   overriddenPay?: number | null;
-}
-
-export interface MyWaitlistEntry {
-  id: number;
-  eventId: number;
-  usherId: number;
-  priorityOrder: number;
-  status: string;
-  event: Event;
+  status?: string;
 }
 
 export interface TeamMember {
@@ -704,20 +702,6 @@ export type EventHolderViewUshersItem = {
 export interface EventHolderView {
   event: EventHolderViewEvent;
   ushers: EventHolderViewUshersItem[];
-}
-
-export interface WaitlistEntry {
-  id: number;
-  eventId: number;
-  usherId: number;
-  priorityOrder: number;
-  status: string;
-  usher?: UsherProfile;
-}
-
-export interface WaitlistInput {
-  usherId: number;
-  priorityOrder: number;
 }
 
 export interface BalanceTransaction {
@@ -929,15 +913,6 @@ limit?: number;
 
 export type SubmitPublicEventFeedback200 = {
   success?: boolean;
-};
-
-export type RemoveFromWaitlist200 = {
-  success?: boolean;
-};
-
-export type PromoteWaitlistBody = {
-  eventTeamId?: number | null;
-  isTeamLead?: boolean;
 };
 
 export type GetSmartCandidatesParams = {

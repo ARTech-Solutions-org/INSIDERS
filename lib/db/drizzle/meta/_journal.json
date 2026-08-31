@@ -78,6 +78,13 @@
       "when": 1787575018607,
       "tag": "0010_remove_audit_ip",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1788183528879,
+      "tag": "0011_quiet_madame_hydra",
+      "breakpoints": true
     }
   ]
 }

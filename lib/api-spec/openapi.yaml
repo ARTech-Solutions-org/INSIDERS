@@ -93,48 +93,6 @@ paths:
       responses:
         '200':
           description: OK
-  /my/waitlists/{waitlistId}/accept:
-    post:
-      tags:
-      - Waitlist
-      security:
-      - bearerAuth: []
-      operationId: acceptWaitlist
-      summary: Accept a waitlist offer
-      parameters:
-      - name: waitlistId
-        in: path
-        required: true
-        schema:
-          type: integer
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MyWaitlistEntry'
-  /my/waitlists/{waitlistId}/reject:
-    post:
-      tags:
-      - Waitlist
-      security:
-      - bearerAuth: []
-      operationId: rejectWaitlist
-      summary: Reject a waitlist offer
-      parameters:
-      - name: waitlistId
-        in: path
-        required: true
-        schema:
-          type: integer
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MyWaitlistEntry'
   /ushers:
     get:
       operationId: listUshers
@@ -328,7 +286,10 @@ paths:
               properties:
                 status:
                   type: string
-                  enum: [pending, approved, rejected]
+                  enum:
+                  - pending
+                  - approved
+                  - rejected
       responses:
         '200':
           description: OK
@@ -679,7 +640,6 @@ paths:
           description: Link is invalid or already submitted
         '404':
           description: Not found
-
   /events/{id}/holder-link:
     get:
       operationId: getEventHolderLink
@@ -815,72 +775,24 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/UsherCandidate'
-  /events/{id}/waitlist/{waitlistId}:
-    delete:
-      tags:
-      - Events
-      security:
-      - bearerAuth: []
-      operationId: removeFromWaitlist
-      summary: Remove usher from waitlist (admin)
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: integer
-      - name: waitlistId
-        in: path
-        required: true
-        schema:
-          type: integer
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-  /events/{id}/waitlist/{waitlistId}/promote:
+  /events/{id}/apply:
     post:
-      tags:
-      - Events
-      security:
-      - bearerAuth: []
-      operationId: promoteWaitlist
-      summary: Promote usher from waitlist to assigned (admin)
+      operationId: applyToEvent
+      tags: [Events]
+      summary: Apply to work at an event (Usher)
       parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: integer
-      - name: waitlistId
-        in: path
-        required: true
-        schema:
-          type: integer
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                eventTeamId:
-                  type: integer
-                  nullable: true
-                isTeamLead:
-                  type: boolean
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AssignmentWithUsher'
+                $ref: '#/components/schemas/ApplyToEventResponse'
   /events/{id}/assignments:
     get:
       operationId: listEventAssignments
@@ -1059,47 +971,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/EventAssignment'
-  /events/{id}/waitlist:
-    get:
-      operationId: listWaitlist
-      summary: List waitlist for event (admin)
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: integer
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/WaitlistEntry'
-    post:
-      operationId: addToWaitlist
-      summary: Add usher to waitlist (admin)
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/WaitlistInput'
-      responses:
-        '201':
-          description: Created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/WaitlistEntry'
   /my/assignments:
     get:
       operationId: listMyAssignments
@@ -1118,21 +989,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/MyAssignment'
-  /my/waitlists:
-    get:
-      tags:
-      - Usher Actions
-      summary: List events the usher is waitlisted for
-      operationId: listMyWaitlists
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/MyWaitlistEntry'
   /my/assignments/{assignmentId}/accept:
     post:
       operationId: acceptAssignment
@@ -1740,17 +1596,20 @@ paths:
   /admin/dashboard:
     get:
       operationId: getAdminDashboard
-      tags: [Admin]
+      tags:
+      - Admin
       summary: Get admin dashboard statistics
-      description: Returns dashboard metrics based on admin role (sensitive fields like balance stripped if not super_admin/finance).
+      description: Returns dashboard metrics based on admin role (sensitive fields
+        like balance stripped if not super_admin/finance).
       parameters:
-        - name: month
-          in: query
-          description: Month to filter time-bound metrics (format YYYY-MM). If provided, calculates metrics for that specific month.
-          required: false
-          schema:
-            type: string
-            pattern: '^\d{4}-\d{2}$'
+      - name: month
+        in: query
+        description: Month to filter time-bound metrics (format YYYY-MM). If provided,
+          calculates metrics for that specific month.
+        required: false
+        schema:
+          type: string
+          pattern: ^\d{4}-\d{2}$
       responses:
         '200':
           description: OK
@@ -1792,7 +1651,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventStats'
-
   /admin/settings/rating:
     get:
       operationId: getRatingConfig
@@ -1820,7 +1678,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RatingConfig'
-
   /ushers/{id}/reliability-events:
     get:
       operationId: getUsherReliabilityEvents
@@ -1838,7 +1695,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ReliabilityEventsResult'
-
 components:
   schemas:
     AdminInvitation:
@@ -1890,7 +1746,6 @@ components:
         password:
           type: string
           minLength: 6
-
     EventFeedbackLink:
       type: object
       required:
@@ -1916,7 +1771,6 @@ components:
           type: string
           format: date-time
           nullable: true
-
     PublicEventFeedbackDetails:
       type: object
       required:
@@ -1964,7 +1818,6 @@ components:
                       type: integer
                     name:
                       type: string
-
     PublicFeedbackSubmitBody:
       type: object
       required:
@@ -1998,8 +1851,6 @@ components:
                 type: integer
               rating:
                 type: integer
-
-
     HealthStatus:
       type: object
       required:
@@ -2022,68 +1873,63 @@ components:
       type: object
       required:
       - fullName
+      - fullNameArabic
+      - gender
+      - dateOfBirth
+      - height
+      - university
+      - major
+      - languages
+      - shoeSize
+      - shirtSize
+      - tShirtSize
+      - pantsSize
+      - shortsSize
       - phone
       - email
       - nationalIdNumber
       - password
+      - profilePhotoUrl
+      - profilePhotoKey
+      - nationalIdDocUrl
+      - nationalIdDocKey
+      - nationalIdDocBackUrl
+      - nationalIdDocBackKey
+      - paymentMethod
+      - paymentMethodDetails
       properties:
         fullName:
           type: string
         fullNameArabic:
-          type:
-          - string
-          - 'null'
+          type: string
         gender:
-          type:
-          - string
-          - 'null'
+          type: string
           enum:
           - male
           - female
-          - null
         dateOfBirth:
-          type:
-          - string
-          - 'null'
+          type: string
           format: date
         height:
-          type:
-          - integer
-          - 'null'
+          type: integer
         university:
-          type:
-          - string
-          - 'null'
+          type: string
         major:
-          type:
-          - string
-          - 'null'
+          type: string
         languages:
-          type:
-          - array
-          - 'null'
+          type: array
           items:
             type: string
         shoeSize:
-          type:
-          - string
-          - 'null'
+          type: string
         shirtSize:
-          type:
-          - string
-          - 'null'
+          type: string
         tShirtSize:
-          type:
-          - string
-          - 'null'
+          type: string
         pantsSize:
-          type:
-          - string
-          - 'null'
+          type: string
         shortsSize:
-          type:
-          - string
-          - 'null'
+          type: string
         phone:
           type: string
         email:
@@ -2094,34 +1940,20 @@ components:
         password:
           type: string
         nationalIdDocUrl:
-          type:
-          - string
-          - 'null'
+          type: string
         nationalIdDocKey:
-          type:
-          - string
-          - 'null'
+          type: string
         nationalIdDocBackUrl:
-          type:
-          - string
-          - 'null'
+          type: string
         nationalIdDocBackKey:
-          type:
-          - string
-          - 'null'
+          type: string
         nationalIdExpiryDate:
-          type:
-          - string
-          - 'null'
+          type: string
           format: date
         profilePhotoUrl:
-          type:
-          - string
-          - 'null'
+          type: string
         profilePhotoKey:
-          type:
-          - string
-          - 'null'
+          type: string
         paymentMethod:
           type: string
           enum:
@@ -2204,6 +2036,27 @@ components:
           type:
           - string
           - 'null'
+        dressSize:
+          type: string
+          nullable: true
+        shoeSize:
+          type: string
+          nullable: true
+        gender:
+          type: string
+          nullable: true
+        dateOfBirth:
+          type: string
+          format: date
+          nullable: true
+        height:
+          type: integer
+          nullable: true
+        languages:
+          type: array
+          items:
+            type: string
+          nullable: true
         status:
           type: string
         avgRating:
@@ -3259,6 +3112,64 @@ components:
                 type:
                 - string
                 - 'null'
+    ApplyToEventResponse:
+      type: object
+      required:
+      - id
+      - eventId
+      - usherId
+      - status
+      properties:
+        id:
+          type: integer
+        eventId:
+          type: integer
+        eventTeamId:
+          type:
+          - integer
+          - 'null'
+        usherId:
+          type: integer
+        status:
+          type: string
+        isTeamLead:
+          type: boolean
+        role:
+          type: string
+        overriddenPay:
+          type:
+          - number
+          - 'null'
+        checkinTime:
+          type:
+          - string
+          - 'null'
+        checkinLat:
+          type:
+          - number
+          - 'null'
+        checkinLng:
+          type:
+          - number
+          - 'null'
+        checkinMethod:
+          type:
+          - string
+          - 'null'
+        checkoutTime:
+          type:
+          - string
+          - 'null'
+        checkoutLat:
+          type:
+          - number
+          - 'null'
+        checkoutLng:
+          type:
+          - number
+          - 'null'
+        usher:
+          $ref: '#/components/schemas/UsherProfile'
     WaitlistEntry:
       type: object
       required:
@@ -3701,4 +3612,3 @@ components:
                 type: integer
               completedCount:
                 type: integer
-

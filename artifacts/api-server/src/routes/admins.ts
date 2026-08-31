@@ -1,6 +1,6 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
-import { db, adminsTable, adminInvitationsTable, broadcastMessagesTable, auditLogTable, usherDocumentsTable, ushersTable, notificationsTable, eventsTable, eventAssignmentsTable, ratingsTable, payoutsTable, systemSettingsTable, waitlistTable, DEFAULT_RATING_CONFIG } from "@workspace/db";
+import { db, adminsTable, adminInvitationsTable, broadcastMessagesTable, auditLogTable, usherDocumentsTable, ushersTable, notificationsTable, eventsTable, eventAssignmentsTable, ratingsTable, payoutsTable, systemSettingsTable, DEFAULT_RATING_CONFIG } from "@workspace/db";
 import { eq, lte, and, desc, gte, sql, lt, inArray, isNull, or, ilike } from "drizzle-orm";
 import { requireAdmin, requireSuperAdmin } from "../middleware/auth.js";
 import { audit } from "../lib/audit.js";
@@ -322,7 +322,7 @@ router.get("/admin/dashboard", requireAdmin, async (req, res) => {
   const [{ ongoingEvents }] = await db.select({ ongoingEvents: sql<number>`count(*)::int` }).from(eventsTable).where(and(gte(eventsTable.startTime, todayStart), lte(eventsTable.startTime, todayEnd)));
   const [{ avgUsherRating }] = await db.select({ avgUsherRating: sql<number>`coalesce(avg(avg_rating), 0)::float` }).from(ushersTable).where(eq(ushersTable.status, "active"));
   
-  const [{ waitlistCount }] = await db.select({ waitlistCount: sql<number>`count(*)::int` }).from(waitlistTable);
+  const waitlistCount = 0;
   const [{ completedJobsCount }] = await db.select({ completedJobsCount: sql<number>`count(*)::int` }).from(eventAssignmentsTable).where(and(or(eq(eventAssignmentsTable.status, "completed"), eq(eventAssignmentsTable.status, "checked_in")), assignmentFilter));
   const [{ cancelledJobsCount }] = await db.select({ cancelledJobsCount: sql<number>`count(*)::int` }).from(eventAssignmentsTable).where(and(or(eq(eventAssignmentsTable.status, "cancelled"), eq(eventAssignmentsTable.status, "declined"), eq(eventAssignmentsTable.status, "no_show")), assignmentFilter));
 

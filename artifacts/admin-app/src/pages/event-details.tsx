@@ -15,12 +15,7 @@ import {
   getGetEventQueryKey,
   getListEventsQueryKey,
   getGetTeamLeaderSuggestionsQueryKey,
-  useListWaitlist,
-  useAddToWaitlist,
-  useRemoveFromWaitlist,
-  usePromoteWaitlist,
-  getListEventAssignmentsQueryKey,
-  getListWaitlistQueryKey,
+
   useGetEventFeedbackLink,
   useCreateEventFeedbackLink,
   getGetEventFeedbackLinkQueryKey,
@@ -147,6 +142,14 @@ export default function EventDetails() {
   };
   const [isSubmittingRating, setIsSubmittingRating] = useState(false);
 
+  // Filters for Pending Applicants
+  const [filterGender, setFilterGender] = useState<string>('all');
+  const [filterLanguage, setFilterLanguage] = useState<string>('all');
+  const [filterMinRating, setFilterMinRating] = useState<string>('');
+  const [filterMinHeight, setFilterMinHeight] = useState<string>('');
+  const [filterDressSize, setFilterDressSize] = useState<string>('all');
+  const [filterShoeSize, setFilterShoeSize] = useState<string>('all');
+
   // ─── FEEDBACK LINK ───────────────────────────────────────────────────────
   const { data: feedbackLink, isLoading: isFeedbackLinkLoading } = useGetEventFeedbackLink(
     eventId,
@@ -172,13 +175,6 @@ export default function EventDetails() {
     toast({ title: "Link copied to clipboard." });
   };
 
-  // ─── WAITLIST ────────────────────────────────────────────────────────────
-  const { data: waitlist } = useListWaitlist(eventId, {
-    query: {
-      enabled: !!eventId,
-    } as any
-  });
-
   
   const totalSpent = (event?.assignments || []).reduce((acc: number, a: any) => {
     if (!['assigned', 'accepted', 'checked_in', 'completed'].includes(a.status)) return acc;
@@ -189,49 +185,10 @@ export default function EventDetails() {
   
   const isBudgetExceeded = event?.budget && totalSpent > event.budget;
 
-  const { mutate: addToWaitlist, isPending: isAddingToWaitlist } = useAddToWaitlist({
-    mutation: {
-      onSuccess: () => {
-        toast({ title: "Waitlisted", description: "Usher added to waitlist." });
-        queryClient.invalidateQueries({ queryKey: getListWaitlistQueryKey(eventId) as any });
-      },
-      onError: (err: any) => {
-        toast({ title: "Error", description: err.message, variant: "destructive" });
-      }
-    }
-  });
-
-  const { mutate: removeFromWaitlist } = useRemoveFromWaitlist({
-    mutation: {
-      onSuccess: () => {
-        toast({ title: "Removed", description: "Usher removed from waitlist." });
-        queryClient.invalidateQueries({ queryKey: getListWaitlistQueryKey(eventId) as any });
-      },
-      onError: (err: any) => {
-        toast({ title: "Error", description: err.message, variant: "destructive" });
-      }
-    }
-  });
-
-  const { mutate: promoteWaitlist } = usePromoteWaitlist({
-    mutation: {
-      onSuccess: () => {
-        toast({ title: "Promoted", description: "Usher promoted to assigned." });
-        queryClient.invalidateQueries({ queryKey: getListWaitlistQueryKey(eventId) as any });
-        queryClient.invalidateQueries({ queryKey: getListEventAssignmentsQueryKey(eventId) as any });
-        refetch();
-      },
-      onError: (err: any) => {
-        toast({ title: "Error", description: err.message, variant: "destructive" });
-      }
-    }
-  });
-
   const { mutate: adminCheckout, isPending: isAdminCheckingOut } = useAdminCheckout({
     mutation: {
       onSuccess: () => {
         toast({ title: "Checked out successfully." });
-        queryClient.invalidateQueries({ queryKey: getListEventAssignmentsQueryKey(eventId) as any });
         refetch();
       },
       onError: (err: any) => {
@@ -752,7 +709,6 @@ export default function EventDetails() {
         <TabsList className="w-full justify-start rounded-none border-b bg-transparent h-auto p-0 space-x-6">
           <TabsTrigger value="overview" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent py-3">Overview</TabsTrigger>
           <TabsTrigger value="staffing" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent py-3">Staff & Teams</TabsTrigger>
-          <TabsTrigger value="waitlist" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent py-3">Waitlist</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6 min-h-0 flex-1 overflow-auto">
@@ -954,7 +910,7 @@ export default function EventDetails() {
                   />
                   <Button 
                     disabled={!newTeamName.trim() || isCreatingTeam} 
-                    onClick={() => createTeam({ id: eventId, data: { name: newTeamName, instructions: newTeamInstructions || undefined } })}
+                    onClick={() => createTeam({ id: eventId, data: { name: newTeamName } })}
                   >
                     Add
                   </Button>
@@ -1042,7 +998,7 @@ export default function EventDetails() {
                 <div className="flex flex-col gap-1">
                   <span className="flex items-center gap-2">
                     <Users className="w-5 h-5 text-primary" />
-                    Assigned Staff ({event.assignments?.filter((a: any) => selectedTeamId === null ? true : a.eventTeamId === selectedTeamId).length || 0})
+                    Assigned Staff ({event.assignments?.filter((a: any) => (a.status !== 'pending' && a.status !== 'rejected') && (selectedTeamId === null ? true : a.eventTeamId === selectedTeamId)).length || 0})
                   </span>
                   {event.budget && (
                     <span className={`text-xs font-normal ${isBudgetExceeded ? 'text-destructive' : 'text-muted-foreground'}`}>
@@ -1061,7 +1017,7 @@ export default function EventDetails() {
             </CardHeader>
             <CardContent className="flex-1 overflow-auto p-0">
               <div className="divide-y">
-                {event.assignments?.filter((a: any) => selectedTeamId === null ? true : a.eventTeamId === selectedTeamId).map((assignment: any) => (
+                {event.assignments?.filter((a: any) => (a.status !== 'pending' && a.status !== 'rejected') && (selectedTeamId === null ? true : a.eventTeamId === selectedTeamId)).map((assignment: any) => (
                   <div key={assignment.id} className="p-4 hover:bg-muted/10 transition-colors">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
@@ -1082,6 +1038,12 @@ export default function EventDetails() {
                               {assignment.usher?.avgRating?.toFixed(1) || 'N/A'}
                             </span>
                             <span className="capitalize text-[10px] bg-muted px-1.5 py-0.5 rounded-full">{assignment.status === 'assigned' ? 'Pending' : assignment.status.replace('_', ' ')}</span>
+                            {assignment.usher?.gender === 'female' && assignment.usher?.dressSize && (
+                              <Badge variant="outline" className="text-[9px] h-4 px-1.5 font-normal">Dress: {assignment.usher.dressSize}</Badge>
+                            )}
+                            {assignment.usher?.shoeSize && (
+                              <Badge variant="outline" className="text-[9px] h-4 px-1.5 font-normal">Shoe: {assignment.usher.shoeSize}</Badge>
+                            )}
                             {event.status === 'completed' && assignment.checkinTime && !assignment.checkoutTime && (
                               <Badge variant="destructive" className="text-[9px] h-4 px-1.5 leading-none shadow-sm animate-pulse">
                                 MISSED CHECKOUT
@@ -1185,282 +1147,180 @@ export default function EventDetails() {
             </CardContent>
           </Card>
 
-          {/* Right Col - Smart Match */}
+
+          {/* Right Col - Pending Applicants */}
           <Card className="flex flex-col border-primary/20 bg-primary/5">
             <CardHeader className="pb-3 border-b border-primary/10">
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="flex items-center gap-2 text-primary">
-                    <Star className="w-5 h-5" />
-                    Smart Match
+                    <Users className="w-5 h-5" />
+                    Pending Applicants
                   </CardTitle>
-                  <CardDescription>Suggested ushers based on rating, skills, and availability.</CardDescription>
+                  <CardDescription>Ushers who applied for this event.</CardDescription>
                 </div>
-                <Dialog open={isAutoAssignOpen} onOpenChange={setIsAutoAssignOpen}>
-                  <DialogTrigger asChild>
-                    <Button variant="secondary" size="sm" className="gap-2" disabled={hasStarted}>
-                      🪄 Auto Assign
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                      <DialogTitle>Smart Auto Assign</DialogTitle>
-                      <DialogDescription>
-                        Automatically assign the best available ushers based on specific criteria.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="count" className="text-right">Count</Label>
-                        <Input
-                          id="count"
-                          type="number"
-                          className="col-span-3"
-                          value={autoAssignFilters.count}
-                          onChange={(e) => setAutoAssignFilters({ ...autoAssignFilters, count: parseInt(e.target.value) || 1 })}
-                          min={1}
-                        />
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="gender" className="text-right">Gender</Label>
-                        <select
-                          id="gender"
-                          className="col-span-3 flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                          value={autoAssignFilters.gender}
-                          onChange={(e) => setAutoAssignFilters({ ...autoAssignFilters, gender: e.target.value })}
-                        >
-                          <option value="">Any</option>
-                          <option value="male">Male</option>
-                          <option value="female">Female</option>
-                        </select>
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="minRating" className="text-right">Min Rating</Label>
-                        <Input
-                          id="minRating"
-                          type="number"
-                          step="0.1"
-                          className="col-span-3"
-                          value={autoAssignFilters.minRating}
-                          onChange={(e) => setAutoAssignFilters({ ...autoAssignFilters, minRating: parseFloat(e.target.value) || 0 })}
-                        />
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="minEvents" className="text-right">Min Events</Label>
-                        <Input
-                          id="minEvents"
-                          type="number"
-                          className="col-span-3"
-                          value={autoAssignFilters.minCompletedEvents}
-                          onChange={(e) => setAutoAssignFilters({ ...autoAssignFilters, minCompletedEvents: parseInt(e.target.value) || 0 })}
-                        />
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="maxDist" className="text-right">Max Dist (m)</Label>
-                        <Input
-                          id="maxDist"
-                          type="number"
-                          className="col-span-3"
-                          placeholder="e.g. 5000"
-                          value={autoAssignFilters.maxDistanceMeters || ""}
-                          onChange={(e) => setAutoAssignFilters({ ...autoAssignFilters, maxDistanceMeters: parseInt(e.target.value) || 0 })}
-                        />
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <div className="col-start-2 col-span-3 flex items-center space-x-2">
-                          <input
-                            type="checkbox"
-                            id="leadership"
-                            className="rounded border-input text-primary focus:ring-primary h-4 w-4"
-                            checked={autoAssignFilters.requiresLeadershipExp}
-                            onChange={(e) => setAutoAssignFilters({ ...autoAssignFilters, requiresLeadershipExp: e.target.checked })}
-                          />
-                          <Label htmlFor="leadership" className="font-normal cursor-pointer">
-                            Requires Leadership Experience
-                          </Label>
-                        </div>
-                      </div>
-                    </div>
-                    <DialogFooter>
-                      <Button variant="outline" onClick={() => setIsAutoAssignOpen(false)}>Cancel</Button>
-                      <Button 
-                        disabled={isAutoAssigning}
-                        onClick={() => {
-                          const payload: any = { count: autoAssignFilters.count };
-                          if (selectedTeamId) payload.eventTeamId = selectedTeamId;
-                          if (autoAssignFilters.gender) payload.gender = autoAssignFilters.gender;
-                          if (autoAssignFilters.minRating) payload.minRating = autoAssignFilters.minRating;
-                          if (autoAssignFilters.minCompletedEvents) payload.minCompletedEvents = autoAssignFilters.minCompletedEvents;
-                          if (autoAssignFilters.requiresLeadershipExp) payload.requiresLeadershipExp = true;
-                          if (autoAssignFilters.maxDistanceMeters) payload.maxDistanceMeters = autoAssignFilters.maxDistanceMeters;
-                          autoAssign({ id: eventId, data: payload });
-                        }}
-                      >
-                        {isAutoAssigning ? "Assigning..." : "Assign"}
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
+              </div>
+              <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs">Gender</Label>
+                  <select 
+                    className="w-full text-xs h-8 rounded-md border border-input bg-background px-2"
+                    value={filterGender}
+                    onChange={e => setFilterGender(e.target.value)}
+                  >
+                    <option value="all">All</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Language</Label>
+                  <select 
+                    className="w-full text-xs h-8 rounded-md border border-input bg-background px-2"
+                    value={filterLanguage}
+                    onChange={e => setFilterLanguage(e.target.value)}
+                  >
+                    <option value="all">All</option>
+                    <option value="English">English</option>
+                    <option value="Arabic">Arabic</option>
+                    <option value="French">French</option>
+                    <option value="German">German</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Min Rating</Label>
+                  <Input 
+                    type="number" min="0" max="5" step="0.1" 
+                    className="h-8 text-xs" 
+                    placeholder="e.g. 4.5"
+                    value={filterMinRating}
+                    onChange={e => setFilterMinRating(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Min Height (cm)</Label>
+                  <Input 
+                    type="number" min="100" max="250" 
+                    className="h-8 text-xs" 
+                    placeholder="e.g. 170"
+                    value={filterMinHeight}
+                    onChange={e => setFilterMinHeight(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Dress Size</Label>
+                  <select 
+                    className="w-full text-xs h-8 rounded-md border border-input bg-background px-2"
+                    value={filterDressSize}
+                    onChange={e => setFilterDressSize(e.target.value)}
+                  >
+                    <option value="all">All</option>
+                    <option value="XS">XS</option>
+                    <option value="S">S</option>
+                    <option value="M">M</option>
+                    <option value="L">L</option>
+                    <option value="XL">XL</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Shoe Size</Label>
+                  <Input 
+                    type="text" 
+                    className="h-8 text-xs" 
+                    placeholder="e.g. 42"
+                    value={filterShoeSize}
+                    onChange={e => setFilterShoeSize(e.target.value)}
+                  />
+                </div>
               </div>
             </CardHeader>
             <CardContent className="flex-1 overflow-auto p-0 pt-2">
-              {isCandidatesLoading ? (
-                <div className="p-4 text-center text-sm text-muted-foreground">Loading candidates...</div>
-              ) : (
-                <div className="divide-y divide-primary/10">
-                  {candidates?.map((candidate: any) => {
-                    const isAssigned = event.assignments?.some((a: any) => a.usherId === candidate.id);
-                    if (isAssigned) return null;
+              <div className="divide-y divide-primary/10">
+                {(() => {
+                  const pending = event?.assignments?.filter((a: any) => {
+                    if (a.status !== 'pending') return false;
+                    
+                    if (filterGender !== 'all' && a.usher?.gender !== filterGender) return false;
+                    
+                    if (filterMinHeight && a.usher?.height) {
+                      if (a.usher.height < parseInt(filterMinHeight, 10)) return false;
+                    }
+                    if (filterMinHeight && !a.usher?.height) return false;
+                    
+                    if (filterLanguage !== 'all' && a.usher?.languages) {
+                      if (!a.usher.languages.includes(filterLanguage)) return false;
+                    }
+                    if (filterLanguage !== 'all' && !a.usher?.languages) return false;
+                    
+                    if (filterShoeSize && filterShoeSize !== 'all' && a.usher?.shoeSize !== filterShoeSize) return false;
+                    if (filterDressSize !== 'all' && a.usher?.dressSize !== filterDressSize) return false;
+                    
+                    if (filterMinRating && a.usher?.avgRating) {
+                      if (Number(a.usher.avgRating) < parseFloat(filterMinRating)) return false;
+                    }
+                    if (filterMinRating && !a.usher?.avgRating) return false;
+                    
+                    return true;
+                  }) || [];
 
-                    return (
-                      <div key={candidate.id} className="p-3 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Avatar className="h-8 w-8 border border-background">
-                            <AvatarImage src={getImageUrl(candidate.profilePhotoKey) || candidate.profilePhotoUrl || undefined} />
-                            <AvatarFallback className="text-xs">{candidate.fullName.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <p className="text-sm font-medium leading-none">{candidate.fullName}</p>
-                              {!candidate.isAvailable && (
-                                <Badge variant="destructive" className="text-[10px] h-4 px-1.5 leading-none">
-                                  Busy
-                                </Badge>
-                              )}
-                            </div>
-                            <p className="text-xs text-muted-foreground mt-1 flex items-center">
-                               <Star className="w-3 h-3 text-secondary mr-1 fill-current" />
-                               {candidate.avgRating?.toFixed(1)} match
-                            </p>
+                  if (pending.length === 0) {
+                    return <div className="p-4 text-center text-sm text-muted-foreground">No pending applicants found.</div>;
+                  }
+
+                  return pending.map((applicant: any) => (
+                    <div key={applicant.id} className="p-3 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-8 w-8 border border-background">
+                          <AvatarImage src={getImageUrl(applicant.usher?.profilePhotoKey) || applicant.usher?.profilePhotoUrl || undefined} />
+                          <AvatarFallback className="text-xs">{applicant.usher?.fullName?.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-medium leading-none">{applicant.usher?.fullName}</p>
+                            {!applicant.usher?.isAvailable && (
+                              <Badge variant="destructive" className="text-[10px] h-4 px-1.5 leading-none">
+                                Busy
+                              </Badge>
+                            )}
                           </div>
+                          <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1">
+                             <span className="capitalize">{applicant.usher?.gender}</span>
+                             {applicant.usher?.gender === 'female' && applicant.usher?.dressSize && <span>| Dress: {applicant.usher.dressSize}</span>}
+                             {applicant.usher?.shoeSize && <span>| Shoe: {applicant.usher.shoeSize}</span>}
+                          </p>
                         </div>
+                      </div>
+                      <div className="flex items-center gap-1">
                         <Button 
                           size="sm" 
                           variant="secondary" 
-                          className="h-7 text-xs"
-                          disabled={hasStarted || !candidate.isAvailable}
-                          onClick={() => assignUsher({ id: eventId, data: { usherId: candidate.id, eventTeamId: selectedTeamId || undefined, isTeamLead: false } })}
+                          className="h-7 text-xs bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20"
+                          disabled={hasStarted}
+                          onClick={() => updateAssignment({ id: eventId, assignmentId: applicant.id, data: { usherId: applicant.usher!.id, status: 'assigned' } as any })}
                         >
-                          <UserPlus className="w-3 h-3 mr-1" />
-                          Assign {selectedTeamId !== null ? 'to Team' : ''}
+                          <CheckCircle className="w-3 h-3 mr-1" />
+                          Approve
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="h-7 text-xs text-destructive hover:bg-destructive/10"
+                          disabled={hasStarted}
+                          onClick={() => updateAssignment({ id: eventId, assignmentId: applicant.id, data: { usherId: applicant.usher!.id, status: 'rejected' } as any })}
+                        >
+                          <XCircle className="w-3 h-3 mr-1" />
+                          Reject
                         </Button>
                       </div>
-                    );
-                  })}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="waitlist" className="grid md:grid-cols-2 gap-6 mt-6 min-h-0 flex-1 overflow-auto">
-          {/* Candidates for Waitlist */}
-          <Card className="flex flex-col">
-            <CardHeader className="pb-3 border-b border-primary/10">
-              <CardTitle className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-primary" />
-                Available Candidates
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1 overflow-auto p-4 space-y-4">
-              <div className="space-y-4">
-                {candidates?.map((data: any) => {
-                  const isAssigned = event?.assignments?.some((a: any) => a.usherId === data.id);
-                  const isWaitlisted = waitlist?.some((w: any) => w.usherId === data.id);
-                  
-                  if (isAssigned || isWaitlisted) return null;
-
-                  return (
-                    <div key={data.id} className="flex justify-between items-center p-3 rounded-xl border hover:border-primary/50 hover:bg-muted/30 transition-all">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10 border border-primary/10">
-                          <AvatarImage src={getImageUrl(data.profilePhotoKey) || data.profilePhotoUrl || undefined} />
-                          <AvatarFallback className="bg-primary/5 text-primary">{data.fullName?.substring(0,2)}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <div className="font-semibold text-sm">{data.fullName}</div>
-                          <div className="text-xs text-muted-foreground">{data.email}</div>
-                        </div>
-                      </div>
-                      <Button 
-                        size="sm" 
-                        variant="secondary"
-                        disabled={hasStarted || isAddingToWaitlist}
-                        onClick={() => addToWaitlist({ id: eventId, data: { usherId: data.id, priorityOrder: (waitlist?.length || 0) + 1 } })}
-                      >
-                        Waitlist
-                      </Button>
                     </div>
-                  );
-                })}
+                  ));
+                })()}
               </div>
             </CardContent>
           </Card>
-
-          {/* Current Waitlist */}
-          <Card className="flex flex-col">
-            <CardHeader className="pb-3 border-b border-primary/10">
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="w-5 h-5 text-primary" />
-                Waitlisted Ushers
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1 overflow-auto p-4 space-y-4">
-              {(!waitlist || waitlist.length === 0) ? (
-                <div className="text-center p-8 text-muted-foreground border-2 border-dashed rounded-xl">
-                  <Clock className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                  <p>No ushers on the waitlist yet.</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {waitlist.map((w: any, index: number) => (
-                    <div key={w.id} className="flex justify-between items-center p-3 rounded-xl border border-primary/10 bg-muted/20">
-                      <div className="flex items-center gap-3">
-                        <div className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0">
-                          {index + 1}
-                        </div>
-                        <Avatar className="h-10 w-10">
-                          <AvatarImage src={getImageUrl(w.usher?.profilePhotoKey) || w.usher?.profilePhotoUrl || undefined} />
-                          <AvatarFallback>{w.usher?.fullName?.substring(0,2)}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <div className="font-semibold text-sm flex items-center gap-2">
-                            {w.usher?.fullName}
-                            {w.status === 'accepted' && <Badge className="h-5 px-1.5 text-[10px] bg-emerald-500/10 text-emerald-600 border-emerald-500/20" variant="outline">Accepted</Badge>}
-                            {w.status === 'rejected' && <Badge className="h-5 px-1.5 text-[10px] bg-destructive/10 text-destructive border-destructive/20" variant="outline">Declined</Badge>}
-                            {w.status === 'pending' && <Badge className="h-5 px-1.5 text-[10px] bg-amber-500/10 text-amber-600 border-amber-500/20" variant="outline">Pending</Badge>}
-                          </div>
-                          <div className="text-xs text-muted-foreground">{w.usher?.phone}</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button 
-                          size="sm"
-                          variant="outline"
-                          disabled={hasStarted}
-                          className="h-8 border-emerald-500/20 text-emerald-600 hover:bg-emerald-50"
-                          onClick={() => promoteWaitlist({ id: eventId, waitlistId: w.id, data: { isTeamLead: false } })}
-                        >
-                          Promote
-                        </Button>
-                        <Button 
-                          size="sm"
-                          variant="ghost"
-                          disabled={hasStarted}
-                          className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                          onClick={() => removeFromWaitlist({ id: eventId, waitlistId: w.id })}
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
         </TabsContent>
-      </Tabs>
+
+</Tabs>
 
 
       {/* Rate Usher Dialog */}

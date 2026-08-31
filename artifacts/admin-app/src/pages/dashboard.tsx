@@ -110,7 +110,7 @@ export default function Dashboard() {
                 <ClipboardList className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{data?.waitlistCount || 0}</div>
+                <div className="text-2xl font-bold">{data?.pendingApprovals || 0}</div>
                 <p className="text-xs text-muted-foreground mt-1">people in queue</p>
               </CardContent>
             </Card>

@@ -8,5 +8,4 @@
 export type PublicEventFeedbackDetailsTeamsItemUshersItem = {
   id: number;
   name: string;
-  photoUrl?: string | null;
 };

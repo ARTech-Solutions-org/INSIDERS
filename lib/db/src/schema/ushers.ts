@@ -29,6 +29,7 @@ export const ushersTable = pgTable("ushers", {
   tShirtSize: varchar("t_shirt_size", { length: 20 }),
   pantsSize: varchar("pants_size", { length: 20 }),
   shortsSize: varchar("shorts_size", { length: 20 }),
+  dressSize: varchar("dress_size", { length: 20 }),
   homeLat: real("home_lat"),
   homeLng: real("home_lng"),
   avgRating: real("avg_rating").default(0.0),           // composite overall score (0–5)

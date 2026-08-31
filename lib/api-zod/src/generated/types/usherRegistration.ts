@@ -53,4 +53,6 @@ export interface UsherRegistration {
   profilePhotoKey?: string | null;
   paymentMethod?: UsherRegistrationPaymentMethod;
   paymentMethodDetails?: string;
+  /** @maxLength 20 */
+  dressSize?: string;
 }

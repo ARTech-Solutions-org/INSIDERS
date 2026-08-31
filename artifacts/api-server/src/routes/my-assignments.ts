@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { db, eventAssignmentsTable, eventsTable, ushersTable, deductionRulesTable, cancellationsTable, balanceTransactionsTable, eventTeamsTable, waitlistTable, reliabilityEventsTable, systemSettingsTable, DEFAULT_RATING_CONFIG } from "@workspace/db";
+import { db, eventAssignmentsTable, eventsTable, ushersTable, deductionRulesTable, cancellationsTable, balanceTransactionsTable, eventTeamsTable, reliabilityEventsTable, systemSettingsTable, DEFAULT_RATING_CONFIG } from "@workspace/db";
 import { eq, and, ne, sql, inArray, lt } from "drizzle-orm";
 import { requireUsher } from "../middleware/auth.js";
 import {
@@ -334,78 +334,6 @@ router.post("/my/assignments/:assignmentId/cancel", requireUsher, async (req, re
 
   const ma = await buildMyAssignment(assignment);
   res.json({ assignment: ma, cancellation, penaltyApplied: false, penaltyAmount: null });
-});
-
-// GET /my/waitlists
-router.get("/my/waitlists", requireUsher, async (req, res) => {
-  const waitlists = await db.select({
-    id: waitlistTable.id,
-    eventId: waitlistTable.eventId,
-    usherId: waitlistTable.usherId,
-    priorityOrder: waitlistTable.priorityOrder,
-    status: waitlistTable.status,
-    event: eventsTable
-  }).from(waitlistTable)
-    .innerJoin(eventsTable, eq(waitlistTable.eventId, eventsTable.id))
-    .where(eq(waitlistTable.usherId, req.user!.id));
-
-  res.json(waitlists);
-});
-
-// POST /my/waitlists/:waitlistId/accept
-router.post("/my/waitlists/:waitlistId/accept", requireUsher, async (req, res) => {
-  const waitlistId = parseInt(req.params.waitlistId as string, 10);
-  const [existing] = await db.select({
-    waitlist: waitlistTable,
-    event: eventsTable
-  }).from(waitlistTable)
-    .innerJoin(eventsTable, eq(waitlistTable.eventId, eventsTable.id))
-    .where(and(eq(waitlistTable.id, waitlistId), eq(waitlistTable.usherId, req.user!.id)));
-  
-  if (!existing) {
-    res.status(404).json({ error: "Waitlist entry not found" });
-    return;
-  }
-
-  if (existing.event.status === "completed" || new Date(existing.event.endTime) < new Date()) {
-    res.status(400).json({ error: "Cannot accept a waitlist for a completed event." });
-    return;
-  }
-
-  const [updated] = await db.update(waitlistTable)
-    .set({ status: 'accepted' })
-    .where(eq(waitlistTable.id, existing.waitlist.id))
-    .returning();
-
-  res.json(updated);
-});
-
-// POST /my/waitlists/:waitlistId/reject
-router.post("/my/waitlists/:waitlistId/reject", requireUsher, async (req, res) => {
-  const waitlistId = parseInt(req.params.waitlistId as string, 10);
-  const [existing] = await db.select({
-    waitlist: waitlistTable,
-    event: eventsTable
-  }).from(waitlistTable)
-    .innerJoin(eventsTable, eq(waitlistTable.eventId, eventsTable.id))
-    .where(and(eq(waitlistTable.id, waitlistId), eq(waitlistTable.usherId, req.user!.id)));
-  
-  if (!existing) {
-    res.status(404).json({ error: "Waitlist entry not found" });
-    return;
-  }
-
-  if (existing.event.status === "completed" || new Date(existing.event.endTime) < new Date()) {
-    res.status(400).json({ error: "Cannot decline a waitlist for a completed event." });
-    return;
-  }
-
-  const [updated] = await db.update(waitlistTable)
-    .set({ status: 'rejected' })
-    .where(eq(waitlistTable.id, existing.waitlist.id))
-    .returning();
-
-  res.json(updated);
 });
 
 export default router;

@@ -32,19 +32,20 @@ const COMMON_LANGUAGES = [
 ];
 const registerSchema = z.object({
   fullName: z.string().min(2, 'Full name is required'),
-  fullNameArabic: z.string().optional(),
-  gender: z.enum(['male', 'female']).optional().or(z.literal('')),
-  dateOfBirth: z.string().optional(),
-  height: z.coerce.number().optional().or(z.literal('')),
-  university: z.string().optional(),
-  major: z.string().optional(),
-  languages: z.array(z.string()).optional(),
+  fullNameArabic: z.string().min(2, 'Arabic full name is required'),
+  gender: z.enum(['male', 'female'], { required_error: 'Gender is required' }),
+  dateOfBirth: z.string().min(1, 'Date of birth is required'),
+  height: z.coerce.number().min(100, 'Height is required'),
+  university: z.string().min(2, 'University is required'),
+  major: z.string().min(2, 'Major is required'),
+  languages: z.array(z.string()).min(1, 'At least one language is required'),
 
-  shoeSize: z.string().optional(),
-  shirtSize: z.string().optional(),
-  tShirtSize: z.string().optional(),
-  pantsSize: z.string().optional(),
-  shortsSize: z.string().optional(),
+  shoeSize: z.string().min(1, 'Shoe size is required'),
+  dressSize: z.string().optional(),
+  shirtSize: z.string().min(1, 'Shirt size is required'),
+  tShirtSize: z.string().min(1, 'T-Shirt size is required'),
+  pantsSize: z.string().min(1, 'Pants size is required'),
+  shortsSize: z.string().min(1, 'Shorts size is required'),
 
   phone: z.string().regex(/^01[0125][0-9]{8}$/, 'Must be a valid Egyptian phone number'),
   email: z.string().email('Valid email is required'),
@@ -54,9 +55,17 @@ const registerSchema = z.object({
   paymentMethod: z.enum(['instapay', 'ewallet'], { required_error: 'Payment method is required' }),
   paymentMethodDetails: z.string().min(1, 'Payment details are required'),
 
-  profilePhotoFile: z.any().optional(),
-  idFrontFile: z.any().optional(),
-  idBackFile: z.any().optional(),
+  profilePhotoFile: z.any().refine(val => val instanceof File, 'Profile photo is required'),
+  idFrontFile: z.any().refine(val => val instanceof File, 'National ID (front) is required'),
+  idBackFile: z.any().refine(val => val instanceof File, 'National ID (back) is required'),
+}).superRefine((data, ctx) => {
+  if (data.gender === 'female' && !data.dressSize) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Dress size is required for females',
+      path: ['dressSize']
+    });
+  }
 });
 
 type FormValues = z.infer<typeof registerSchema>;
@@ -161,6 +170,7 @@ export default function Register() {
       languages: []
     }
   });
+  const gender = form.watch('gender');
 
   const onSubmit = async (data: FormValues) => {
     try {
@@ -194,24 +204,25 @@ export default function Register() {
       
       const payload = {
         fullName: data.fullName,
-        fullNameArabic: data.fullNameArabic || undefined,
+        fullNameArabic: data.fullNameArabic,
         phone: data.phone,
         email: data.email,
         nationalIdNumber: data.nationalIdNumber,
         password: data.password,
         paymentMethod: data.paymentMethod,
         paymentMethodDetails: data.paymentMethodDetails,
-        gender: data.gender === '' ? undefined : (data.gender as 'male' | 'female' | undefined),
-        dateOfBirth: data.dateOfBirth || undefined,
-        height: typeof data.height === 'number' ? data.height : undefined,
-        university: data.university || undefined,
-        major: data.major || undefined,
-        languages: data.languages && data.languages.length > 0 ? data.languages : undefined,
-        shoeSize: data.shoeSize || undefined,
-        shirtSize: data.shirtSize || undefined,
-        tShirtSize: data.tShirtSize || undefined,
-        pantsSize: data.pantsSize || undefined,
-        shortsSize: data.shortsSize || undefined,
+        gender: data.gender,
+        dateOfBirth: data.dateOfBirth,
+        height: data.height,
+        university: data.university,
+        major: data.major,
+        languages: data.languages,
+        shoeSize: data.shoeSize,
+        shirtSize: data.shirtSize,
+        tShirtSize: data.tShirtSize,
+        pantsSize: data.pantsSize,
+        shortsSize: data.shortsSize,
+        dressSize: data.dressSize,
         profilePhotoUrl,
         profilePhotoKey,
         nationalIdDocUrl,

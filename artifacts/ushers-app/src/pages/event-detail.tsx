@@ -7,6 +7,7 @@ import {
   useAcceptAssignment,
   useDeclineAssignment,
   useUsherCheckin,
+  useApplyToEvent,
   useUsherCheckout,
   useCancelAssignment,
   useTeamCheckinMember,
@@ -49,6 +50,19 @@ export default function EventDetail() {
   });
 
   const eventDetails = assignment?.event || event;
+
+  
+  const applyMutation = useApplyToEvent();
+  const handleApply = () => {
+    applyMutation.mutate({ id: eventId }, {
+      onSuccess: () => {
+        toast.success('Applied successfully!');
+        queryClient.invalidateQueries({ queryKey: getListMyAssignmentsQueryKey() });
+        queryClient.invalidateQueries({ queryKey: ['events', eventId] });
+      },
+      onError: (err: any) => toast.error(err.message || 'Failed to apply')
+    });
+  };
 
   const acceptMutation = useAcceptAssignment();
   const declineMutation = useDeclineAssignment();

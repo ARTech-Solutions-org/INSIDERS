@@ -6,7 +6,6 @@ export * from "./usher-availability";
 export * from "./events";
 export * from "./event-teams";
 export * from "./event-assignments";
-export * from "./waitlist";
 export * from "./cancellations";
 export * from "./deduction-rules";
 export * from "./event-holder-links";

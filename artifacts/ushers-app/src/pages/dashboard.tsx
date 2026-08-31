@@ -1,5 +1,5 @@
 import React from 'react';
-import { useGetMyUsherProfile, useListMyAssignments, MyAssignment, useListMyWaitlists, useAcceptWaitlist, useRejectWaitlist, getListMyWaitlistsQueryKey } from '@workspace/api-client-react';
+import { useGetMyUsherProfile, useListMyAssignments, MyAssignment } from '@workspace/api-client-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Link } from 'wouter';
 import { Star, ChevronRight, MapPin, Calendar, Clock, Banknote, ArrowUpRight, Check, X } from 'lucide-react';
@@ -13,31 +13,6 @@ export default function Dashboard() {
   const { data: profile, isLoading: isProfileLoading } = useGetMyUsherProfile();
   const queryClient = useQueryClient();
   const { data: assignmentsData, isLoading: isAssignmentsLoading } = useListMyAssignments({ status: 'pending,assigned,accepted,checked_in' });
-  const { data: waitlists, isLoading: isWaitlistsLoading } = useListMyWaitlists();
-  
-  const { mutate: acceptWaitlist, isPending: isAccepting } = useAcceptWaitlist({
-    mutation: {
-      onSuccess: () => {
-        toast.success("Waitlist accepted!");
-        queryClient.invalidateQueries({ queryKey: getListMyWaitlistsQueryKey() as any });
-      },
-      onError: (err: any) => {
-        toast.error(err.message || "Failed to accept waitlist");
-      }
-    }
-  });
-
-  const { mutate: rejectWaitlist, isPending: isRejecting } = useRejectWaitlist({
-    mutation: {
-      onSuccess: () => {
-        toast.success("Waitlist declined.");
-        queryClient.invalidateQueries({ queryKey: getListMyWaitlistsQueryKey() as any });
-      },
-      onError: (err: any) => {
-        toast.error(err.message || "Failed to decline waitlist");
-      }
-    }
-  });
 
   const upcomingAssignments: MyAssignment[] = Array.isArray(assignmentsData)
     ? assignmentsData.slice(0, 3)
@@ -208,89 +183,7 @@ export default function Dashboard() {
         )}
       </div>
 
-      {waitlists && waitlists.length > 0 && (
-        <div className="mt-8 animate-fade-in" style={{ animationDelay: '150ms' }}>
-          <div className="flex items-center justify-between mb-4 px-1">
-            <h2 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
-              <Clock className="w-5 h-5 text-primary" />
-              Waitlisted Events
-            </h2>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {waitlists.map((waitlist: any) => (
-              <div key={waitlist.id} className="group relative overflow-hidden rounded-2xl bg-amber-500/5 border border-amber-500/20 hover:border-amber-500/40 hover:shadow-[0_8px_30px_rgb(245,158,11,0.08)] transition-all duration-300 transform hover:-translate-y-1">
-                <div className="p-5 flex flex-col h-full relative z-10">
-                  <div className="flex justify-between items-start mb-4">
-                    <Link to={`/events/${waitlist.eventId}`}>
-                      <h3 className="font-bold text-lg leading-tight group-hover:text-amber-600 transition-colors duration-300 line-clamp-2 pr-2 relative z-10 cursor-pointer">
-                        {waitlist.event.title}
-                      </h3>
-                    </Link>
-                    <div className="flex flex-col items-end gap-1 shrink-0">
-                      <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/30">
-                        Position: #{waitlist.priorityOrder}
-                      </Badge>
-                      {waitlist.status === 'accepted' && (
-                        <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 mt-1">
-                          Accepted
-                        </Badge>
-                      )}
-                      {waitlist.status === 'rejected' && (
-                        <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/20 mt-1">
-                          Declined
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="space-y-2 text-sm text-muted-foreground font-medium pl-2 relative z-10 mb-4">
-                    <div className="flex items-center gap-3">
-                      <Calendar className="w-4 h-4 text-foreground/40 group-hover:text-amber-500/60 transition-colors duration-300" />
-                      <span>{format(new Date(waitlist.event.startTime), 'MMM d, yyyy')}</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <MapPin className="w-4 h-4 text-foreground/40 group-hover:text-amber-500/60 transition-colors duration-300" />
-                      <span className="line-clamp-1">{waitlist.event.eventLocName || 'Location TBA'}</span>
-                    </div>
-                  </div>
-
-                  {waitlist.status === 'pending' && new Date(waitlist.event.startTime) > new Date() && (
-                    <div className="mt-auto pt-4 border-t border-amber-500/10 flex gap-2">
-                      <button 
-                        onClick={() => acceptWaitlist({ waitlistId: waitlist.id })}
-                        disabled={isAccepting || isRejecting}
-                        className="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-medium py-2 px-4 rounded-xl text-sm transition-colors disabled:opacity-50"
-                      >
-                        Accept
-                      </button>
-                      <button 
-                        onClick={() => rejectWaitlist({ waitlistId: waitlist.id })}
-                        disabled={isAccepting || isRejecting}
-                        className="flex-1 bg-background hover:bg-muted text-foreground border border-input font-medium py-2 px-4 rounded-xl text-sm transition-colors disabled:opacity-50"
-                      >
-                        Decline
-                      </button>
-                    </div>
-                  )}
-
-                  {waitlist.status === 'accepted' && new Date(waitlist.event.startTime) > new Date() && (
-                    <div className="mt-auto pt-4 border-t border-amber-500/10 flex gap-2">
-                      <button 
-                        onClick={() => rejectWaitlist({ waitlistId: waitlist.id })}
-                        disabled={isRejecting}
-                        className="flex-1 bg-destructive/10 hover:bg-destructive/20 text-destructive font-medium py-2 px-4 rounded-xl text-sm transition-colors disabled:opacity-50"
-                      >
-                        Cancel Waitlist
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      
     </div>
   );
 }

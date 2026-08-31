@@ -37,6 +37,7 @@ const autoCloseEvents = async () => {
 // Run immediately on startup
 autoCloseEvents();
 // Then run every minute
+
 setInterval(autoCloseEvents, 60 * 1000);
 
 app.listen(port, (err) => {
