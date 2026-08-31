@@ -296,6 +296,7 @@ export default function EventDetail() {
 
   const status = assignment?.status;
   const isPending = status === 'pending' || status === 'assigned';
+  const isApplied = status === 'applied';
   const isAccepted = status === 'accepted';
   const hasCheckedIn = !!assignment?.checkinTime;
   const hasCheckedOut = !!assignment?.checkoutTime;
@@ -392,9 +393,38 @@ export default function EventDetail() {
 
         <div className="p-5 space-y-5 -mt-4 relative z-20">
           {/* Action Card based on Status */}
-          {assignment && (
+          {eventDetails?.status !== 'closed' && eventDetails?.status !== 'cancelled' && (
             <div className="bg-card border border-border rounded-2xl p-5 shadow-sm mt-4">
-              {isPending && (
+              {!assignment && (
+                <div className="space-y-4 text-center">
+                  <p className="brand-meta text-foreground mb-2 text-sm tracking-wider">THIS EVENT IS OPEN FOR APPLICATIONS</p>
+                  <Button 
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-14 rounded-xl text-sm font-bold tracking-widest uppercase animate-in fade-in zoom-in duration-300" 
+                    onClick={handleApply} 
+                    disabled={applyMutation.isPending}
+                  >
+                    <Navigation className="w-5 h-5 mr-2" />
+                    {applyMutation.isPending ? 'APPLYING...' : 'APPLY TO EVENT'}
+                  </Button>
+                </div>
+              )}
+
+              {isApplied && (
+                <div className="space-y-4 text-center">
+                  <div className="bg-blue-500/10 border border-blue-500/20 p-4 rounded-xl text-blue-700">
+                    <Info className="w-8 h-8 mx-auto mb-2 text-blue-600" />
+                    <p className="brand-display text-xl tracking-wide uppercase">APPLICATION PENDING</p>
+                    <p className="text-sm font-medium mt-1">Your application is being reviewed by the team.</p>
+                  </div>
+                  <Button variant="ghost" className="w-full text-destructive rounded-xl text-xs tracking-wider" onClick={() => setShowCancelDialog(true)}>
+                    WITHDRAW APPLICATION
+                  </Button>
+                </div>
+              )}
+
+              {assignment && (
+                <>
+                  {isPending && (
                 <div className="space-y-4">
                   <p className="brand-meta text-foreground text-center mb-2 text-sm tracking-wider">YOU'VE BEEN ASSIGNED TO THIS EVENT</p>
                   <div className="flex gap-3">
@@ -530,6 +560,8 @@ export default function EventDetail() {
                   <p className="brand-meta mt-2 text-xs">YOU DID NOT CHECK IN BEFORE THE EVENT ENDED.</p>
                 </div>
               )}
+              </>
+            )}
             </div>
           )}
 
