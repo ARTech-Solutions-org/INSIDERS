@@ -998,7 +998,7 @@ export default function EventDetails() {
                 <div className="flex flex-col gap-1">
                   <span className="flex items-center gap-2">
                     <Users className="w-5 h-5 text-primary" />
-                    Assigned Staff ({event.assignments?.filter((a: any) => (a.status !== 'pending' && a.status !== 'rejected') && (selectedTeamId === null ? true : a.eventTeamId === selectedTeamId)).length || 0})
+                    Assigned Staff ({event.assignments?.filter((a: any) => ((a.status !== 'pending' && a.status !== 'applied') && a.status !== 'rejected') && (selectedTeamId === null ? true : a.eventTeamId === selectedTeamId)).length || 0})
                   </span>
                   {event.budget && (
                     <span className={`text-xs font-normal ${isBudgetExceeded ? 'text-destructive' : 'text-muted-foreground'}`}>
@@ -1017,7 +1017,7 @@ export default function EventDetails() {
             </CardHeader>
             <CardContent className="flex-1 overflow-auto p-0">
               <div className="divide-y">
-                {event.assignments?.filter((a: any) => (a.status !== 'pending' && a.status !== 'rejected') && (selectedTeamId === null ? true : a.eventTeamId === selectedTeamId)).map((assignment: any) => (
+                {event.assignments?.filter((a: any) => ((a.status !== 'pending' && a.status !== 'applied') && a.status !== 'rejected') && (selectedTeamId === null ? true : a.eventTeamId === selectedTeamId)).map((assignment: any) => (
                   <div key={assignment.id} className="p-4 hover:bg-muted/10 transition-colors">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
@@ -1238,7 +1238,7 @@ export default function EventDetails() {
               <div className="divide-y divide-primary/10">
                 {(() => {
                   const pending = event?.assignments?.filter((a: any) => {
-                    if (a.status !== 'pending') return false;
+                    if (a.status !== 'pending' && a.status !== 'applied') return false;
                     
                     if (filterGender !== 'all' && a.usher?.gender !== filterGender) return false;
                     

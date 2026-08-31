@@ -571,7 +571,7 @@ router.post("/events/:id/apply", requireAuth, async (req, res) => {
         eventId, 
         usherId,
         role: "regular",
-        status: "pending" 
+        status: "applied" 
       }).returning();
       
       return assigned;
@@ -666,13 +666,13 @@ router.patch("/events/:id/assignments/:assignmentId", requireAdmin, async (req, 
 
     await audit(req.user!.id, "UPDATE_ASSIGNMENT", "event_assignments", assignmentId);
 
-    if (assignment.existingAssignment.status === "pending" && parsed.data.status === "assigned") {
+    if ((assignment.existingAssignment.status === "pending" || assignment.existingAssignment.status === "applied") && parsed.data.status === "assigned") {
       await sendPushToUsher(assignment.updated.usherId, {
         title: "Application Approved 🎉",
         body: `You have been assigned to the event "${assignment.lockedEvent.title}". Check event details.`,
         data: { eventId: String(eventId), type: "assignment" },
       });
-    } else if (assignment.existingAssignment.status === "pending" && parsed.data.status === "rejected") {
+    } else if ((assignment.existingAssignment.status === "pending" || assignment.existingAssignment.status === "applied") && parsed.data.status === "rejected") {
       await sendPushToUsher(assignment.updated.usherId, {
         title: "Application Update",
         body: `Your application to the event "${assignment.lockedEvent.title}" was not selected.`,
