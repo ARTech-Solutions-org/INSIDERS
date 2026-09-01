@@ -572,6 +572,33 @@ export default function EventDetails() {
                   <Edit className="w-4 h-4" /> Edit Event
                 </Button>
               </DialogTrigger>
+            </Dialog>
+          )}
+
+          {!isCompleted && event.status !== 'cancelled' && (
+            <Button
+              variant="default"
+              className="gap-2 bg-green-600 hover:bg-green-700 text-white"
+              onClick={async () => {
+                if (window.confirm('Are you sure you want to complete this event and process payouts manually?')) {
+                  try {
+                    await fetch(`/api/events/${event.id}/complete`, {
+                      method: 'POST',
+                      headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                      }
+                    });
+                    refetch();
+                  } catch (err) {
+                    console.error(err);
+                    alert('Failed to complete event');
+                  }
+                }
+              }}
+            >
+              Complete & Process
+            </Button>
+          )}
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <form onSubmit={handleEditSubmit}>
                 <DialogHeader>

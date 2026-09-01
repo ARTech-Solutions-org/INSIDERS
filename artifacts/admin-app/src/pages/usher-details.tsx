@@ -427,6 +427,49 @@ export default function UsherDetails() {
                 <p className="font-medium">{usher.nationalIdNumber}</p>
               </div>
             </div>
+
+            <div className="pt-2 mt-2 border-t space-y-3">
+              <h4 className="text-sm font-semibold tracking-tight">Physical Attributes & Languages</h4>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs text-muted-foreground">Gender</p>
+                  <p className="text-sm font-medium capitalize">{usher.gender || 'Not specified'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Height</p>
+                  <p className="text-sm font-medium">{usher.height ? `${usher.height} cm` : 'Not specified'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">T-Shirt Size</p>
+                  <p className="text-sm font-medium uppercase">{usher.tShirtSize || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Pants Size</p>
+                  <p className="text-sm font-medium uppercase">{usher.pantsSize || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Shoe Size</p>
+                  <p className="text-sm font-medium">{usher.shoeSize || 'N/A'}</p>
+                </div>
+              </div>
+
+              <div className="mt-3">
+                <p className="text-xs text-muted-foreground mb-1">Languages</p>
+                {usher.languages && usher.languages.length > 0 ? (
+                  <div className="flex flex-wrap gap-1">
+                    {usher.languages.map((lang, idx) => (
+                      <span key={idx} className="px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full">
+                        {lang}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm font-medium text-muted-foreground">None specified</p>
+                )}
+              </div>
+            </div>
+
             {usher.paymentMethod && (
               <div className="flex items-center gap-3 text-sm">
                 <Banknote className="w-4 h-4 text-muted-foreground shrink-0" />

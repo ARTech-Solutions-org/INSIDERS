@@ -133,6 +133,9 @@ router.get("/events/:id", requireAuth, async (req, res) => {
     checkoutTime: eventAssignmentsTable.checkoutTime,
     checkinLat: eventAssignmentsTable.checkinLat,
     checkinLng: eventAssignmentsTable.checkinLng,
+    lateArrivalMinutes: eventAssignmentsTable.lateArrivalMinutes,
+    earlyLeaveMinutes: eventAssignmentsTable.earlyLeaveMinutes,
+    checkinPhotoKey: eventAssignmentsTable.checkinPhotoKey,
 usher: {
       id: ushersTable.id,
       fullName: ushersTable.fullName,
@@ -280,6 +283,21 @@ router.patch("/events/:id", requireAdmin, async (req, res) => {
     else if (err.message === "Conflict") res.status(409).json({ error: "This record was just changed by someone else, please refresh" });
     else if (err.message.startsWith("Forbidden:")) res.status(403).json({ error: err.message });
     else res.status(400).json({ error: err.message });
+  }
+});
+
+// POST /events/:id/complete - manual action
+router.post("/events/:id/complete", requireAdmin, async (req, res) => {
+  const eventId = parseInt(req.params.id as string, 10);
+  
+  const { processEventCompletion } = await import("../lib/event-processor.js");
+  
+  try {
+    await processEventCompletion(eventId);
+    sseManager.broadcast("EVENT_UPDATED", { id: eventId });
+    res.json({ success: true });
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
   }
 });
 
