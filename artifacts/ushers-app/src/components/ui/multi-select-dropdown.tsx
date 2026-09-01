@@ -34,13 +34,13 @@ export function MultiSelectDropdown({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <div className="flex flex-wrap gap-2 items-center justify-between bg-primary-foreground/5 border border-primary-foreground/20 rounded-xl p-3 min-h-[56px] focus-within:border-primary-foreground focus-within:ring-1 focus-within:ring-primary-foreground transition-colors cursor-pointer w-full">
+        <div className="flex flex-wrap gap-2 items-center justify-between bg-background border border-input rounded-xl p-3 min-h-[56px] hover:border-ring focus-within:border-ring focus-within:ring-1 focus-within:ring-ring transition-colors cursor-pointer w-full">
           <div className="flex flex-wrap gap-1 items-center flex-1">
             {value.length === 0 ? (
-              <span className="text-primary-foreground/50 text-sm pl-1">{placeholder}</span>
+              <span className="text-muted-foreground text-sm pl-1">{placeholder}</span>
             ) : (
               value.map(tag => (
-                <Badge key={tag} variant="secondary" className="bg-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/30 px-2 py-1 font-medium text-xs flex items-center gap-1">
+                <Badge key={tag} variant="secondary" className="px-2 py-1 font-medium text-xs flex items-center gap-1">
                   {tag}
                   <span
                     className="ml-1 cursor-pointer hover:opacity-70"
@@ -53,7 +53,7 @@ export function MultiSelectDropdown({
               ))
             )}
           </div>
-          <ChevronDown className="h-4 w-4 text-primary-foreground/50 shrink-0" />
+          <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
         </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-[var(--radix-dropdown-menu-trigger-width)] bg-popover max-h-72 overflow-y-auto">
