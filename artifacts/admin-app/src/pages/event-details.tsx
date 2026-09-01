@@ -572,6 +572,190 @@ export default function EventDetails() {
                   <Edit className="w-4 h-4" /> Edit Event
                 </Button>
               </DialogTrigger>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <form onSubmit={handleEditSubmit}>
+                  <DialogHeader>
+                    <DialogTitle>Edit Event</DialogTitle>
+                    <DialogDescription>Update event parameters and details.</DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-1 gap-2">
+                      <Label htmlFor="title">Title *</Label>
+                      <Input 
+                        id="title" 
+                        value={formData.title} 
+                        onChange={e => setFormData(p => ({ ...p, title: e.target.value }))}
+                        required 
+                      />
+                    </div>
+
+                    <LocationPicker
+                      radiusMeters={formData.checkinRadiusM ? parseInt(formData.checkinRadiusM, 10) : 100}
+                      value={{
+                        address: formData.eventLocName,
+                        lat: formData.venueLat ? parseFloat(formData.venueLat) : null,
+                        lng: formData.venueLng ? parseFloat(formData.venueLng) : null,
+                      }}
+                      onChange={(loc) => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          eventLocName: loc.address,
+                          venueLat: loc.lat !== null ? String(loc.lat) : "",
+                          venueLng: loc.lng !== null ? String(loc.lng) : "",
+                        }));
+                      }}
+                    />
+
+                    {/* Geofence Range */}
+                    <div className="p-3 border rounded-lg bg-muted/20 space-y-2">
+                      <div className="flex justify-between items-center">
+                        <Label htmlFor="checkinRadiusM" className="font-semibold text-xs flex items-center gap-1.5">
+                          <MapPin className="h-3.5 w-3.5 text-primary" />
+                          Arrival & Leave Geofence Range (Meters)
+                        </Label>
+                        <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                          {formData.checkinRadiusM || 100}m
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          id="checkinRadiusM"
+                          type="number"
+                          min="20"
+                          max="5000"
+                          value={formData.checkinRadiusM}
+                          onChange={(e) => setFormData((p) => ({ ...p, checkinRadiusM: e.target.value }))}
+                          className="w-28 font-bold text-sm"
+                        />
+                        <span className="text-xs text-muted-foreground">meters max distance</span>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {[50, 100, 150, 250, 500, 1000].map((preset) => (
+                          <button
+                            key={preset}
+                            type="button"
+                            onClick={() => setFormData((p) => ({ ...p, checkinRadiusM: String(preset) }))}
+                            className={`text-[11px] px-2 py-0.5 rounded border font-medium ${
+                              formData.checkinRadiusM === String(preset)
+                                ? "bg-primary text-primary-foreground border-primary"
+                                : "bg-background hover:bg-muted text-muted-foreground"
+                            }`}
+                          >
+                            {preset}m
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="startDate">Start Date *</Label>
+                        <Input 
+                          id="startDate" 
+                          type="date" 
+                          value={formData.startDate} 
+                          onChange={e => setFormData(p => ({ ...p, startDate: e.target.value }))}
+                          required 
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="startTime">Start Time *</Label>
+                        <Input 
+                          id="startTime" 
+                          type="time" 
+                          value={formData.startTime} 
+                          onChange={e => setFormData(p => ({ ...p, startTime: e.target.value }))}
+                          required 
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="endDate">End Date *</Label>
+                        <Input 
+                          id="endDate" 
+                          type="date" 
+                          value={formData.endDate} 
+                          onChange={e => setFormData(p => ({ ...p, endDate: e.target.value }))}
+                          required 
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="endTime">End Time *</Label>
+                        <Input 
+                          id="endTime" 
+                          type="time" 
+                          value={formData.endTime} 
+                          onChange={e => setFormData(p => ({ ...p, endTime: e.target.value }))}
+                          required 
+                        />
+                      </div>
+                    </div>
+
+                    
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="grid gap-2">
+                          <Label htmlFor="leaderRate">Leader Pay Rate (EGP)</Label>
+                          <Input 
+                            id="leaderRate" 
+                            type="number" 
+                            value={formData.leaderRate} 
+                            onChange={e => setFormData(p => ({ ...p, leaderRate: e.target.value }))}
+                            disabled={isFieldLocked('leaderRate')}
+                          />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label htmlFor="regularRate">Regular Pay Rate (EGP)</Label>
+                          <Input 
+                            id="regularRate" 
+                            type="number" 
+                            value={formData.regularRate} 
+                            onChange={e => setFormData(p => ({ ...p, regularRate: e.target.value }))}
+                            disabled={isFieldLocked('regularRate')}
+                          />
+                        </div>
+                      </div>
+                      {isSuperAdmin && (
+                        <div className="grid grid-cols-1 gap-2">
+                          <Label htmlFor="budget">Total Event Budget (EGP)</Label>
+                          <Input 
+                            id="budget" 
+                            type="number" 
+                            value={formData.budget} 
+                            onChange={e => setFormData(p => ({ ...p, budget: e.target.value }))}
+                          />
+                        </div>
+                      )}
+    
+
+                    <div className="grid grid-cols-1 gap-2">
+                      <Label htmlFor="dressCode">Dress Code</Label>
+                      <Input 
+                        id="dressCode" 
+                        value={formData.dressCode} 
+                        onChange={e => setFormData(p => ({ ...p, dressCode: e.target.value }))}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-2">
+                      <Label htmlFor="instructions">Instructions</Label>
+                      <Textarea 
+                        id="instructions" 
+                        rows={3} 
+                        value={formData.instructions} 
+                        onChange={e => setFormData(p => ({ ...p, instructions: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
+                    <Button type="submit" disabled={isUpdating}>
+                      {isUpdating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null} Save Changes
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
             </Dialog>
           )}
 
@@ -598,192 +782,6 @@ export default function EventDetails() {
             >
               Complete & Process
             </Button>
-          )}
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-              <form onSubmit={handleEditSubmit}>
-                <DialogHeader>
-                  <DialogTitle>Edit Event</DialogTitle>
-                  <DialogDescription>Update event parameters and details.</DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-1 gap-2">
-                    <Label htmlFor="title">Title *</Label>
-                    <Input 
-                      id="title" 
-                      value={formData.title} 
-                      onChange={e => setFormData(p => ({ ...p, title: e.target.value }))}
-                      required 
-                    />
-                  </div>
-
-                  <LocationPicker
-                    radiusMeters={formData.checkinRadiusM ? parseInt(formData.checkinRadiusM, 10) : 100}
-                    value={{
-                      address: formData.eventLocName,
-                      lat: formData.venueLat ? parseFloat(formData.venueLat) : null,
-                      lng: formData.venueLng ? parseFloat(formData.venueLng) : null,
-                    }}
-                    onChange={(loc) => {
-                      setFormData((prev) => ({
-                        ...prev,
-                        eventLocName: loc.address,
-                        venueLat: loc.lat !== null ? String(loc.lat) : "",
-                        venueLng: loc.lng !== null ? String(loc.lng) : "",
-                      }));
-                    }}
-                  />
-
-                  {/* Geofence Range */}
-                  <div className="p-3 border rounded-lg bg-muted/20 space-y-2">
-                    <div className="flex justify-between items-center">
-                      <Label htmlFor="checkinRadiusM" className="font-semibold text-xs flex items-center gap-1.5">
-                        <MapPin className="h-3.5 w-3.5 text-primary" />
-                        Arrival & Leave Geofence Range (Meters)
-                      </Label>
-                      <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-                        {formData.checkinRadiusM || 100}m
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        id="checkinRadiusM"
-                        type="number"
-                        min="20"
-                        max="5000"
-                        value={formData.checkinRadiusM}
-                        onChange={(e) => setFormData((p) => ({ ...p, checkinRadiusM: e.target.value }))}
-                        className="w-28 font-bold text-sm"
-                      />
-                      <span className="text-xs text-muted-foreground">meters max distance</span>
-                    </div>
-                    <div className="flex flex-wrap gap-1.5 pt-1">
-                      {[50, 100, 150, 250, 500, 1000].map((preset) => (
-                        <button
-                          key={preset}
-                          type="button"
-                          onClick={() => setFormData((p) => ({ ...p, checkinRadiusM: String(preset) }))}
-                          className={`text-[11px] px-2 py-0.5 rounded border font-medium ${
-                            formData.checkinRadiusM === String(preset)
-                              ? "bg-primary text-primary-foreground border-primary"
-                              : "bg-background hover:bg-muted text-muted-foreground"
-                          }`}
-                        >
-                          {preset}m
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="startDate">Start Date *</Label>
-                      <Input 
-                        id="startDate" 
-                        type="date" 
-                        value={formData.startDate} 
-                        onChange={e => setFormData(p => ({ ...p, startDate: e.target.value }))}
-                        required 
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="startTime">Start Time *</Label>
-                      <Input 
-                        id="startTime" 
-                        type="time" 
-                        value={formData.startTime} 
-                        onChange={e => setFormData(p => ({ ...p, startTime: e.target.value }))}
-                        required 
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="endDate">End Date *</Label>
-                      <Input 
-                        id="endDate" 
-                        type="date" 
-                        value={formData.endDate} 
-                        onChange={e => setFormData(p => ({ ...p, endDate: e.target.value }))}
-                        required 
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="endTime">End Time *</Label>
-                      <Input 
-                        id="endTime" 
-                        type="time" 
-                        value={formData.endTime} 
-                        onChange={e => setFormData(p => ({ ...p, endTime: e.target.value }))}
-                        required 
-                      />
-                    </div>
-                  </div>
-
-                  
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="grid gap-2">
-                        <Label htmlFor="leaderRate">Leader Pay Rate (EGP)</Label>
-                        <Input 
-                          id="leaderRate" 
-                          type="number" 
-                          value={formData.leaderRate} 
-                          onChange={e => setFormData(p => ({ ...p, leaderRate: e.target.value }))}
-                          disabled={isFieldLocked('leaderRate')}
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label htmlFor="regularRate">Regular Pay Rate (EGP)</Label>
-                        <Input 
-                          id="regularRate" 
-                          type="number" 
-                          value={formData.regularRate} 
-                          onChange={e => setFormData(p => ({ ...p, regularRate: e.target.value }))}
-                          disabled={isFieldLocked('regularRate')}
-                        />
-                      </div>
-                    </div>
-                    {isSuperAdmin && (
-                      <div className="grid grid-cols-1 gap-2">
-                        <Label htmlFor="budget">Total Event Budget (EGP)</Label>
-                        <Input 
-                          id="budget" 
-                          type="number" 
-                          value={formData.budget} 
-                          onChange={e => setFormData(p => ({ ...p, budget: e.target.value }))}
-                        />
-                      </div>
-                    )}
-  
-
-                  <div className="grid grid-cols-1 gap-2">
-                    <Label htmlFor="dressCode">Dress Code</Label>
-                    <Input 
-                      id="dressCode" 
-                      value={formData.dressCode} 
-                      onChange={e => setFormData(p => ({ ...p, dressCode: e.target.value }))}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-2">
-                    <Label htmlFor="instructions">Instructions</Label>
-                    <Textarea 
-                      id="instructions" 
-                      rows={3} 
-                      value={formData.instructions} 
-                      onChange={e => setFormData(p => ({ ...p, instructions: e.target.value }))}
-                    />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
-                  <Button type="submit" disabled={isUpdating}>
-                    {isUpdating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null} Save Changes
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
           )}
 
           <Button 
