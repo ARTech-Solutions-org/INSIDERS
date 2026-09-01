@@ -1,6 +1,6 @@
 import { initializeApp, getApps, cert, type App } from "firebase-admin/app";
 import { getMessaging, type Messaging } from "firebase-admin/messaging";
-import { db, usherPushTokensTable } from "@workspace/db";
+import { db, usherPushTokensTable, ushersTable } from "@workspace/db";
 import { eq, inArray } from "drizzle-orm";
 
 /**
@@ -113,4 +113,15 @@ export async function sendPushToUsher(usherId: number, payload: PushPayload): Pr
  */
 export async function sendPushToUshers(usherIds: number[], payload: PushPayload): Promise<void> {
   await Promise.all(usherIds.map((id) => sendPushToUsher(id, payload)));
+}
+
+/**
+ * Sends a push notification to all active ushers.
+ */
+export async function sendPushToAllUshers(payload: PushPayload): Promise<void> {
+  const activeUshers = await db.select({ id: ushersTable.id }).from(ushersTable).where(eq(ushersTable.status, "active"));
+  const usherIds = activeUshers.map((u) => u.id);
+  if (usherIds.length > 0) {
+    await sendPushToUshers(usherIds, payload);
+  }
 }
