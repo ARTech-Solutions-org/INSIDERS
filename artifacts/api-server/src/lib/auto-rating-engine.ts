@@ -20,8 +20,11 @@ import {
   systemSettingsTable,
   DEFAULT_RATING_CONFIG,
   type RatingConfig,
+  eventsTable,
+  notificationsTable,
 } from "@workspace/db";
-import { eq, and, gte, inArray } from "drizzle-orm";
+import { eq, and, gte, inArray, gt } from "drizzle-orm";
+import { sendPushToUsher } from "./fcm.js";
 
 /** Load current rating config from DB, fall back to defaults if not set. */
 async function loadRatingConfig(): Promise<RatingConfig> {
@@ -228,6 +231,43 @@ export async function recalculateUsherCompositeRating(usherId: number): Promise<
     reliabilityScore: reliabilityScore ?? undefined,
     lastRatingRecalcAt: new Date(),
   }).where(eq(ushersTable.id, usherId));
+
+  // ── 6. Auto-Suspension & Upcoming Cancellation ────────────────────────────
+  if (reliabilityEvents.length >= cfg.reliabilityFlagThreshold) {
+    const [usher] = await db.select({ status: ushersTable.status }).from(ushersTable).where(eq(ushersTable.id, usherId));
+    if (usher && usher.status !== "suspended" && usher.status !== "blacklisted" && usher.status !== "declined") {
+      // Auto-suspend the usher
+      await db.update(ushersTable).set({ status: "suspended" }).where(eq(ushersTable.id, usherId));
+
+      // Find future assignments
+      const futureAssignments = await db.select({ id: eventAssignmentsTable.id })
+        .from(eventAssignmentsTable)
+        .innerJoin(eventsTable, eq(eventAssignmentsTable.eventId, eventsTable.id))
+        .where(
+          and(
+            eq(eventAssignmentsTable.usherId, usherId),
+            inArray(eventAssignmentsTable.status, ["assigned", "accepted"]),
+            gt(eventsTable.startTime, new Date())
+          )
+        );
+
+      if (futureAssignments.length > 0) {
+        const ids = futureAssignments.map(a => a.id);
+        await db.update(eventAssignmentsTable).set({ status: "cancelled" }).where(inArray(eventAssignmentsTable.id, ids));
+      }
+
+      // Notify the usher
+      const title = "Account Suspended";
+      const body = "Your account has been automatically suspended due to repeated reliability issues (e.g. no-shows). All your upcoming assignments have been cancelled.";
+      await db.insert(notificationsTable).values({
+        recipientType: "usher",
+        recipientId: usherId,
+        type: "status_update",
+        message: body,
+      });
+      await sendPushToUsher(usherId, { title, body }).catch(() => {});
+    }
+  }
 }
 
 /** Recalculate composite ratings for ALL ushers (used after weight change). */

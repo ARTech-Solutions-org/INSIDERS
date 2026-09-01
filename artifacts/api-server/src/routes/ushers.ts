@@ -1,7 +1,7 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
-import { db, ushersTable, usherDocumentsTable, usherSkillsTable, usherAvailabilityTable, notificationsTable, reliabilityEventsTable, systemSettingsTable, DEFAULT_RATING_CONFIG } from "@workspace/db";
-import { eq, and, ilike, or, gte, lte, sql, desc } from "drizzle-orm";
+import { db, ushersTable, usherDocumentsTable, usherSkillsTable, usherAvailabilityTable, notificationsTable, reliabilityEventsTable, systemSettingsTable, DEFAULT_RATING_CONFIG, eventAssignmentsTable, eventsTable } from "@workspace/db";
+import { eq, and, ilike, or, gte, lte, sql, desc, inArray, gt } from "drizzle-orm";
 import { requireUsher, requireAdmin, requireSuperAdmin } from "../middleware/auth.js";
 import { audit } from "../lib/audit.js";
 import { sendPushToUsher } from "../lib/fcm.js";
@@ -143,8 +143,8 @@ router.patch("/ushers/:id/status", requireAdmin, async (req, res) => {
   if (!parsed.success) { res.status(400).json({ error: parsed.error.flatten() }); return; }
   const usherId = parseInt(req.params.id as string, 10);
 
-  // Suspend (set back to pending) is a super_admin-only action
-  if (parsed.data.status === "pending") {
+  // Suspend (set back to pending or suspended) is a super_admin-only action
+  if (parsed.data.status === "pending" || parsed.data.status === "suspended") {
     const { adminsTable: adminsTbl } = await import("@workspace/db");
     const { eq: eqFn } = await import("drizzle-orm");
     const [caller] = await db.select({ role: adminsTbl.role }).from(adminsTbl).where(eqFn(adminsTbl.id, req.user!.id));
@@ -195,6 +195,33 @@ router.patch("/ushers/:id/status", requireAdmin, async (req, res) => {
         message: body,
       });
       await sendPushToUsher(usher.id, { title, body });
+    } else if (parsed.data.status === 'suspended') {
+      // Find and cancel future assignments
+      const futureAssignments = await db.select({ id: eventAssignmentsTable.id })
+        .from(eventAssignmentsTable)
+        .innerJoin(eventsTable, eq(eventAssignmentsTable.eventId, eventsTable.id))
+        .where(
+          and(
+            eq(eventAssignmentsTable.usherId, usher.id),
+            inArray(eventAssignmentsTable.status, ["assigned", "accepted"]),
+            gt(eventsTable.startTime, new Date())
+          )
+        );
+
+      if (futureAssignments.length > 0) {
+        const ids = futureAssignments.map(a => a.id);
+        await db.update(eventAssignmentsTable).set({ status: "cancelled" }).where(inArray(eventAssignmentsTable.id, ids));
+      }
+
+      const title = "Account Suspended";
+      const body = "Your account has been suspended by an administrator. All your upcoming assignments have been cancelled.";
+      await db.insert(notificationsTable).values({
+        recipientType: "usher",
+        recipientId: usher.id,
+        type: "status_update",
+        message: body,
+      });
+      await sendPushToUsher(usher.id, { title, body }).catch(() => {});
     }
 
     const { passwordHash: _ph, ...safe } = usher;

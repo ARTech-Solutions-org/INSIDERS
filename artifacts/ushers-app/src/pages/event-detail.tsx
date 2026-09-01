@@ -32,7 +32,7 @@ const uploadToR2 = async (file: File, type: string) => {
   const res = await fetch(`${baseUrl}/api/uploads/presigned-url`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ filename: file.name, contentType: file.type, uploadType: type })
+    body: JSON.stringify({ filename: file.name, contentType: file.type, type })
   });
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));

@@ -212,6 +212,8 @@ export default function UsherDetails() {
         return <Badge className="bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 border-amber-200">Pending</Badge>;
       case "declined":
         return <Badge className="bg-red-500/10 text-red-600 hover:bg-red-500/20 border-red-200">Declined</Badge>;
+      case "suspended":
+        return <Badge className="bg-red-600 text-white hover:bg-red-700 border-red-800">Suspended</Badge>;
       default:
         return <Badge variant="outline">Unknown</Badge>;
     }
@@ -283,11 +285,11 @@ export default function UsherDetails() {
             <Button 
               size="sm" 
               variant="outline" 
-              className="text-amber-600 border-amber-300 hover:bg-amber-50"
+              className="text-red-600 border-red-300 hover:bg-red-50"
               disabled={isUpdating}
-              onClick={() => updateStatus({ id: usher.id, data: { status: "pending", version: usher.version } })}
+              onClick={() => updateStatus({ id: usher.id, data: { status: "suspended", version: usher.version } })}
             >
-              Suspend (Set Pending)
+              Suspend
             </Button>
           )}
           {usher.status === "declined" && (
@@ -652,9 +654,22 @@ export default function UsherDetails() {
                   <CardDescription>Recent no-shows and late cancellations.</CardDescription>
                 </div>
                 {(reliabilityData as any).isFlagged && (
-                  <Badge variant="destructive" className="animate-pulse">
-                    Reliability Flagged
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="destructive" className="animate-pulse">
+                      Reliability Flagged
+                    </Badge>
+                    {usher?.status !== 'suspended' && (
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        disabled={isUpdating}
+                        onClick={() => updateStatus({ id: usher.id, data: { status: "suspended", version: usher.version } })}
+                      >
+                        {isUpdating ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
+                        Suspend & Cancel Upcoming
+                      </Button>
+                    )}
+                  </div>
                 )}
               </div>
             </CardHeader>
