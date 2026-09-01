@@ -311,7 +311,13 @@ router.post("/events/:id/deduction-rules", requireAdmin, async (req, res) => {
   const parsed = CreateDeductionRuleBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.flatten() }); return; }
   const eventId = parseInt(req.params.id as string, 10);
-  const [rule] = await db.insert(deductionRulesTable).values({ ...parsed.data, eventId }).returning();
+  const dataToInsert = {
+    ...parsed.data,
+    eventId,
+    triggerType: parsed.data.triggerType ?? undefined,
+    thresholdMinutes: parsed.data.thresholdMinutes ?? undefined,
+  };
+  const [rule] = await db.insert(deductionRulesTable).values(dataToInsert).returning();
   res.status(201).json(rule);
 });
 
