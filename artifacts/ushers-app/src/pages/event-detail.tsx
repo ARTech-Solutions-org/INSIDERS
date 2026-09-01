@@ -804,10 +804,20 @@ export default function EventDetail() {
               <div className="space-y-3">
                 {eventDetails.deductionRules.map((rule: any) => (
                   <div key={rule.id} className="flex justify-between items-center bg-destructive/5 p-3 rounded-xl border border-destructive/10">
-                    <span className="text-sm font-semibold text-destructive/90">
-                      {rule.ruleType}
-                      {rule.triggerType !== 'always' && rule.thresholdMinutes > 0 ? ` (>${rule.thresholdMinutes}m)` : ''}
-                    </span>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-semibold text-destructive/90">
+                        {rule.ruleType}
+                      </span>
+                      {rule.triggerType === 'late_arrival' && rule.thresholdMinutes > 0 && (
+                        <span className="text-xs text-destructive/70 font-medium mt-0.5">Applies if &gt;{rule.thresholdMinutes} mins late</span>
+                      )}
+                      {rule.triggerType === 'early_leave' && rule.thresholdMinutes > 0 && (
+                        <span className="text-xs text-destructive/70 font-medium mt-0.5">Applies if leaving &gt;{rule.thresholdMinutes} mins early</span>
+                      )}
+                      {rule.triggerType === 'late_cancellation' && rule.thresholdMinutes > 0 && (
+                        <span className="text-xs text-destructive/70 font-medium mt-0.5">Applies if cancelled within {Math.round(rule.thresholdMinutes / 60)} hours</span>
+                      )}
+                    </div>
                     <span className="text-xs font-bold text-destructive bg-destructive/10 px-2 py-1 rounded-md">-{rule.amount} EGP</span>
                   </div>
                 ))}
