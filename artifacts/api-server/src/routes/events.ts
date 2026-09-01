@@ -14,7 +14,7 @@ import {
   CreateEventTeamBody,
 } from "@workspace/api-zod";
 import { z } from "zod";
-import { sendPushToUsher, sendPushToUshers } from "../lib/fcm.js";
+import { sendPushToUsher, sendPushToUshers, sendPushToAllUshers } from "../lib/fcm.js";
 
 function getDistanceMeters(lat1: number, lon1: number, lat2: number, lon2: number) {
   const R = 6371e3; // metres
@@ -82,6 +82,15 @@ router.post("/events", requireAdmin, async (req, res) => {
   }).returning();
   
   await audit(req.user!.id, "CREATE_EVENT", "events", event.id);
+
+  if (event.status === "published") {
+    await sendPushToAllUshers({
+      title: "New Event Available 📣",
+      body: `A new event "${event.title}" is now available. Apply now!`,
+      data: { eventId: String(event.id), type: "event_published" },
+    });
+  }
+
   res.status(201).json(event);
 });
 
@@ -230,11 +239,19 @@ router.patch("/events/:id", requireAdmin, async (req, res) => {
       
       if (!updated) throw new Error("Conflict");
       await audit(req.user!.id, "UPDATE_EVENT", "events", updated.id);
-      return updated;
+      return { updated, oldStatus: existing.status };
     });
     
-    sseManager.broadcast("EVENT_UPDATED", { id: event.id });
-    res.json(event);
+    if (event.updated.status === "published" && event.oldStatus !== "published") {
+      await sendPushToAllUshers({
+        title: "New Event Available 📣",
+        body: `A new event "${event.updated.title}" is now available. Apply now!`,
+        data: { eventId: String(event.updated.id), type: "event_published" },
+      });
+    }
+
+    sseManager.broadcast("EVENT_UPDATED", { id: event.updated.id });
+    res.json(event.updated);
   } catch (err: any) {
     if (err.message === "Not found") res.status(404).json({ error: "Not found" });
     else if (err.message === "Conflict") res.status(409).json({ error: "This record was just changed by someone else, please refresh" });
