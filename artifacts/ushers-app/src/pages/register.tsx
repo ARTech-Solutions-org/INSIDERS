@@ -67,6 +67,23 @@ const registerSchema = z.object({
       path: ['dressSize']
     });
   }
+  if (data.paymentMethod === 'instapay') {
+    if (!data.paymentMethodDetails.startsWith('https://ipn.eg/S/')) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Must be an InstaPay link (starts with https://ipn.eg/S/...)',
+        path: ['paymentMethodDetails']
+      });
+    }
+  } else if (data.paymentMethod === 'ewallet') {
+    if (!/^01[0125][0-9]{8}$/.test(data.paymentMethodDetails)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Must be a valid Egyptian phone number',
+        path: ['paymentMethodDetails']
+      });
+    }
+  }
 });
 
 type FormValues = z.infer<typeof registerSchema>;
@@ -394,15 +411,29 @@ export default function Register() {
                       <FormItem className="mt-4">
                         <div className="relative">
                           <FormControl>
-                            <Input placeholder=" " {...field} className="peer bg-background border border-border text-foreground rounded-xl h-14 pt-4 pb-1 px-4 outline-none focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary transition-colors w-full" />
+                            <Input 
+                              placeholder=" " 
+                              {...field} 
+                              onChange={(e) => {
+                                let val = e.target.value;
+                                if (form.watch('paymentMethod') === 'instapay') {
+                                  const match = val.match(/(https:\/\/ipn\.eg\/S\/[a-zA-Z0-9_\-\/]+)/i);
+                                  if (match) {
+                                    val = match[1];
+                                  }
+                                }
+                                field.onChange(val);
+                              }}
+                              className="peer bg-background border border-border text-foreground rounded-xl h-14 pt-4 pb-1 px-4 outline-none focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary transition-colors w-full" 
+                            />
                           </FormControl>
                           <FormLabel className="absolute left-4 transition-all duration-300 pointer-events-none top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium peer-focus:top-4 peer-focus:text-[10px] peer-focus:font-bold peer-focus:text-foreground peer-[:not(:placeholder-shown)]:top-4 peer-[:not(:placeholder-shown)]:text-[10px] peer-[:not(:placeholder-shown)]:font-bold peer-[:not(:placeholder-shown)]:text-foreground/90">
-                            {form.watch('paymentMethod') === 'instapay' ? 'InstaPay Username / Link' : 'Wallet Phone Number'}
+                            {form.watch('paymentMethod') === 'instapay' ? 'InstaPay Link' : 'Wallet Phone Number'}
                           </FormLabel>
                         </div>
                         {form.watch('paymentMethod') === 'instapay' && (
                           <FormDescription className="text-xs text-muted-foreground mt-1 ml-1 leading-tight">
-                            To get your link: Open InstaPay &gt; Tap your profile &gt; Copy payment link. Or just write your InstaPay address (e.g., name@instapay).
+                            To get your link: Open InstaPay &gt; Tap your profile &gt; Copy payment link. Paste it above!
                           </FormDescription>
                         )}
                         <FormMessage className="text-red-500 text-xs" />
