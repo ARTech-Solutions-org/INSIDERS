@@ -32,4 +32,10 @@ export interface EventAssignment {
   /** @nullable */
   checkoutLng?: number | null;
   usher?: UsherProfile;
+  /** @nullable */
+  lateArrivalMinutes?: number | null;
+  /** @nullable */
+  earlyLeaveMinutes?: number | null;
+  /** @nullable */
+  checkinPhotoKey?: string | null;
 }

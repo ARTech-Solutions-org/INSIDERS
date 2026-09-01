@@ -395,6 +395,12 @@ export interface EventAssignment {
   /** @nullable */
   checkoutLng?: number | null;
   usher?: UsherProfile;
+  /** @nullable */
+  lateArrivalMinutes?: number | null;
+  /** @nullable */
+  earlyLeaveMinutes?: number | null;
+  /** @nullable */
+  checkinPhotoKey?: string | null;
 }
 
 export interface DeductionRule {
@@ -610,6 +616,12 @@ export interface MyAssignment {
   event: EventDetail;
   teamMembers?: TeamMember[];
   team?: EventTeam;
+  /** @nullable */
+  lateArrivalMinutes?: number | null;
+  /** @nullable */
+  earlyLeaveMinutes?: number | null;
+  /** @nullable */
+  checkinPhotoKey?: string | null;
 }
 
 export interface EventTeamInput {

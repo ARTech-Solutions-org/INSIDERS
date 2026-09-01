@@ -2888,6 +2888,18 @@ components:
           - 'null'
         usher:
           $ref: '#/components/schemas/UsherProfile'
+        lateArrivalMinutes:
+          type:
+          - number
+          - 'null'
+        earlyLeaveMinutes:
+          type:
+          - number
+          - 'null'
+        checkinPhotoKey:
+          type:
+          - string
+          - 'null'
     AssignmentInput:
       type: object
       required:
@@ -2977,6 +2989,18 @@ components:
             $ref: '#/components/schemas/TeamMember'
         team:
           $ref: '#/components/schemas/EventTeam'
+        lateArrivalMinutes:
+          type:
+          - number
+          - 'null'
+        earlyLeaveMinutes:
+          type:
+          - number
+          - 'null'
+        checkinPhotoKey:
+          type:
+          - string
+          - 'null'
     TeamMember:
       type: object
       required:
