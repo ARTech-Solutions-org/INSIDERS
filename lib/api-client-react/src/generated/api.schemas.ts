@@ -189,6 +189,7 @@ export interface UsherProfile {
   lastRatingRecalcAt?: string | null;
   dressSize?: string | null;
   shoeSize?: string | null;
+  languages?: string[] | null;
 }
 
 export interface AuthResult {
@@ -245,6 +246,7 @@ export interface UsherUpdate {
   /** @maxLength 20 */
   dressSize?: string | null;
   shoeSize?: string | null;
+  languages?: string[] | null;
 }
 
 export interface UsherStatusUpdate {

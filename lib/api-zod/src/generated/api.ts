@@ -79,7 +79,8 @@ export const RegisterUsherResponse = zod.object({
   "reliabilityScore": zod.number().nullish(),
   "lastRatingRecalcAt": zod.coerce.date().nullish(),
   "dressSize": zod.string().nullish(),
-  "shoeSize": zod.string().nullish()
+  "shoeSize": zod.string().nullish(),
+  "languages": zod.array(zod.string()).nullish()
 })
 })
 
@@ -119,7 +120,8 @@ export const LoginUsherResponse = zod.object({
   "reliabilityScore": zod.number().nullish(),
   "lastRatingRecalcAt": zod.coerce.date().nullish(),
   "dressSize": zod.string().nullish(),
-  "shoeSize": zod.string().nullish()
+  "shoeSize": zod.string().nullish(),
+  "languages": zod.array(zod.string()).nullish()
 })
 })
 
@@ -202,7 +204,8 @@ export const ListUshersResponse = zod.object({
   "reliabilityScore": zod.number().nullish(),
   "lastRatingRecalcAt": zod.coerce.date().nullish(),
   "dressSize": zod.string().nullish(),
-  "shoeSize": zod.string().nullish()
+  "shoeSize": zod.string().nullish(),
+  "languages": zod.array(zod.string()).nullish()
 })),
   "total": zod.number().int()
 })
@@ -236,7 +239,8 @@ export const GetMyUsherProfileResponse = zod.object({
   "reliabilityScore": zod.number().nullish(),
   "lastRatingRecalcAt": zod.coerce.date().nullish(),
   "dressSize": zod.string().nullish(),
-  "shoeSize": zod.string().nullish()
+  "shoeSize": zod.string().nullish(),
+  "languages": zod.array(zod.string()).nullish()
 })
 
 
@@ -259,7 +263,8 @@ export const UpdateMyUsherProfileBody = zod.object({
   "profilePhotoKey": zod.string().nullish(),
   "profilePhotoUrl": zod.string().nullish(),
   "dressSize": zod.string().max(updateMyUsherProfileBodyDressSizeMax).nullish(),
-  "shoeSize": zod.string().nullish()
+  "shoeSize": zod.string().nullish(),
+  "languages": zod.array(zod.string()).nullish()
 })
 
 export const UpdateMyUsherProfileResponse = zod.object({
@@ -287,7 +292,8 @@ export const UpdateMyUsherProfileResponse = zod.object({
   "reliabilityScore": zod.number().nullish(),
   "lastRatingRecalcAt": zod.coerce.date().nullish(),
   "dressSize": zod.string().nullish(),
-  "shoeSize": zod.string().nullish()
+  "shoeSize": zod.string().nullish(),
+  "languages": zod.array(zod.string()).nullish()
 })
 
 
@@ -323,7 +329,8 @@ export const GetUsherResponse = zod.object({
   "reliabilityScore": zod.number().nullish(),
   "lastRatingRecalcAt": zod.coerce.date().nullish(),
   "dressSize": zod.string().nullish(),
-  "shoeSize": zod.string().nullish()
+  "shoeSize": zod.string().nullish(),
+  "languages": zod.array(zod.string()).nullish()
 })
 
 
@@ -350,7 +357,8 @@ export const UpdateUsherBody = zod.object({
   "profilePhotoKey": zod.string().nullish(),
   "profilePhotoUrl": zod.string().nullish(),
   "dressSize": zod.string().max(updateUsherBodyDressSizeMax).nullish(),
-  "shoeSize": zod.string().nullish()
+  "shoeSize": zod.string().nullish(),
+  "languages": zod.array(zod.string()).nullish()
 })
 
 export const UpdateUsherResponse = zod.object({
@@ -378,7 +386,8 @@ export const UpdateUsherResponse = zod.object({
   "reliabilityScore": zod.number().nullish(),
   "lastRatingRecalcAt": zod.coerce.date().nullish(),
   "dressSize": zod.string().nullish(),
-  "shoeSize": zod.string().nullish()
+  "shoeSize": zod.string().nullish(),
+  "languages": zod.array(zod.string()).nullish()
 })
 
 
@@ -419,7 +428,8 @@ export const UpdateUsherStatusResponse = zod.object({
   "reliabilityScore": zod.number().nullish(),
   "lastRatingRecalcAt": zod.coerce.date().nullish(),
   "dressSize": zod.string().nullish(),
-  "shoeSize": zod.string().nullish()
+  "shoeSize": zod.string().nullish(),
+  "languages": zod.array(zod.string()).nullish()
 })
 
 
@@ -749,7 +759,8 @@ export const GetEventResponse = zod.object({
   "reliabilityScore": zod.number().nullish(),
   "lastRatingRecalcAt": zod.coerce.date().nullish(),
   "dressSize": zod.string().nullish(),
-  "shoeSize": zod.string().nullish()
+  "shoeSize": zod.string().nullish(),
+  "languages": zod.array(zod.string()).nullish()
 }).optional()
 })),
   "deductionRules": zod.array(zod.object({
@@ -1121,7 +1132,8 @@ export const ListEventAssignmentsResponseItem = zod.object({
   "reliabilityScore": zod.number().nullish(),
   "lastRatingRecalcAt": zod.coerce.date().nullish(),
   "dressSize": zod.string().nullish(),
-  "shoeSize": zod.string().nullish()
+  "shoeSize": zod.string().nullish(),
+  "languages": zod.array(zod.string()).nullish()
 }).optional()
 })
 export const ListEventAssignmentsResponse = zod.array(ListEventAssignmentsResponseItem)
@@ -1184,7 +1196,8 @@ export const AssignUsherToEventResponse = zod.object({
   "reliabilityScore": zod.number().nullish(),
   "lastRatingRecalcAt": zod.coerce.date().nullish(),
   "dressSize": zod.string().nullish(),
-  "shoeSize": zod.string().nullish()
+  "shoeSize": zod.string().nullish(),
+  "languages": zod.array(zod.string()).nullish()
 }).optional()
 })
 
@@ -1247,7 +1260,8 @@ export const UpdateAssignmentResponse = zod.object({
   "reliabilityScore": zod.number().nullish(),
   "lastRatingRecalcAt": zod.coerce.date().nullish(),
   "dressSize": zod.string().nullish(),
-  "shoeSize": zod.string().nullish()
+  "shoeSize": zod.string().nullish(),
+  "languages": zod.array(zod.string()).nullish()
 }).optional()
 })
 
@@ -1312,7 +1326,8 @@ export const AdminCheckinResponse = zod.object({
   "reliabilityScore": zod.number().nullish(),
   "lastRatingRecalcAt": zod.coerce.date().nullish(),
   "dressSize": zod.string().nullish(),
-  "shoeSize": zod.string().nullish()
+  "shoeSize": zod.string().nullish(),
+  "languages": zod.array(zod.string()).nullish()
 }).optional()
 })
 
@@ -1366,7 +1381,8 @@ export const AdminCheckoutResponse = zod.object({
   "reliabilityScore": zod.number().nullish(),
   "lastRatingRecalcAt": zod.coerce.date().nullish(),
   "dressSize": zod.string().nullish(),
-  "shoeSize": zod.string().nullish()
+  "shoeSize": zod.string().nullish(),
+  "languages": zod.array(zod.string()).nullish()
 }).optional()
 })
 
@@ -1455,7 +1471,8 @@ export const SmartAssignBatchResponseItem = zod.object({
   "reliabilityScore": zod.number().nullish(),
   "lastRatingRecalcAt": zod.coerce.date().nullish(),
   "dressSize": zod.string().nullish(),
-  "shoeSize": zod.string().nullish()
+  "shoeSize": zod.string().nullish(),
+  "languages": zod.array(zod.string()).nullish()
 }).optional()
 })
 export const SmartAssignBatchResponse = zod.array(SmartAssignBatchResponseItem)
@@ -1543,7 +1560,8 @@ export const ListMyAssignmentsResponseItem = zod.object({
   "reliabilityScore": zod.number().nullish(),
   "lastRatingRecalcAt": zod.coerce.date().nullish(),
   "dressSize": zod.string().nullish(),
-  "shoeSize": zod.string().nullish()
+  "shoeSize": zod.string().nullish(),
+  "languages": zod.array(zod.string()).nullish()
 }).optional()
 })),
   "deductionRules": zod.array(zod.object({
@@ -1654,7 +1672,8 @@ export const AcceptAssignmentResponse = zod.object({
   "reliabilityScore": zod.number().nullish(),
   "lastRatingRecalcAt": zod.coerce.date().nullish(),
   "dressSize": zod.string().nullish(),
-  "shoeSize": zod.string().nullish()
+  "shoeSize": zod.string().nullish(),
+  "languages": zod.array(zod.string()).nullish()
 }).optional()
 })),
   "deductionRules": zod.array(zod.object({
@@ -1768,7 +1787,8 @@ export const DeclineAssignmentResponse = zod.object({
   "reliabilityScore": zod.number().nullish(),
   "lastRatingRecalcAt": zod.coerce.date().nullish(),
   "dressSize": zod.string().nullish(),
-  "shoeSize": zod.string().nullish()
+  "shoeSize": zod.string().nullish(),
+  "languages": zod.array(zod.string()).nullish()
 }).optional()
 })),
   "deductionRules": zod.array(zod.object({
@@ -1883,7 +1903,8 @@ export const UsherCheckinResponse = zod.object({
   "reliabilityScore": zod.number().nullish(),
   "lastRatingRecalcAt": zod.coerce.date().nullish(),
   "dressSize": zod.string().nullish(),
-  "shoeSize": zod.string().nullish()
+  "shoeSize": zod.string().nullish(),
+  "languages": zod.array(zod.string()).nullish()
 }).optional()
 })),
   "deductionRules": zod.array(zod.object({
@@ -1998,7 +2019,8 @@ export const UsherCheckoutResponse = zod.object({
   "reliabilityScore": zod.number().nullish(),
   "lastRatingRecalcAt": zod.coerce.date().nullish(),
   "dressSize": zod.string().nullish(),
-  "shoeSize": zod.string().nullish()
+  "shoeSize": zod.string().nullish(),
+  "languages": zod.array(zod.string()).nullish()
 }).optional()
 })),
   "deductionRules": zod.array(zod.object({
@@ -2113,7 +2135,8 @@ export const CancelAssignmentResponse = zod.object({
   "reliabilityScore": zod.number().nullish(),
   "lastRatingRecalcAt": zod.coerce.date().nullish(),
   "dressSize": zod.string().nullish(),
-  "shoeSize": zod.string().nullish()
+  "shoeSize": zod.string().nullish(),
+  "languages": zod.array(zod.string()).nullish()
 }).optional()
 })),
   "deductionRules": zod.array(zod.object({
@@ -2234,7 +2257,8 @@ export const TeamCheckinMemberResponse = zod.object({
   "reliabilityScore": zod.number().nullish(),
   "lastRatingRecalcAt": zod.coerce.date().nullish(),
   "dressSize": zod.string().nullish(),
-  "shoeSize": zod.string().nullish()
+  "shoeSize": zod.string().nullish(),
+  "languages": zod.array(zod.string()).nullish()
 }).optional()
 })),
   "deductionRules": zod.array(zod.object({
@@ -2911,7 +2935,8 @@ export const ApplyToEventResponse = zod.object({
   "reliabilityScore": zod.number().nullish(),
   "lastRatingRecalcAt": zod.coerce.date().nullish(),
   "dressSize": zod.string().nullish(),
-  "shoeSize": zod.string().nullish()
+  "shoeSize": zod.string().nullish(),
+  "languages": zod.array(zod.string()).nullish()
 }).optional()
 })
 

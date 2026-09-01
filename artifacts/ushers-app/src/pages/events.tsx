@@ -189,6 +189,12 @@ export default function Events() {
           >
             Past/Cancel
           </TabsTrigger>
+          <TabsTrigger 
+            value="rejected" 
+            className="rounded-none border-b-2 border-transparent data-[state=active]:border-destructive data-[state=active]:bg-transparent data-[state=active]:text-foreground text-xs uppercase tracking-wider font-bold py-3 px-4"
+          >
+            Rejected
+          </TabsTrigger>
         </TabsList>
 
         
@@ -206,6 +212,9 @@ export default function Events() {
         </TabsContent>
         <TabsContent value="cancelled" className="flex-1 outline-none">
           <AssignmentList status="cancelled,no_show,declined" colorClass="" />
+        </TabsContent>
+        <TabsContent value="rejected" className="flex-1 outline-none">
+          <AssignmentList status="rejected" colorClass="" />
         </TabsContent>
       </Tabs>
     </div>

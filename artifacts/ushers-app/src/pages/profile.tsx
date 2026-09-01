@@ -22,6 +22,7 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
+import { MultiSelectDropdown } from '@/components/ui/multi-select-dropdown';
 import { format, addDays } from 'date-fns';
 import { ImageCropper } from '@/components/ui/image-cropper';
 
@@ -91,7 +92,7 @@ export default function Profile() {
 
   useEffect(() => {
     if (profile) {
-      setFormData({ fullName: profile.fullName, phone: profile.phone });
+      setFormData({ fullName: profile.fullName, phone: profile.phone, languages: profile.languages || [] });
     }
   }, [profile]);
 

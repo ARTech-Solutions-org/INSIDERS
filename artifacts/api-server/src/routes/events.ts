@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { randomBytes } from "crypto";
-import { db, eventsTable, eventAssignmentsTable, deductionRulesTable, eventHolderLinksTable, ushersTable, usherAvailabilityTable, eventTeamsTable, adminsTable, eventFeedbackLinksTable, balanceTransactionsTable } from "@workspace/db";
+import { db, eventsTable, eventAssignmentsTable, deductionRulesTable, eventHolderLinksTable, ushersTable, usherAvailabilityTable, eventTeamsTable, adminsTable, eventFeedbackLinksTable, balanceTransactionsTable, notificationsTable } from "@workspace/db";
 import { eq, and, gte, sql, desc, lt, gt, ne, inArray, lte } from "drizzle-orm";
 import { requireAdmin, requireAuth } from "../middleware/auth.js";
 import { audit } from "../lib/audit.js";
@@ -688,15 +688,29 @@ router.patch("/events/:id/assignments/:assignmentId", requireAdmin, async (req, 
     await audit(req.user!.id, "UPDATE_ASSIGNMENT", "event_assignments", assignmentId);
 
     if ((assignment.existingAssignment.status === "pending" || assignment.existingAssignment.status === "applied") && parsed.data.status === "assigned") {
+      const msg = `You have been assigned to the event "${assignment.lockedEvent.title}". Check event details.`;
+      await db.insert(notificationsTable).values({
+        recipientType: "usher",
+        recipientId: assignment.updated.usherId,
+        type: "assignment",
+        message: msg
+      });
       await sendPushToUsher(assignment.updated.usherId, {
         title: "Application Approved 🎉",
-        body: `You have been assigned to the event "${assignment.lockedEvent.title}". Check event details.`,
+        body: msg,
         data: { eventId: String(eventId), type: "assignment" },
       });
     } else if ((assignment.existingAssignment.status === "pending" || assignment.existingAssignment.status === "applied") && parsed.data.status === "rejected") {
+      const msg = `Your application to the event "${assignment.lockedEvent.title}" was not selected.`;
+      await db.insert(notificationsTable).values({
+        recipientType: "usher",
+        recipientId: assignment.updated.usherId,
+        type: "assignment",
+        message: msg
+      });
       await sendPushToUsher(assignment.updated.usherId, {
         title: "Application Update",
-        body: `Your application to the event "${assignment.lockedEvent.title}" was not selected.`,
+        body: msg,
         data: { eventId: String(eventId), type: "assignment" },
       });
     }
