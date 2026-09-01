@@ -9,12 +9,15 @@ export function MultiSelectDropdown({
   onChange,
   placeholder = "Select...",
   allowCustom = false,
+  variant = 'light',
 }: {
   options: string[];
   value: string[];
   onChange: (v: string[]) => void;
   placeholder?: string;
   allowCustom?: boolean;
+  /** 'light' for white/card backgrounds (profile), 'dark' for primary-colored backgrounds (register) */
+  variant?: 'light' | 'dark';
 }) {
   const [customInput, setCustomInput] = useState('');
 
@@ -31,16 +34,28 @@ export function MultiSelectDropdown({
     onChange(value.filter(v => v !== tag));
   };
 
+  const isDark = variant === 'dark';
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <div className="flex flex-wrap gap-2 items-center justify-between bg-background border border-input rounded-xl p-3 min-h-[56px] hover:border-ring focus-within:border-ring focus-within:ring-1 focus-within:ring-ring transition-colors cursor-pointer w-full">
+        <div className={`flex flex-wrap gap-2 items-center justify-between rounded-xl p-3 min-h-[56px] transition-colors cursor-pointer w-full ${
+          isDark
+            ? 'bg-primary-foreground/5 border border-primary-foreground/20 focus-within:border-primary-foreground focus-within:ring-1 focus-within:ring-primary-foreground'
+            : 'bg-background border border-input hover:border-ring focus-within:border-ring focus-within:ring-1 focus-within:ring-ring'
+        }`}>
           <div className="flex flex-wrap gap-1 items-center flex-1">
             {value.length === 0 ? (
-              <span className="text-muted-foreground text-sm pl-1">{placeholder}</span>
+              <span className={`text-sm pl-1 ${isDark ? 'text-primary-foreground/50' : 'text-muted-foreground'}`}>{placeholder}</span>
             ) : (
               value.map(tag => (
-                <Badge key={tag} variant="secondary" className="px-2 py-1 font-medium text-xs flex items-center gap-1">
+                <Badge
+                  key={tag}
+                  variant="secondary"
+                  className={`px-2 py-1 font-medium text-xs flex items-center gap-1 ${
+                    isDark ? 'bg-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/30' : ''
+                  }`}
+                >
                   {tag}
                   <span
                     className="ml-1 cursor-pointer hover:opacity-70"
@@ -53,7 +68,7 @@ export function MultiSelectDropdown({
               ))
             )}
           </div>
-          <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
+          <ChevronDown className={`h-4 w-4 shrink-0 ${isDark ? 'text-primary-foreground/50' : 'text-muted-foreground'}`} />
         </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-[var(--radix-dropdown-menu-trigger-width)] bg-popover max-h-72 overflow-y-auto">
