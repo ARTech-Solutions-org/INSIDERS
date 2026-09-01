@@ -739,6 +739,14 @@ export default function EventDetails() {
         <TabsList className="w-full justify-start rounded-none border-b bg-transparent h-auto p-0 space-x-6">
           <TabsTrigger value="overview" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent py-3">Overview</TabsTrigger>
           <TabsTrigger value="staffing" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent py-3">Staff & Teams</TabsTrigger>
+          <TabsTrigger value="deductions" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent py-3">
+            Deductions
+            {(event.deductionRules || []).length > 0 && (
+              <span className="ml-1.5 text-xs bg-destructive/15 text-destructive rounded-full px-1.5 py-0.5 font-semibold">
+                {(event.deductionRules || []).length}
+              </span>
+            )}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6 min-h-0 flex-1 overflow-auto">
@@ -786,66 +794,6 @@ export default function EventDetails() {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <X className="w-4 h-4 text-destructive" />
-                  Deduction Rules
-                </CardTitle>
-                <CardDescription>Rules applied equally to all ushers at checkout. Total: <span className="text-destructive font-semibold">-{(event.deductionRules || []).reduce((s: number, r: any) => s + r.amount, 0)} EGP</span></CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {/* Existing Rules */}
-                {(event.deductionRules || []).length === 0 && (
-                  <div className="text-sm text-muted-foreground">No deduction rules defined.</div>
-                )}
-                {(event.deductionRules || []).map((rule: any) => (
-                  <div key={rule.id} className="flex justify-between items-center text-sm border p-2.5 rounded-lg bg-muted/20">
-                    <span className="font-medium">{rule.ruleType}</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-destructive font-semibold">- {rule.amount} EGP</span>
-                      <button
-                        onClick={() => deleteDeductionRule({ id: eventId, ruleId: rule.id })}
-                        className="text-muted-foreground hover:text-destructive transition-colors"
-                        title="Delete rule"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-
-                {/* Add New Rule Form */}
-                <div className="pt-2 border-t space-y-2">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Add Rule</p>
-                  <Input
-                    placeholder="Rule name (e.g. Late Arrival)"
-                    value={newRuleType}
-                    onChange={(e) => setNewRuleType(e.target.value)}
-                  />
-                  <div className="flex gap-2">
-                    <Input
-                      type="number"
-                      placeholder="Amount (EGP)"
-                      value={newRuleAmount}
-                      onChange={(e) => setNewRuleAmount(e.target.value)}
-                      min={0}
-                    />
-                    <Button
-                      size="sm"
-                      disabled={!newRuleType.trim() || !newRuleAmount || isCreatingRule}
-                      onClick={() => {
-                        const amount = parseFloat(newRuleAmount);
-                        if (isNaN(amount) || amount <= 0) return;
-                        createDeductionRule({ id: eventId, data: { ruleType: newRuleType.trim(), amount } });
-                      }}
-                    >
-                      Add
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
 
             <Card>
               <CardHeader>
@@ -1398,6 +1346,98 @@ export default function EventDetails() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* ─── DEDUCTIONS TAB ─────────────────────────────────────────── */}
+        <TabsContent value="deductions" className="mt-6 min-h-0 flex-1 overflow-auto">
+          <div className="max-w-2xl space-y-6">
+
+            {/* Summary banner */}
+            <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-5 flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-destructive uppercase tracking-wider">Total Deduction Per Usher</p>
+                <p className="text-4xl font-bold text-destructive mt-1">
+                  -{(event.deductionRules || []).reduce((s: number, r: any) => s + r.amount, 0)} EGP
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">Applied automatically at checkout for all ushers</p>
+              </div>
+              <X className="w-12 h-12 text-destructive/20" />
+            </div>
+
+            {/* Existing rules */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Active Rules</CardTitle>
+                <CardDescription>Each rule is deducted from every usher's pay when they check out.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {(event.deductionRules || []).length === 0 && (
+                  <div className="text-sm text-muted-foreground py-4 text-center">No deduction rules yet.</div>
+                )}
+                {(event.deductionRules || []).map((rule: any) => (
+                  <div key={rule.id} className="flex justify-between items-center border rounded-lg p-3 bg-muted/20 group">
+                    <div>
+                      <p className="font-medium text-sm">{rule.ruleType}</p>
+                      <p className="text-xs text-muted-foreground">Flat deduction</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-destructive font-bold">- {rule.amount} EGP</span>
+                      <button
+                        onClick={() => deleteDeductionRule({ id: eventId, ruleId: rule.id })}
+                        className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all"
+                        title="Delete rule"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Add rule form */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Add New Rule</CardTitle>
+                <CardDescription>Define a deduction that will be applied to all ushers at checkout.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="space-y-1">
+                  <Label htmlFor="rule-type">Rule Name</Label>
+                  <Input
+                    id="rule-type"
+                    placeholder="e.g. Late Arrival, Early Leave, Dress Code Violation"
+                    value={newRuleType}
+                    onChange={(e) => setNewRuleType(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="rule-amount">Deduction Amount (EGP)</Label>
+                  <Input
+                    id="rule-amount"
+                    type="number"
+                    placeholder="0"
+                    value={newRuleAmount}
+                    onChange={(e) => setNewRuleAmount(e.target.value)}
+                    min={0}
+                  />
+                </div>
+                <Button
+                  className="w-full"
+                  disabled={!newRuleType.trim() || !newRuleAmount || isCreatingRule}
+                  onClick={() => {
+                    const amount = parseFloat(newRuleAmount);
+                    if (isNaN(amount) || amount <= 0) return;
+                    createDeductionRule({ id: eventId, data: { ruleType: newRuleType.trim(), amount } });
+                  }}
+                >
+                  {isCreatingRule ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                  Add Deduction Rule
+                </Button>
+              </CardContent>
+            </Card>
+
+          </div>
         </TabsContent>
 
 </Tabs>
