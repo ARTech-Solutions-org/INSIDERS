@@ -853,9 +853,9 @@ export default function EventDetails() {
               </CardHeader>
               <CardContent className="space-y-4">
                 {(() => {
-                  const totalAssigned = event.assignments?.length || 0;
+                  const totalAssigned = event.assignments?.filter((a: any) => !['pending', 'applied', 'rejected'].includes(a.status)).length || 0;
                   const checkedInCount = event.assignments?.filter((a: any) => ["checked_in", "completed"].includes(a.status)).length || 0;
-                  const pendingCount = event.assignments?.filter((a: any) => ["assigned", "accepted"].includes(a.status)).length || 0;
+                  const pendingApplicantsCount = event.assignments?.filter((a: any) => ['applied', 'pending'].includes(a.status)).length || 0;
                   const canceledCount = event.assignments?.filter((a: any) => a.status === "cancelled").length || 0;
                   const lateCount = event.assignments?.filter((a: any) => a.lateArrivalMinutes > 0).length || 0;
 
@@ -870,8 +870,8 @@ export default function EventDetails() {
                         <div className="text-xs uppercase tracking-wider mt-1">Checked In</div>
                       </div>
                       <div className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 rounded-lg p-4 text-center">
-                        <div className="text-3xl font-bold">{pendingCount}</div>
-                        <div className="text-xs uppercase tracking-wider mt-1">Pending</div>
+                        <div className="text-3xl font-bold">{pendingApplicantsCount}</div>
+                        <div className="text-xs uppercase tracking-wider mt-1">Applicants</div>
                       </div>
                       <div className="bg-destructive/10 text-destructive rounded-lg p-4 text-center">
                         <div className="text-3xl font-bold">{lateCount}</div>
