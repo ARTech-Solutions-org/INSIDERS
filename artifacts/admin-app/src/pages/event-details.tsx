@@ -1285,6 +1285,10 @@ export default function EventDetails() {
                           </div>
                           <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1">
                              <span className="capitalize">{applicant.usher?.gender}</span>
+                             {applicant.usher?.shirtSize && <span>| Shirt: {applicant.usher.shirtSize}</span>}
+                             {applicant.usher?.tShirtSize && <span>| T-Shirt: {applicant.usher.tShirtSize}</span>}
+                             {applicant.usher?.pantsSize && <span>| Pants: {applicant.usher.pantsSize}</span>}
+                             {applicant.usher?.shortsSize && <span>| Shorts: {applicant.usher.shortsSize}</span>}
                              {applicant.usher?.gender === 'female' && applicant.usher?.dressSize && <span>| Dress: {applicant.usher.dressSize}</span>}
                              {applicant.usher?.shoeSize && <span>| Shoe: {applicant.usher.shoeSize}</span>}
                           </p>

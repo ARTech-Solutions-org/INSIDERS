@@ -127,6 +127,10 @@ usher: {
       gender: ushersTable.gender,
       dressSize: ushersTable.dressSize,
       shoeSize: ushersTable.shoeSize,
+      shirtSize: ushersTable.shirtSize,
+      tShirtSize: ushersTable.tShirtSize,
+      pantsSize: ushersTable.pantsSize,
+      shortsSize: ushersTable.shortsSize,
       profilePhotoKey: ushersTable.profilePhotoKey,
       profilePhotoUrl: ushersTable.profilePhotoUrl,
       avgRating: ushersTable.avgRating,
@@ -428,7 +432,7 @@ router.get("/events/:id/assignments", requireAdmin, async (req, res) => {
   const assignments = await db.select({ id: eventAssignmentsTable.id, eventId: eventAssignmentsTable.eventId, eventTeamId: eventAssignmentsTable.eventTeamId, usherId: eventAssignmentsTable.usherId, status: eventAssignmentsTable.status, role: eventAssignmentsTable.role, overriddenPay: eventAssignmentsTable.overriddenPay, isTeamLead: eventAssignmentsTable.isTeamLead, checkinTime: eventAssignmentsTable.checkinTime, checkinLat: eventAssignmentsTable.checkinLat, checkinLng: eventAssignmentsTable.checkinLng, checkinMethod: eventAssignmentsTable.checkinMethod, checkoutTime: eventAssignmentsTable.checkoutTime, checkoutLat: eventAssignmentsTable.checkoutLat, checkoutLng: eventAssignmentsTable.checkoutLng, usher: { id: ushersTable.id, fullName: ushersTable.fullName, email: ushersTable.email, phone: ushersTable.phone, status: ushersTable.status, avgRating: ushersTable.avgRating,
       languages: ushersTable.languages,
       height: ushersTable.height,
-      dateOfBirth: ushersTable.dateOfBirth, balance: ushersTable.balance, nationalIdNumber: ushersTable.nationalIdNumber, nationalIdDocUrl: ushersTable.nationalIdDocUrl, profilePhotoUrl: ushersTable.profilePhotoUrl, profilePhotoKey: ushersTable.profilePhotoKey, createdAt: ushersTable.createdAt, shoeSize: ushersTable.shoeSize, dressSize: ushersTable.dressSize, gender: ushersTable.gender } }).from(eventAssignmentsTable).leftJoin(ushersTable, eq(eventAssignmentsTable.usherId, ushersTable.id)).where(eq(eventAssignmentsTable.eventId, eventId));
+      dateOfBirth: ushersTable.dateOfBirth, balance: ushersTable.balance, nationalIdNumber: ushersTable.nationalIdNumber, nationalIdDocUrl: ushersTable.nationalIdDocUrl, profilePhotoUrl: ushersTable.profilePhotoUrl, profilePhotoKey: ushersTable.profilePhotoKey, createdAt: ushersTable.createdAt, shoeSize: ushersTable.shoeSize, dressSize: ushersTable.dressSize, shirtSize: ushersTable.shirtSize, tShirtSize: ushersTable.tShirtSize, pantsSize: ushersTable.pantsSize, shortsSize: ushersTable.shortsSize, gender: ushersTable.gender } }).from(eventAssignmentsTable).leftJoin(ushersTable, eq(eventAssignmentsTable.usherId, ushersTable.id)).where(eq(eventAssignmentsTable.eventId, eventId));
   res.json(assignments);
 });
 
