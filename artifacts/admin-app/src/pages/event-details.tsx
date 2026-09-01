@@ -74,7 +74,10 @@ import {
   RefreshCw,
   MessageSquare,
   LogOut,
-  MinusCircle
+  MinusCircle,
+  Camera,
+  Ruler,
+  Shirt
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -879,6 +882,65 @@ export default function EventDetails() {
                 })()}
               </CardContent>
             </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shirt className="w-5 h-5 text-primary" />
+                  Sizes Summary
+                </CardTitle>
+                <CardDescription>Aggregate of sizes for all active ushers</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {(() => {
+                  const activeAssignments = event.assignments?.filter((a: any) => ['assigned', 'accepted', 'checked_in', 'completed'].includes(a.status)) || [];
+                  const getCounts = (key: string) => {
+                    const counts: Record<string, number> = {};
+                    activeAssignments.forEach((a: any) => {
+                      const val = a.usher?.[key];
+                      if (val) counts[val] = (counts[val] || 0) + 1;
+                    });
+                    return Object.entries(counts).sort((a, b) => b[1] - a[1]);
+                  };
+
+                  const renderSizeRow = (title: string, counts: [string, number][]) => {
+                    if (counts.length === 0) return null;
+                    return (
+                      <div className="flex flex-col border-b last:border-0 pb-3 last:pb-0">
+                        <span className="text-xs text-muted-foreground uppercase tracking-wider mb-1.5">{title}</span>
+                        <div className="flex flex-wrap gap-2">
+                          {counts.map(([size, count]) => (
+                            <div key={size} className="flex items-center bg-muted rounded-md px-2 py-1">
+                              <span className="font-semibold text-sm">{size}</span>
+                              <span className="ml-1.5 text-xs text-muted-foreground bg-background rounded px-1.5 py-0.5 font-medium">{count}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  };
+
+                  return (
+                    <div className="space-y-3">
+                      {renderSizeRow('T-Shirts', getCounts('tShirtSize'))}
+                      {renderSizeRow('Shirts', getCounts('shirtSize'))}
+                      {renderSizeRow('Pants', getCounts('pantsSize'))}
+                      {renderSizeRow('Shorts', getCounts('shortsSize'))}
+                      {renderSizeRow('Dresses', getCounts('dressSize'))}
+                      {renderSizeRow('Shoes', getCounts('shoeSize'))}
+                      {activeAssignments.length > 0 && 
+                        !Object.keys(getCounts('tShirtSize')).length && 
+                        !Object.keys(getCounts('shirtSize')).length &&
+                        !Object.keys(getCounts('pantsSize')).length &&
+                        !Object.keys(getCounts('shortsSize')).length &&
+                        !Object.keys(getCounts('dressSize')).length &&
+                        !Object.keys(getCounts('shoeSize')).length && (
+                        <div className="text-sm text-muted-foreground text-center py-2">No size data available</div>
+                      )}
+                    </div>
+                  );
+                })()}
+              </CardContent>
+            </Card>
           </div>
 
           {/* Details Column 3 */}
@@ -1122,6 +1184,17 @@ export default function EventDetails() {
 
                       <div className="flex flex-col items-end gap-1">
                         <div className="flex flex-wrap justify-end items-center gap-2">
+                          {assignment.checkinPhotoKey && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 text-xs gap-1 text-primary hover:bg-primary/10"
+                              onClick={() => window.open(getImageUrl(assignment.checkinPhotoKey), '_blank')}
+                            >
+                              <Camera className="w-3.5 h-3.5" />
+                              Selfie
+                            </Button>
+                          )}
                           {assignment.checkinTime && !assignment.checkoutTime && (
                             <Button
                               size="sm"

@@ -20,11 +20,33 @@ import { format } from 'date-fns';
 import { toast } from 'sonner';
 import {
   MapPin, Calendar, Clock, Navigation, AlertTriangle,
-  CheckCircle2, XCircle, Info, ShieldAlert, Phone, LocateFixed
+  CheckCircle2, XCircle, Info, ShieldAlert, Phone, LocateFixed, Camera
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
+
+
+const uploadToR2 = async (file: File, type: string) => {
+  const baseUrl = import.meta.env.VITE_API_URL?.replace(/\/+$/, '') || '';
+  const res = await fetch(`${baseUrl}/api/uploads/presigned-url`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ filename: file.name, contentType: file.type, uploadType: type })
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || 'Failed to get upload URL');
+  }
+  const { url, key } = await res.json();
+  const uploadRes = await fetch(url, {
+    method: 'PUT',
+    headers: { 'Content-Type': file.type },
+    body: file
+  });
+  if (!uploadRes.ok) throw new Error('Failed to upload file to R2');
+  return { url: url.split('?')[0], key };
+};
 
 const getImageUrl = (key?: string | null) => {
   if (!key) return undefined;
@@ -233,10 +255,30 @@ export default function EventDetail() {
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   }
 
-  const handleCheckin = async () => {
+  const handleCheckin = () => {
+    document.getElementById('checkin-selfie-upload')?.click();
+  };
+
+  const handleSelfieUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
     if (!assignmentId) return;
+
     setGpsLoading(true);
+    let photoKey: string | null = null;
     try {
+      toast.loading('Uploading selfie...', { id: 'selfie-upload' });
+      const res = await uploadToR2(file, 'profilePhoto');
+      photoKey = res.key;
+      toast.success('Selfie uploaded', { id: 'selfie-upload' });
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to upload selfie', { id: 'selfie-upload' });
+      setGpsLoading(false);
+      return;
+    }
+
+    try {
+      toast.loading('Getting GPS location...', { id: 'gps' });
       const pos = await getPosition();
       const userLat = pos.coords.latitude;
       const userLng = pos.coords.longitude;
@@ -245,17 +287,18 @@ export default function EventDetail() {
       if (eventDetails?.venueLat != null && eventDetails?.venueLng != null) {
         const dist = Math.round(haversineMeters(userLat, userLng, eventDetails.venueLat, eventDetails.venueLng));
         if (dist > allowedRadius) {
-          toast.error(`Out of range! You are ${dist}m away from the venue. Admin requires you to be within ${allowedRadius}m to check in.`);
+          toast.error(`Out of range! You are ${dist}m away from the venue. Admin requires you to be within ${allowedRadius}m to check in.`, { id: 'gps' });
           setGpsLoading(false);
           return;
         }
       } else {
-        toast.error('Event location is not set on the map. Cannot verify your location.');
+        toast.error('Event location is not set on the map. Cannot verify your location.', { id: 'gps' });
         setGpsLoading(false);
         return;
       }
+      toast.success('Location verified', { id: 'gps' });
 
-      checkinMutation.mutate({ assignmentId, data: { lat: userLat, lng: userLng } }, {
+      checkinMutation.mutate({ assignmentId, data: { lat: userLat, lng: userLng, checkinPhotoKey: photoKey } }, {
         onSuccess: () => {
           toast.success('Checked in successfully!');
           queryClient.invalidateQueries({ queryKey: getListMyAssignmentsQueryKey() });
@@ -263,11 +306,12 @@ export default function EventDetail() {
         onError: (err: any) => toast.error(err.response?.data?.error || err.message || 'Check-in failed. Are you near the venue?')
       });
     } catch (err: any) {
-      toast.error('GPS unavailable — please enable location services or contact your coordinator.');
+      toast.error('GPS unavailable — please enable location services or contact your coordinator.', { id: 'gps' });
     } finally {
       setGpsLoading(false);
     }
   };
+
 
   const handleCheckout = async () => {
     if (!assignmentId) return;
@@ -491,20 +535,19 @@ export default function EventDetail() {
                       </div>
                     </div>
                   ) : (
-                    <Button 
-                      className="w-full h-14 text-sm tracking-widest bg-secondary text-secondary-foreground hover:bg-secondary/90 shadow-sm rounded-xl uppercase font-bold animate-in fade-in zoom-in duration-300" 
-                      onClick={handleCheckin} 
-                      disabled={checkinMutation.isPending || gpsLoading}
-                    >
-                      {(checkinMutation.isPending || gpsLoading) ? (
-                        <div className="w-5 h-5 border-2 border-secondary-foreground border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <>
-                          <Navigation className="w-5 h-5 mr-2" />
-                          GPS CHECK-IN
-                        </>
-                      )}
-                    </Button>
+                    <label htmlFor="checkin-selfie-upload">
+                      <div className="w-full h-14 text-sm tracking-widest bg-secondary text-secondary-foreground hover:bg-secondary/90 shadow-sm rounded-xl uppercase font-bold animate-in fade-in zoom-in duration-300 flex items-center justify-center cursor-pointer">
+                        {(checkinMutation.isPending || gpsLoading) ? (
+                          <div className="w-5 h-5 border-2 border-secondary-foreground border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <>
+                            <Camera className="w-5 h-5 mr-2" />
+                            GPS CHECK-IN (TAKE SELFIE)
+                          </>
+                        )}
+                      </div>
+                      <input type="file" accept="image/*" capture="user" className="hidden" id="checkin-selfie-upload" onChange={handleSelfieUpload} />
+                    </label>
                   )}
                   <Button variant="ghost" className="w-full text-destructive rounded-xl text-xs tracking-wider" onClick={() => setShowCancelDialog(true)}>
                     CANCEL ASSIGNMENT

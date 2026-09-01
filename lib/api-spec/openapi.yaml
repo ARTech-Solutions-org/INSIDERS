@@ -2101,6 +2101,18 @@ components:
         shoeSize:
           type: string
           nullable: true
+        tShirtSize:
+          type: string
+          nullable: true
+        shirtSize:
+          type: string
+          nullable: true
+        pantsSize:
+          type: string
+          nullable: true
+        shortsSize:
+          type: string
+          nullable: true
         gender:
           type: string
           nullable: true
@@ -3063,6 +3075,9 @@ components:
           type: number
         lng:
           type: number
+        checkinPhotoKey:
+          type: string
+          nullable: true
     CancelInput:
       type: object
       properties:

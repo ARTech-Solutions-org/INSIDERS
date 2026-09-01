@@ -34,7 +34,9 @@ import {
   Briefcase,
   TrendingUp,
   AlertCircle,
-  Banknote
+  Banknote,
+  Ruler,
+  Shirt
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -444,6 +446,57 @@ export default function UsherDetails() {
                 </div>
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Sizes & Languages */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Ruler className="w-5 h-5 text-primary" /> Sizes & Attributes
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Height</p>
+                <p className="font-medium text-sm">{usher.height ? `${usher.height} cm` : '—'}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Gender</p>
+                <p className="font-medium text-sm capitalize">{usher.gender || '—'}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Languages</p>
+                <p className="font-medium text-sm">{usher.languages ? usher.languages.join(", ") : '—'}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">T-Shirt Size</p>
+                <p className="font-medium text-sm">{usher.tShirtSize || '—'}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Shirt Size</p>
+                <p className="font-medium text-sm">{usher.shirtSize || '—'}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Pants Size</p>
+                <p className="font-medium text-sm">{usher.pantsSize || '—'}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Shorts Size</p>
+                <p className="font-medium text-sm">{usher.shortsSize || '—'}</p>
+              </div>
+              {usher.gender === 'female' && (
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">Dress Size</p>
+                  <p className="font-medium text-sm">{usher.dressSize || '—'}</p>
+                </div>
+              )}
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Shoe Size</p>
+                <p className="font-medium text-sm">{usher.shoeSize || '—'}</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
 

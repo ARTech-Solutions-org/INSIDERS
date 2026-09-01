@@ -17,6 +17,10 @@ export interface UsherProfile {
   profilePhotoUrl?: string | null;
   dressSize?: string | null;
   shoeSize?: string | null;
+  tShirtSize?: string | null;
+  shirtSize?: string | null;
+  pantsSize?: string | null;
+  shortsSize?: string | null;
   gender?: string | null;
   dateOfBirth?: Date | null;
   height?: number | null;

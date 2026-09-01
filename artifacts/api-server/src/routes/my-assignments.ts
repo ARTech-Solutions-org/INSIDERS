@@ -45,7 +45,7 @@ async function buildMyAssignment(assignment: any) {
   teamRows = allEventMembers.filter(m => m.eventTeamId === assignment.eventTeamId);
 
   const eventDetail = { ...event, assignments: [], deductionRules };
-  return { id: assignment.id, eventId: assignment.eventId, status: assignment.status, isTeamLead: assignment.isTeamLead, role: assignment.role, overriddenPay: assignment.overriddenPay, checkinTime: assignment.checkinTime, checkoutTime: assignment.checkoutTime, checkinMethod: assignment.checkinMethod, lateArrivalMinutes: assignment.lateArrivalMinutes, earlyLeaveMinutes: assignment.earlyLeaveMinutes, event: eventDetail, teamMembers: teamRows, team, allTeams, allEventMembers };
+  return { id: assignment.id, eventId: assignment.eventId, status: assignment.status, isTeamLead: assignment.isTeamLead, role: assignment.role, overriddenPay: assignment.overriddenPay, checkinTime: assignment.checkinTime, checkoutTime: assignment.checkoutTime, checkinMethod: assignment.checkinMethod, checkinPhotoKey: assignment.checkinPhotoKey, lateArrivalMinutes: assignment.lateArrivalMinutes, earlyLeaveMinutes: assignment.earlyLeaveMinutes, event: eventDetail, teamMembers: teamRows, team, allTeams, allEventMembers };
 }
 
 function haversineMeters(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -141,7 +141,7 @@ router.post("/my/assignments/:assignmentId/decline", requireUsher, async (req, r
 router.post("/my/assignments/:assignmentId/checkin", requireUsher, async (req, res) => {
   const parsed = UsherCheckinBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.flatten() }); return; }
-  const { lat, lng } = parsed.data;
+  const { lat, lng, checkinPhotoKey } = parsed.data;
   const assignmentId = parseInt(req.params.assignmentId as string, 10);
   const [assignment] = await db.select().from(eventAssignmentsTable).where(and(eq(eventAssignmentsTable.id, assignmentId), eq(eventAssignmentsTable.usherId, req.user!.id)));
   if (!assignment) { res.status(404).json({ error: "Not found" }); return; }
@@ -171,7 +171,7 @@ router.post("/my/assignments/:assignmentId/checkin", requireUsher, async (req, r
   const lateArrivalMinutes = event.startTime
     ? Math.max(0, Math.round((now.getTime() - new Date(event.startTime).getTime()) / 60000))
     : 0;
-  const [updated] = await db.update(eventAssignmentsTable).set({ checkinTime: now, checkinLat: lat, checkinLng: lng, checkinMethod: "gps", status: "checked_in", lateArrivalMinutes } as any).where(eq(eventAssignmentsTable.id, assignment.id)).returning();
+  const [updated] = await db.update(eventAssignmentsTable).set({ checkinTime: now, checkinLat: lat, checkinLng: lng, checkinPhotoKey: checkinPhotoKey ?? null, checkinMethod: "gps", status: "checked_in", lateArrivalMinutes } as any).where(eq(eventAssignmentsTable.id, assignment.id)).returning();
   res.json(await buildMyAssignment(updated));
 });
 

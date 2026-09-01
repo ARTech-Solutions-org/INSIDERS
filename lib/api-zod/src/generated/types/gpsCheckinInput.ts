@@ -8,4 +8,5 @@
 export interface GpsCheckinInput {
   lat: number;
   lng: number;
+  checkinPhotoKey?: string | null;
 }

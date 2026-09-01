@@ -24,6 +24,8 @@ export const eventAssignmentsTable = pgTable("event_assignments", {
   checkoutLng: real("checkout_lng"),
   earlyLeaveMinutes: integer("early_leave_minutes").default(0),     // minutes before event end
   reminderSent: boolean("reminder_sent").default(false),
+  checkinPhotoKey: varchar("checkin_photo_key", { length: 255 }),
+
 }, (table) => ({
   usherEventUnique: unique("usher_event_unique").on(table.usherId, table.eventId),
 }));
