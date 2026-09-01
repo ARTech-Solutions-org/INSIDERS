@@ -15,6 +15,12 @@ export interface UsherProfile {
   nationalIdDocUrl?: string | null;
   /** @nullable */
   profilePhotoUrl?: string | null;
+  dressSize?: string | null;
+  shoeSize?: string | null;
+  gender?: string | null;
+  dateOfBirth?: Date | null;
+  height?: number | null;
+  languages?: string[] | null;
   status: string;
   avgRating: number;
   balance: number;
@@ -42,6 +48,4 @@ export interface UsherProfile {
   reliabilityScore?: number | null;
   /** @nullable */
   lastRatingRecalcAt?: Date | null;
-  dressSize?: string | null;
-  shoeSize?: string | null;
 }

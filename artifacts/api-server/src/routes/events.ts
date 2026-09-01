@@ -687,7 +687,7 @@ router.patch("/events/:id/assignments/:assignmentId", requireAdmin, async (req, 
 
     await audit(req.user!.id, "UPDATE_ASSIGNMENT", "event_assignments", assignmentId);
 
-    if ((assignment.existingAssignment.status === "pending" || assignment.existingAssignment.status === "applied") && parsed.data.status === "assigned") {
+    if ((assignment.existingAssignment.status === "pending" || assignment.existingAssignment.status === "applied") && (parsed.data.status === "assigned" || parsed.data.status === "accepted")) {
       const msg = `You have been assigned to the event "${assignment.lockedEvent.title}". Check event details.`;
       await db.insert(notificationsTable).values({
         recipientType: "usher",
@@ -715,6 +715,7 @@ router.patch("/events/:id/assignments/:assignmentId", requireAdmin, async (req, 
       });
     }
 
+    sseManager.broadcast("EVENT_UPDATED", { id: eventId });
     res.json(assignment.updated);
   } catch (err: any) {
     if (err.message.startsWith("Budget exceeded:")) {

@@ -5,10 +5,7 @@
  * OpenAPI spec version: 1.0.0
  */
 
-/**
- * @nullable
- */
-export type UsherRegistrationGender = typeof UsherRegistrationGender[keyof typeof UsherRegistrationGender] | null;
+export type UsherRegistrationGender = typeof UsherRegistrationGender[keyof typeof UsherRegistrationGender];
 
 
 export const UsherRegistrationGender = {

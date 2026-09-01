@@ -23,7 +23,5 @@ export interface UsherUpdate {
   profilePhotoKey?: string | null;
   /** @nullable */
   profilePhotoUrl?: string | null;
-  /** @maxLength 20 */
-  dressSize?: string | null;
-  shoeSize?: string | null;
+  languages?: string[] | null;
 }

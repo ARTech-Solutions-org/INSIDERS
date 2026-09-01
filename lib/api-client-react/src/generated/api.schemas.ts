@@ -81,10 +81,7 @@ export interface LoginInput {
   password: string;
 }
 
-/**
- * @nullable
- */
-export type UsherRegistrationGender = typeof UsherRegistrationGender[keyof typeof UsherRegistrationGender] | null;
+export type UsherRegistrationGender = typeof UsherRegistrationGender[keyof typeof UsherRegistrationGender];
 
 
 export const UsherRegistrationGender = {
@@ -102,52 +99,31 @@ export const UsherRegistrationPaymentMethod = {
 
 export interface UsherRegistration {
   fullName: string;
-  /** @nullable */
-  fullNameArabic?: string | null;
-  /** @nullable */
-  gender?: UsherRegistrationGender;
-  /** @nullable */
-  dateOfBirth?: string | null;
-  /** @nullable */
-  height?: number | null;
-  /** @nullable */
-  university?: string | null;
-  /** @nullable */
-  major?: string | null;
-  /** @nullable */
-  languages?: string[] | null;
-  /** @nullable */
-  shoeSize?: string | null;
-  /** @nullable */
-  shirtSize?: string | null;
-  /** @nullable */
-  tShirtSize?: string | null;
-  /** @nullable */
-  pantsSize?: string | null;
-  /** @nullable */
-  shortsSize?: string | null;
+  fullNameArabic: string;
+  gender: UsherRegistrationGender;
+  dateOfBirth: string;
+  height: number;
+  university: string;
+  major: string;
+  languages: string[];
+  shoeSize: string;
+  shirtSize: string;
+  tShirtSize: string;
+  pantsSize: string;
+  shortsSize: string;
   phone: string;
   email: string;
   nationalIdNumber: string;
   password: string;
-  /** @nullable */
-  nationalIdDocUrl?: string | null;
-  /** @nullable */
-  nationalIdDocKey?: string | null;
-  /** @nullable */
-  nationalIdDocBackUrl?: string | null;
-  /** @nullable */
-  nationalIdDocBackKey?: string | null;
-  /** @nullable */
-  nationalIdExpiryDate?: string | null;
-  /** @nullable */
-  profilePhotoUrl?: string | null;
-  /** @nullable */
-  profilePhotoKey?: string | null;
-  paymentMethod?: UsherRegistrationPaymentMethod;
-  paymentMethodDetails?: string;
-  /** @maxLength 20 */
-  dressSize?: string;
+  nationalIdDocUrl: string;
+  nationalIdDocKey: string;
+  nationalIdDocBackUrl: string;
+  nationalIdDocBackKey: string;
+  nationalIdExpiryDate?: string;
+  profilePhotoUrl: string;
+  profilePhotoKey: string;
+  paymentMethod: UsherRegistrationPaymentMethod;
+  paymentMethodDetails: string;
 }
 
 export interface UsherProfile {
@@ -160,6 +136,12 @@ export interface UsherProfile {
   nationalIdDocUrl?: string | null;
   /** @nullable */
   profilePhotoUrl?: string | null;
+  dressSize?: string | null;
+  shoeSize?: string | null;
+  gender?: string | null;
+  dateOfBirth?: string | null;
+  height?: number | null;
+  languages?: string[] | null;
   status: string;
   avgRating: number;
   balance: number;
@@ -187,9 +169,6 @@ export interface UsherProfile {
   reliabilityScore?: number | null;
   /** @nullable */
   lastRatingRecalcAt?: string | null;
-  dressSize?: string | null;
-  shoeSize?: string | null;
-  languages?: string[] | null;
 }
 
 export interface AuthResult {
@@ -243,9 +222,6 @@ export interface UsherUpdate {
   profilePhotoKey?: string | null;
   /** @nullable */
   profilePhotoUrl?: string | null;
-  /** @maxLength 20 */
-  dressSize?: string | null;
-  shoeSize?: string | null;
   languages?: string[] | null;
 }
 
@@ -568,7 +544,15 @@ export interface AssignmentInput {
   role?: string;
   /** @nullable */
   overriddenPay?: number | null;
-  status?: string;
+}
+
+export interface MyWaitlistEntry {
+  id: number;
+  eventId: number;
+  usherId: number;
+  priorityOrder: number;
+  status: string;
+  event: Event;
 }
 
 export interface TeamMember {
@@ -704,6 +688,48 @@ export type EventHolderViewUshersItem = {
 export interface EventHolderView {
   event: EventHolderViewEvent;
   ushers: EventHolderViewUshersItem[];
+}
+
+export interface ApplyToEventResponse {
+  id: number;
+  eventId: number;
+  /** @nullable */
+  eventTeamId?: number | null;
+  usherId: number;
+  status: string;
+  isTeamLead?: boolean;
+  role?: string;
+  /** @nullable */
+  overriddenPay?: number | null;
+  /** @nullable */
+  checkinTime?: string | null;
+  /** @nullable */
+  checkinLat?: number | null;
+  /** @nullable */
+  checkinLng?: number | null;
+  /** @nullable */
+  checkinMethod?: string | null;
+  /** @nullable */
+  checkoutTime?: string | null;
+  /** @nullable */
+  checkoutLat?: number | null;
+  /** @nullable */
+  checkoutLng?: number | null;
+  usher?: UsherProfile;
+}
+
+export interface WaitlistEntry {
+  id: number;
+  eventId: number;
+  usherId: number;
+  priorityOrder: number;
+  status: string;
+  usher?: UsherProfile;
+}
+
+export interface WaitlistInput {
+  usherId: number;
+  priorityOrder: number;
 }
 
 export interface BalanceTransaction {

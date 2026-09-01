@@ -25,6 +25,7 @@ import type {
   AdminProfile,
   AdminRegistrationBody,
   AdminUpdate,
+  ApplyToEventResponse,
   AssignmentInput,
   AuditLogEntry,
   AuthResult,
@@ -3186,6 +3187,77 @@ export function useGetTeamLeaderSuggestions<TData = Awaited<ReturnType<typeof ge
 
 
 
+
+export const getApplyToEventUrl = (id: number,) => {
+
+
+
+
+  return `/api/events/${id}/apply`
+}
+
+/**
+ * @summary Apply to work at an event (Usher)
+ */
+export const applyToEvent = async (id: number, options?: Parameters<typeof customFetch>[1]): Promise<ApplyToEventResponse> => {
+
+  return customFetch<ApplyToEventResponse>(getApplyToEventUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getApplyToEventMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof applyToEvent>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof applyToEvent>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['applyToEvent'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof applyToEvent>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  applyToEvent(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ApplyToEventMutationResult = NonNullable<Awaited<ReturnType<typeof applyToEvent>>>
+
+    export type ApplyToEventMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Apply to work at an event (Usher)
+ */
+export const useApplyToEvent = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof applyToEvent>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof applyToEvent>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getApplyToEventMutationOptions(options));
+    }
 
 export const getListEventAssignmentsUrl = (id: number,) => {
 
@@ -6739,75 +6811,4 @@ export function useGetUsherReliabilityEvents<TData = Awaited<ReturnType<typeof g
 
 
 
-
-export const getApplyToEventUrl = (id: number,) => {
-
-
-
-
-  return `/api/events/${id}/apply`
-}
-
-/**
- * @summary Apply to work at an event (Usher)
- */
-export const applyToEvent = async (id: number, options?: Parameters<typeof customFetch>[1]): Promise<EventAssignment> => {
-
-  return customFetch<EventAssignment>(getApplyToEventUrl(id),
-  {
-    ...options,
-    method: 'POST'
-
-
-  }
-);}
-
-
-
-
-
-export const getApplyToEventMutationOptions = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof applyToEvent>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof applyToEvent>>, TError,{id: number}, TContext> => {
-
-const mutationKey = ['applyToEvent'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof applyToEvent>>, {id: number}> = (props) => {
-          const {id} = props ?? {};
-
-          return  applyToEvent(id,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type ApplyToEventMutationResult = NonNullable<Awaited<ReturnType<typeof applyToEvent>>>
-
-    export type ApplyToEventMutationError = ErrorType<unknown>
-
-    /**
- * @summary Apply to work at an event (Usher)
- */
-export const useApplyToEvent = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof applyToEvent>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
- ): UseMutationResult<
-        Awaited<ReturnType<typeof applyToEvent>>,
-        TError,
-        {id: number},
-        TContext
-      > => {
-      return useMutation(getApplyToEventMutationOptions(options));
-    }
 

@@ -9,50 +9,29 @@ import type { UsherRegistrationPaymentMethod } from './usherRegistrationPaymentM
 
 export interface UsherRegistration {
   fullName: string;
-  /** @nullable */
-  fullNameArabic?: string | null;
-  /** @nullable */
-  gender?: UsherRegistrationGender;
-  /** @nullable */
-  dateOfBirth?: Date | null;
-  /** @nullable */
-  height?: number | null;
-  /** @nullable */
-  university?: string | null;
-  /** @nullable */
-  major?: string | null;
-  /** @nullable */
-  languages?: string[] | null;
-  /** @nullable */
-  shoeSize?: string | null;
-  /** @nullable */
-  shirtSize?: string | null;
-  /** @nullable */
-  tShirtSize?: string | null;
-  /** @nullable */
-  pantsSize?: string | null;
-  /** @nullable */
-  shortsSize?: string | null;
+  fullNameArabic: string;
+  gender: UsherRegistrationGender;
+  dateOfBirth: Date;
+  height: number;
+  university: string;
+  major: string;
+  languages: string[];
+  shoeSize: string;
+  shirtSize: string;
+  tShirtSize: string;
+  pantsSize: string;
+  shortsSize: string;
   phone: string;
   email: string;
   nationalIdNumber: string;
   password: string;
-  /** @nullable */
-  nationalIdDocUrl?: string | null;
-  /** @nullable */
-  nationalIdDocKey?: string | null;
-  /** @nullable */
-  nationalIdDocBackUrl?: string | null;
-  /** @nullable */
-  nationalIdDocBackKey?: string | null;
-  /** @nullable */
-  nationalIdExpiryDate?: Date | null;
-  /** @nullable */
-  profilePhotoUrl?: string | null;
-  /** @nullable */
-  profilePhotoKey?: string | null;
-  paymentMethod?: UsherRegistrationPaymentMethod;
-  paymentMethodDetails?: string;
-  /** @maxLength 20 */
-  dressSize?: string;
+  nationalIdDocUrl: string;
+  nationalIdDocKey: string;
+  nationalIdDocBackUrl: string;
+  nationalIdDocBackKey: string;
+  nationalIdExpiryDate?: Date;
+  profilePhotoUrl: string;
+  profilePhotoKey: string;
+  paymentMethod: UsherRegistrationPaymentMethod;
+  paymentMethodDetails: string;
 }

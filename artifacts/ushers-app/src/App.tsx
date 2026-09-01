@@ -1,3 +1,4 @@
+import { useRealtimeSync } from '@/hooks/useRealtimeSync';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster, toast } from 'sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -77,6 +78,11 @@ function ForegroundNotifications() {
   return null;
 }
 
+function AppContent() {
+  useRealtimeSync();
+  return null;
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -89,6 +95,7 @@ function App() {
           <PWAInstallPrompt />
           <ForegroundNotifications />
         </div>
+        <AppContent />
         <Toaster position="top-center" richColors />
       </TooltipProvider>
     </QueryClientProvider>
