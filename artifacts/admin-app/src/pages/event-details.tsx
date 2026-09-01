@@ -1185,6 +1185,8 @@ export default function EventDetails() {
                     <option value="Arabic">Arabic</option>
                     <option value="French">French</option>
                     <option value="German">German</option>
+                    <option value="Spanish">Spanish</option>
+                    <option value="Italian">Italian</option>
                   </select>
                 </div>
                 <div className="space-y-1">

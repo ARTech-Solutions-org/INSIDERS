@@ -52,6 +52,8 @@ const getImageUrl = (key?: string | null) => {
   return `${baseUrl}/api/uploads/read?key=${encodeURIComponent(key)}`;
 };
 
+const COMMON_LANGUAGES = ['Arabic', 'English', 'French', 'German', 'Spanish', 'Italian'];
+
 export default function Profile() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
@@ -67,19 +69,18 @@ export default function Profile() {
   const deleteAvailMutation = useDeleteMyAvailability();
 
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({ fullName: '', phone: '' });
+  const [formData, setFormData] = useState<{fullName: string, phone: string, languages: string[]}>({ fullName: '', phone: '', languages: [] });
   const [newProfilePhoto, setNewProfilePhoto] = useState<File | null>(null);
   const [photoToCrop, setPhotoToCrop] = useState<File | null>(null);
 
   const SKILL_OPTIONS: Record<string, string[]> = {
-    language: ['Arabic', 'English', 'French', 'German', 'Spanish', 'Italian'],
     experience: ['Registration', 'Ushering', 'VIP Handling', 'Supervising', 'Customer Service', 'Scanning', 'Ticketing'],
     trait: ['Veiled', 'Non-Veiled', 'Height: 150-160cm', 'Height: 160-170cm', 'Height: 170-180cm', 'Height: 180cm+']
   };
 
   // Skill state
-  const [newSkillType, setNewSkillType] = useState('language');
-  const [newSkillValue, setNewSkillValue] = useState(SKILL_OPTIONS['language'][0]);
+  const [newSkillType, setNewSkillType] = useState('experience');
+  const [newSkillValue, setNewSkillValue] = useState(SKILL_OPTIONS['experience'][0]);
   const [showSkillDialog, setShowSkillDialog] = useState(false);
 
   // Availability state
@@ -276,6 +277,14 @@ export default function Profile() {
                 type="tel"
                 inputMode="numeric"
               />
+              <div className="w-full">
+                <MultiSelectDropdown
+                  placeholder="Select Languages"
+                  options={COMMON_LANGUAGES}
+                  value={formData.languages}
+                  onChange={(val) => setFormData({ ...formData, languages: val })}
+                />
+              </div>
               <div className="flex gap-2 pt-2">
                 <Button variant="outline" className="flex-1 rounded-xl text-xs font-bold tracking-widest uppercase" onClick={() => setIsEditing(false)}>CANCEL</Button>
                 <Button className="flex-1 rounded-xl text-xs font-bold tracking-widest uppercase" onClick={handleSave} disabled={updateMutation.isPending}>SAVE</Button>
@@ -295,11 +304,26 @@ export default function Profile() {
               </div>
               <button 
                 className="relative flex items-center justify-center w-full h-11 bg-primary text-primary-foreground text-xs font-bold tracking-widest uppercase rounded-xl shadow-[5px_5px_0px_hsl(165,35%,12%)] transition-all duration-300 group hover:text-transparent active:translate-x-[3px] active:translate-y-[3px] active:shadow-[2px_2px_0px_hsl(165,35%,12%)] mt-2"
-                onClick={() => setIsEditing(true)}
+                onClick={() => {
+                  setFormData({
+                    fullName: profile.fullName || '',
+                    phone: profile.phone || '',
+                    languages: profile.languages || []
+                  });
+                  setIsEditing(true);
+                }}
               >
                 <span className="transition-colors duration-300 group-hover:text-transparent">EDIT PROFILE</span>
                 <Pencil className="w-4 h-4 absolute right-5 text-primary-foreground transition-all duration-300 group-hover:right-1/2 group-hover:translate-x-1/2" strokeWidth={2.5} />
               </button>
+              
+              {profile.languages && profile.languages.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 justify-center mt-4">
+                  {profile.languages.map((lang: string) => (
+                    <span key={lang} className="text-[9px] font-bold bg-primary/10 text-primary px-2 py-1 rounded-md uppercase tracking-wider">{lang}</span>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -328,7 +352,6 @@ export default function Profile() {
                       setNewSkillValue(SKILL_OPTIONS[type][0]);
                     }}
                   >
-                    <option value="language">LANGUAGE</option>
                     <option value="experience">EXPERIENCE</option>
                     <option value="trait">PHYSICAL TRAIT</option>
                   </select>
@@ -350,7 +373,6 @@ export default function Profile() {
           <div className="flex flex-wrap gap-2">
             {Array.isArray(skills) && skills.length ? skills.map(skill => (
               <span key={skill.id} className="brand-meta inline-flex items-center px-3 py-1.5 bg-background border border-border rounded-lg">
-                {skill.skillType === 'language' ? 'LANGUAGE: ' : ''}
                 {skill.value}
                 <button onClick={() => handleDeleteSkill(skill.id)} className="ml-2 text-muted-foreground hover:text-destructive transition-colors">
                   <X className="w-3.5 h-3.5" />

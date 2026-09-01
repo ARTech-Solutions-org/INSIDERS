@@ -778,14 +778,15 @@ paths:
   /events/{id}/apply:
     post:
       operationId: applyToEvent
-      tags: [Events]
+      tags:
+      - Events
       summary: Apply to work at an event (Usher)
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
       responses:
         '200':
           description: OK
@@ -2152,6 +2153,11 @@ components:
           type:
           - string
           - 'null'
+        languages:
+          type: array
+          items:
+            type: string
+          nullable: true
     UsherStatusUpdate:
       type: object
       required:
