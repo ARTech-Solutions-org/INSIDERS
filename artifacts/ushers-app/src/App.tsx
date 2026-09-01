@@ -1,5 +1,5 @@
 import { useRealtimeSync } from '@/hooks/useRealtimeSync';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
 import { Toaster, toast } from 'sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import NotFound from '@/pages/not-found';
@@ -8,6 +8,7 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { Watermark } from '@/components/ui/watermark';
 import { PWAInstallPrompt } from '@/components/pwa-install-prompt';
 import { onForegroundMessage } from '@/lib/firebase';
+import { getListMyAssignmentsQueryKey, getListEventsQueryKey } from '@workspace/api-client-react';
 import { useEffect } from 'react';
 
 // Pages
@@ -63,17 +64,30 @@ function Router() {
 }
 
 function ForegroundNotifications() {
+  const queryClient = useQueryClient();
+
   useEffect(() => {
     return onForegroundMessage((payload: any) => {
       const title = payload.notification?.title ?? payload.data?.title ?? 'إشعار جديد';
       const body = payload.notification?.body ?? payload.data?.body ?? '';
-      
+      const type = payload.data?.type;
+
       toast(title, {
         description: body,
         duration: 8000,
       });
+
+      // If it's an assignment notification (approval/rejection), refresh assignments immediately
+      if (type === 'assignment') {
+        queryClient.invalidateQueries({ queryKey: getListMyAssignmentsQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getListEventsQueryKey() });
+        const eventId = payload.data?.eventId ? parseInt(payload.data.eventId, 10) : null;
+        if (eventId) {
+          queryClient.invalidateQueries({ queryKey: ['events', eventId] });
+        }
+      }
     });
-  }, []);
+  }, [queryClient]);
   
   return null;
 }

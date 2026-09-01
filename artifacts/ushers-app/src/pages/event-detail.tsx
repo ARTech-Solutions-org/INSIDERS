@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { GeofenceMap } from '@/components/ui/geofence-map';
 import { useRoute } from 'wouter';
 import {
@@ -37,6 +37,17 @@ export default function EventDetail() {
   const eventId = params?.id ? parseInt(params.id, 10) : 0;
   const queryClient = useQueryClient();
   const { data: user } = useGetMe();
+
+  // Refetch when user returns to the app (e.g. after tapping a background notification)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        queryClient.invalidateQueries({ queryKey: getListMyAssignmentsQueryKey() });
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [queryClient]);
 
   const { data: assignmentsData, isLoading: isAssignmentsLoading } = useListMyAssignments({});
   const assignmentsList: MyAssignment[] = Array.isArray(assignmentsData)
