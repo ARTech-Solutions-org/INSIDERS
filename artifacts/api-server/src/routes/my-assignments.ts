@@ -283,16 +283,25 @@ router.post("/my/assignments/:assignmentId/checkout", requireUsher, async (req, 
   // Automatically add balance payout
   if (assignment.status !== "completed") {
     const baseRate = assignment.isTeamLead ? (event.leaderRate || 0) : (event.regularRate || 0);
-    const amount = assignment.overriddenPay ?? baseRate;
-    if (amount > 0) {
+    const grossAmount = assignment.overriddenPay ?? baseRate;
+
+    // Apply event deduction rules
+    const deductionRules = await db.select().from(deductionRulesTable).where(eq(deductionRulesTable.eventId, assignment.eventId));
+    const totalDeduction = deductionRules.reduce((sum, rule) => sum + rule.amount, 0);
+    const finalAmount = Math.max(0, grossAmount - totalDeduction);
+
+    if (finalAmount > 0) {
+      const deductionSummary = deductionRules.length > 0
+        ? ` (Deductions: ${deductionRules.map(r => `${r.ruleType}: -${r.amount} EGP`).join(', ')})`
+        : '';
       await db.insert(balanceTransactionsTable).values({
         usherId: assignment.usherId,
         eventAssignmentId: assignment.id,
-        amount,
+        amount: finalAmount,
         type: "credit",
-        reason: `Completed event: ${event.title}`
+        reason: `Completed event: ${event.title}${deductionSummary}`
       });
-      await db.update(ushersTable).set({ balance: sql`COALESCE(${ushersTable.balance}, 0) + ${amount}` }).where(eq(ushersTable.id, assignment.usherId));
+      await db.update(ushersTable).set({ balance: sql`COALESCE(${ushersTable.balance}, 0) + ${finalAmount}` }).where(eq(ushersTable.id, assignment.usherId));
     }
   }
 

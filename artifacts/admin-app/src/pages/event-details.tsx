@@ -19,7 +19,9 @@ import {
   useGetEventFeedbackLink,
   useCreateEventFeedbackLink,
   getGetEventFeedbackLinkQueryKey,
-  useAdminCheckout
+  useAdminCheckout,
+  useCreateDeductionRule,
+  useDeleteDeductionRule,
 } from "@workspace/api-client-react";
 import { useQueryClient, useQueries } from "@tanstack/react-query";
 import { useGetMe } from "@workspace/api-client-react";
@@ -150,6 +152,10 @@ export default function EventDetails() {
   const [filterDressSize, setFilterDressSize] = useState<string>('all');
   const [filterShoeSize, setFilterShoeSize] = useState<string>('all');
 
+  // ─── DEDUCTION RULES ─────────────────────────────────────────────────────
+  const [newRuleType, setNewRuleType] = useState('');
+  const [newRuleAmount, setNewRuleAmount] = useState('');
+
   // ─── FEEDBACK LINK ───────────────────────────────────────────────────────
   const { data: feedbackLink, isLoading: isFeedbackLinkLoading } = useGetEventFeedbackLink(
     eventId,
@@ -193,6 +199,30 @@ export default function EventDetails() {
       },
       onError: (err: any) => {
         toast({ title: "Failed to checkout.", description: err.response?.data?.error || err.message, variant: "destructive" });
+      }
+    }
+  });
+
+  const { mutate: createDeductionRule, isPending: isCreatingRule } = useCreateDeductionRule({
+    mutation: {
+      onSuccess: () => {
+        setNewRuleType('');
+        setNewRuleAmount('');
+        queryClient.invalidateQueries({ queryKey: getGetEventQueryKey(eventId) as any });
+      },
+      onError: (err: any) => {
+        toast({ title: "Failed to add rule.", description: err.response?.data?.error || err.message, variant: "destructive" });
+      }
+    }
+  });
+
+  const { mutate: deleteDeductionRule } = useDeleteDeductionRule({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getGetEventQueryKey(eventId) as any });
+      },
+      onError: (err: any) => {
+        toast({ title: "Failed to delete rule.", description: err.response?.data?.error || err.message, variant: "destructive" });
       }
     }
   });
@@ -758,18 +788,62 @@ export default function EventDetails() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Deduction Rules</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <X className="w-4 h-4 text-destructive" />
+                  Deduction Rules
+                </CardTitle>
+                <CardDescription>Rules applied equally to all ushers at checkout. Total: <span className="text-destructive font-semibold">-{(event.deductionRules || []).reduce((s: number, r: any) => s + r.amount, 0)} EGP</span></CardDescription>
               </CardHeader>
-              <CardContent className="space-y-2">
-                {event.deductionRules?.map((rule: any) => (
-                  <div key={rule.id} className="flex justify-between items-center text-sm border p-2 rounded bg-muted/20">
-                    <span>{rule.ruleType}</span>
-                    <span className="text-destructive font-medium">- EGP {rule.amount}</span>
+              <CardContent className="space-y-3">
+                {/* Existing Rules */}
+                {(event.deductionRules || []).length === 0 && (
+                  <div className="text-sm text-muted-foreground">No deduction rules defined.</div>
+                )}
+                {(event.deductionRules || []).map((rule: any) => (
+                  <div key={rule.id} className="flex justify-between items-center text-sm border p-2.5 rounded-lg bg-muted/20">
+                    <span className="font-medium">{rule.ruleType}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-destructive font-semibold">- {rule.amount} EGP</span>
+                      <button
+                        onClick={() => deleteDeductionRule({ id: eventId, ruleId: rule.id })}
+                        className="text-muted-foreground hover:text-destructive transition-colors"
+                        title="Delete rule"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                 ))}
-                {(!event.deductionRules || event.deductionRules.length === 0) && (
-                  <div className="text-sm text-muted-foreground">No rules defined.</div>
-                )}
+
+                {/* Add New Rule Form */}
+                <div className="pt-2 border-t space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Add Rule</p>
+                  <Input
+                    placeholder="Rule name (e.g. Late Arrival)"
+                    value={newRuleType}
+                    onChange={(e) => setNewRuleType(e.target.value)}
+                  />
+                  <div className="flex gap-2">
+                    <Input
+                      type="number"
+                      placeholder="Amount (EGP)"
+                      value={newRuleAmount}
+                      onChange={(e) => setNewRuleAmount(e.target.value)}
+                      min={0}
+                    />
+                    <Button
+                      size="sm"
+                      disabled={!newRuleType.trim() || !newRuleAmount || isCreatingRule}
+                      onClick={() => {
+                        const amount = parseFloat(newRuleAmount);
+                        if (isNaN(amount) || amount <= 0) return;
+                        createDeductionRule({ id: eventId, data: { ruleType: newRuleType.trim(), amount } });
+                      }}
+                    >
+                      Add
+                    </Button>
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
