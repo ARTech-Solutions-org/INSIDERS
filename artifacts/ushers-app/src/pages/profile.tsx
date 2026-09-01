@@ -284,6 +284,7 @@ export default function Profile() {
                   options={COMMON_LANGUAGES}
                   value={formData.languages}
                   onChange={(val) => setFormData({ ...formData, languages: val })}
+                  allowCustom={true}
                 />
               </div>
               <div className="flex gap-2 pt-2">

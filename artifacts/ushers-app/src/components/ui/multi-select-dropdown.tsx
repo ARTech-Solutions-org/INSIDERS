@@ -1,9 +1,36 @@
-import React from 'react';
-import { ChevronDown } from 'lucide-react';
+import React, { useState } from 'react';
+import { ChevronDown, Plus, X } from 'lucide-react';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuCheckboxItem } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 
-export function MultiSelectDropdown({ options, value = [], onChange, placeholder = "Select..." }: { options: string[], value: string[], onChange: (v: string[]) => void, placeholder?: string }) {
+export function MultiSelectDropdown({
+  options,
+  value = [],
+  onChange,
+  placeholder = "Select...",
+  allowCustom = false,
+}: {
+  options: string[];
+  value: string[];
+  onChange: (v: string[]) => void;
+  placeholder?: string;
+  allowCustom?: boolean;
+}) {
+  const [customInput, setCustomInput] = useState('');
+
+  const addCustom = () => {
+    const trimmed = customInput.trim();
+    if (trimmed && !value.includes(trimmed)) {
+      onChange([...value, trimmed]);
+    }
+    setCustomInput('');
+  };
+
+  const removeTag = (tag: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    onChange(value.filter(v => v !== tag));
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -13,8 +40,15 @@ export function MultiSelectDropdown({ options, value = [], onChange, placeholder
               <span className="text-primary-foreground/50 text-sm pl-1">{placeholder}</span>
             ) : (
               value.map(tag => (
-                <Badge key={tag} variant="secondary" className="bg-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/30 px-2 py-1 font-medium text-xs">
+                <Badge key={tag} variant="secondary" className="bg-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/30 px-2 py-1 font-medium text-xs flex items-center gap-1">
                   {tag}
+                  <span
+                    className="ml-1 cursor-pointer hover:opacity-70"
+                    onClick={(e) => removeTag(tag, e)}
+                    onPointerDown={(e) => e.stopPropagation()}
+                  >
+                    <X className="w-3 h-3" />
+                  </span>
                 </Badge>
               ))
             )}
@@ -22,7 +56,34 @@ export function MultiSelectDropdown({ options, value = [], onChange, placeholder
           <ChevronDown className="h-4 w-4 text-primary-foreground/50 shrink-0" />
         </div>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-[var(--radix-dropdown-menu-trigger-width)] bg-popover max-h-60 overflow-y-auto">
+      <DropdownMenuContent align="start" className="w-[var(--radix-dropdown-menu-trigger-width)] bg-popover max-h-72 overflow-y-auto">
+        {/* Custom language input */}
+        {allowCustom && (
+          <div className="flex items-center gap-1 px-2 py-2 border-b border-border">
+            <input
+              className="flex-1 text-sm bg-transparent outline-none placeholder:text-muted-foreground"
+              placeholder="Type a language..."
+              value={customInput}
+              onChange={e => setCustomInput(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  addCustom();
+                }
+              }}
+              onPointerDown={e => e.stopPropagation()}
+              onClick={e => e.stopPropagation()}
+            />
+            <button
+              className="flex items-center justify-center w-6 h-6 rounded-md bg-primary text-primary-foreground hover:bg-primary/80 transition-colors shrink-0"
+              onClick={e => { e.stopPropagation(); addCustom(); }}
+              onPointerDown={e => e.stopPropagation()}
+              type="button"
+            >
+              <Plus className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
         {options.map(opt => (
           <DropdownMenuCheckboxItem
             key={opt}
