@@ -45,7 +45,7 @@ async function buildMyAssignment(assignment: any) {
   teamRows = allEventMembers.filter(m => m.eventTeamId === assignment.eventTeamId);
 
   const eventDetail = { ...event, assignments: [], deductionRules };
-  return { id: assignment.id, eventId: assignment.eventId, status: assignment.status, isTeamLead: assignment.isTeamLead, role: assignment.role, overriddenPay: assignment.overriddenPay, checkinTime: assignment.checkinTime, checkoutTime: assignment.checkoutTime, checkinMethod: assignment.checkinMethod, event: eventDetail, teamMembers: teamRows, team, allTeams, allEventMembers };
+  return { id: assignment.id, eventId: assignment.eventId, status: assignment.status, isTeamLead: assignment.isTeamLead, role: assignment.role, overriddenPay: assignment.overriddenPay, checkinTime: assignment.checkinTime, checkoutTime: assignment.checkoutTime, checkinMethod: assignment.checkinMethod, lateArrivalMinutes: assignment.lateArrivalMinutes, earlyLeaveMinutes: assignment.earlyLeaveMinutes, event: eventDetail, teamMembers: teamRows, team, allTeams, allEventMembers };
 }
 
 function haversineMeters(lat1: number, lng1: number, lat2: number, lng2: number): number {

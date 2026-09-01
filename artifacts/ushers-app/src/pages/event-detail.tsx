@@ -517,7 +517,7 @@ export default function EventDetail() {
                   <div className="bg-green-500/10 border border-green-500/20 text-green-700 p-3 rounded-xl flex items-center justify-between font-bold text-xs uppercase tracking-wider mb-2">
                     <div className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4" />
-                      CHECKED IN AT {format(new Date(assignment.checkinTime!), 'h:mm a')}
+                      CHECKED IN AT {assignment.checkinTime && !isNaN(new Date(assignment.checkinTime).getTime()) ? format(new Date(assignment.checkinTime), 'h:mm a') : ''}
                     </div>
                     {(assignment as any).lateArrivalMinutes > 0 && (
                       <span className="text-[10px] font-bold text-amber-700 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-md">
