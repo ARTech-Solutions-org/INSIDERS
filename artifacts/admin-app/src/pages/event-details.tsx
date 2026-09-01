@@ -1300,7 +1300,7 @@ export default function EventDetails() {
                           variant="secondary" 
                           className="h-7 text-xs bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20"
                           disabled={hasStarted}
-                          onClick={() => updateAssignment({ id: eventId, assignmentId: applicant.id, data: { usherId: applicant.usher!.id, status: 'assigned' } as any })}
+                          onClick={() => updateAssignment({ id: eventId, assignmentId: applicant.id, data: { usherId: applicant.usher!.id, status: 'accepted' } as any })}
                         >
                           <CheckCircle className="w-3 h-3 mr-1" />
                           Approve
