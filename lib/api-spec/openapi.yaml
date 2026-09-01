@@ -3139,6 +3139,12 @@ components:
           type: string
         amount:
           type: number
+        triggerType:
+          type: string
+          nullable: true
+        thresholdMinutes:
+          type: integer
+          nullable: true
     EventHolderLink:
       type: object
       required:

@@ -677,6 +677,8 @@ export interface CancellationResult {
 export interface DeductionRuleInput {
   ruleType: string;
   amount: number;
+  triggerType?: string | null;
+  thresholdMinutes?: number | null;
 }
 
 export interface EventHolderLink {

@@ -883,7 +883,9 @@ export const CreateDeductionRuleParams = zod.object({
 
 export const CreateDeductionRuleBody = zod.object({
   "ruleType": zod.string(),
-  "amount": zod.number()
+  "amount": zod.number(),
+  "triggerType": zod.string().nullish(),
+  "thresholdMinutes": zod.number().int().nullish()
 })
 
 export const createDeductionRuleResponseTriggerTypeDefault = `always`;
