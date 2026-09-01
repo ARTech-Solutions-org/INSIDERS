@@ -22,6 +22,8 @@ import {
   useAdminCheckout,
   useCreateDeductionRule,
   useDeleteDeductionRule,
+  useAdminAddManualDeduction,
+  useAdminRemoveManualDeduction,
 } from "@workspace/api-client-react";
 import { useQueryClient, useQueries } from "@tanstack/react-query";
 import { useGetMe } from "@workspace/api-client-react";
@@ -71,7 +73,8 @@ import {
   Copy,
   RefreshCw,
   MessageSquare,
-  LogOut
+  LogOut,
+  MinusCircle
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -155,6 +158,39 @@ export default function EventDetails() {
   // ─── DEDUCTION RULES ─────────────────────────────────────────────────────
   const [newRuleType, setNewRuleType] = useState('');
   const [newRuleAmount, setNewRuleAmount] = useState('');
+  const [newRuleTrigger, setNewRuleTrigger] = useState('always');
+  const [newRuleThreshold, setNewRuleThreshold] = useState('');
+
+  const [manualDeductionAssignment, setManualDeductionAssignment] = useState<any>(null);
+  const [manualDeductionReason, setManualDeductionReason] = useState('');
+  const [manualDeductionAmount, setManualDeductionAmount] = useState('');
+
+  const { mutate: addManualDeduction, isPending: isAddingManualDeduction } = useAdminAddManualDeduction({
+    mutation: {
+      onSuccess: () => {
+        toast({ title: "Manual deduction added successfully." });
+        setManualDeductionAssignment(null);
+        setManualDeductionReason('');
+        setManualDeductionAmount('');
+        refetch();
+      },
+      onError: (err: any) => {
+        toast({ title: "Failed to add manual deduction.", description: err.response?.data?.error || err.message, variant: "destructive" });
+      }
+    }
+  });
+
+  const { mutate: removeManualDeduction } = useAdminRemoveManualDeduction({
+    mutation: {
+      onSuccess: () => {
+        toast({ title: "Manual deduction removed successfully." });
+        refetch();
+      },
+      onError: (err: any) => {
+        toast({ title: "Failed to remove manual deduction.", description: err.response?.data?.error || err.message, variant: "destructive" });
+      }
+    }
+  });
 
   // ─── FEEDBACK LINK ───────────────────────────────────────────────────────
   const { data: feedbackLink, isLoading: isFeedbackLinkLoading } = useGetEventFeedbackLink(
@@ -877,7 +913,7 @@ export default function EventDetails() {
                 {(() => {
                   const totalAssigned = event.assignments?.filter((a: any) => !['pending', 'applied', 'rejected'].includes(a.status)).length || 0;
                   const checkedInCount = event.assignments?.filter((a: any) => ["checked_in", "completed"].includes(a.status)).length || 0;
-                  const pendingApplicantsCount = event.assignments?.filter((a: any) => ['applied', 'pending'].includes(a.status)).length || 0;
+                  const pendingApplicantsCount = event.assignments?.filter((a: any) => a.status === 'applied').length || 0;
                   const canceledCount = event.assignments?.filter((a: any) => a.status === "cancelled").length || 0;
                   const lateCount = event.assignments?.filter((a: any) => a.lateArrivalMinutes > 0).length || 0;
 
@@ -893,7 +929,7 @@ export default function EventDetails() {
                       </div>
                       <div className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 rounded-lg p-4 text-center">
                         <div className="text-3xl font-bold">{pendingApplicantsCount}</div>
-                        <div className="text-xs uppercase tracking-wider mt-1">Applicants</div>
+                        <div className="text-xs uppercase tracking-wider mt-1">Pending Applicants</div>
                       </div>
                       <div className="bg-destructive/10 text-destructive rounded-lg p-4 text-center">
                         <div className="text-3xl font-bold">{lateCount}</div>
@@ -1071,6 +1107,11 @@ export default function EventDetails() {
                                 MISSED CHECKOUT
                               </Badge>
                             )}
+                            {assignment.manualDeductions && assignment.manualDeductions.length > 0 && (
+                              <Badge variant="destructive" className="text-[9px] h-4 px-1.5 font-normal ml-1">
+                                {assignment.manualDeductions.length} deductions (-{assignment.manualDeductions.reduce((sum: number, d: any) => sum + d.amount, 0)} EGP)
+                              </Badge>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -1101,6 +1142,15 @@ export default function EventDetails() {
                           >
                             <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
                             Rate
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            className="h-8 text-xs gap-1 text-destructive hover:bg-destructive/10"
+                            onClick={() => setManualDeductionAssignment(assignment)}
+                          >
+                            <MinusCircle className="w-3.5 h-3.5" />
+                            Deduct
                           </Button>
                           <Button
                             size="sm"
@@ -1422,13 +1472,57 @@ export default function EventDetails() {
                     min={0}
                   />
                 </div>
+                <div className="space-y-1">
+                  <Label htmlFor="rule-trigger">Trigger</Label>
+                  <select
+                    id="rule-trigger"
+                    className="flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                    value={newRuleTrigger}
+                    onChange={(e) => setNewRuleTrigger(e.target.value)}
+                  >
+                    <option value="always">Always Apply</option>
+                    <option value="late_arrival">Late Arrival</option>
+                    <option value="early_leave">Early Leave</option>
+                  </select>
+                </div>
+                {(newRuleTrigger === 'late_arrival' || newRuleTrigger === 'early_leave') && (
+                  <div className="space-y-1">
+                    <Label htmlFor="rule-threshold">Threshold (Minutes)</Label>
+                    <Input
+                      id="rule-threshold"
+                      type="number"
+                      placeholder="e.g. 15"
+                      value={newRuleThreshold}
+                      onChange={(e) => setNewRuleThreshold(e.target.value)}
+                      min={0}
+                    />
+                  </div>
+                )}
                 <Button
-                  className="w-full"
+                  className="w-full mt-4"
                   disabled={!newRuleType.trim() || !newRuleAmount || isCreatingRule}
                   onClick={() => {
                     const amount = parseFloat(newRuleAmount);
                     if (isNaN(amount) || amount <= 0) return;
-                    createDeductionRule({ id: eventId, data: { ruleType: newRuleType.trim(), amount } });
+                    
+                    let threshold: number | undefined;
+                    if (newRuleTrigger !== 'always' && newRuleThreshold) {
+                      threshold = parseInt(newRuleThreshold, 10);
+                    }
+                    
+                    createDeductionRule({ 
+                      id: eventId, 
+                      data: { 
+                        ruleType: newRuleType.trim(), 
+                        amount,
+                        triggerType: newRuleTrigger,
+                        thresholdMinutes: threshold,
+                      } 
+                    });
+                    
+                    setNewRuleType('');
+                    setNewRuleAmount('');
+                    setNewRuleThreshold('');
                   }}
                 >
                   {isCreatingRule ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
@@ -1511,6 +1605,91 @@ export default function EventDetails() {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+    </Dialog>
+
+      {/* Manual Deduction Dialog */}
+      <Dialog open={!!manualDeductionAssignment} onOpenChange={(open) => !open && setManualDeductionAssignment(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MinusCircle className="w-5 h-5 text-destructive" />
+              Manage Manual Deductions
+            </DialogTitle>
+            <DialogDescription>
+              Deduct pay from {manualDeductionAssignment?.usher?.fullName}. This will be subtracted during checkout.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            {manualDeductionAssignment?.manualDeductions && manualDeductionAssignment.manualDeductions.length > 0 && (
+              <div className="space-y-2">
+                <Label>Existing Deductions</Label>
+                <div className="border rounded-md divide-y overflow-hidden text-sm">
+                  {manualDeductionAssignment.manualDeductions.map((d: any) => (
+                    <div key={d.id} className="p-2 flex justify-between items-center bg-muted/20">
+                      <div className="flex flex-col">
+                        <span className="font-medium">{d.reason}</span>
+                        <span className="text-xs text-muted-foreground">- {d.amount} EGP</span>
+                      </div>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-6 w-6 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        onClick={() => removeManualDeduction({ id: eventId, assignmentId: manualDeductionAssignment.id, deductionId: d.id })}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-1 mt-4 pt-4 border-t">
+              <Label htmlFor="deduction-reason">New Deduction Reason</Label>
+              <Input
+                id="deduction-reason"
+                placeholder="e.g. Dress Code Violation"
+                value={manualDeductionReason}
+                onChange={(e) => setManualDeductionReason(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="deduction-amount">Amount (EGP)</Label>
+              <Input
+                id="deduction-amount"
+                type="number"
+                placeholder="0"
+                min="0"
+                value={manualDeductionAmount}
+                onChange={(e) => setManualDeductionAmount(e.target.value)}
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setManualDeductionAssignment(null)} disabled={isAddingManualDeduction}>
+              Close
+            </Button>
+            <Button 
+              type="button" 
+              variant="destructive"
+              disabled={isAddingManualDeduction || !manualDeductionReason.trim() || !manualDeductionAmount}
+              onClick={() => {
+                const amount = parseFloat(manualDeductionAmount);
+                if (isNaN(amount) || amount <= 0) return;
+                addManualDeduction({
+                  id: eventId,
+                  assignmentId: manualDeductionAssignment.id,
+                  data: { reason: manualDeductionReason.trim(), amount }
+                });
+              }}
+            >
+              {isAddingManualDeduction ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+              Add Deduction
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

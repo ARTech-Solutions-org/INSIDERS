@@ -5,11 +5,11 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export interface DeductionRule {
+export interface AssignmentDeduction {
   id: number;
-  eventId: number;
-  ruleType: string;
+  eventAssignmentId: number;
+  adminId: number;
+  reason: string;
   amount: number;
-  triggerType?: string;
-  thresholdMinutes?: number | null;
+  createdAt?: Date;
 }

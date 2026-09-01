@@ -4,6 +4,7 @@
  * Api
  * OpenAPI spec version: 1.0.0
  */
+import type { AssignmentDeduction } from './assignmentDeduction';
 import type { UsherProfile } from './usherProfile';
 
 export interface AssignmentWithUsher {
@@ -22,4 +23,5 @@ export interface AssignmentWithUsher {
   /** @nullable */
   checkinMethod?: string | null;
   usher: UsherProfile;
+  manualDeductions?: AssignmentDeduction[];
 }

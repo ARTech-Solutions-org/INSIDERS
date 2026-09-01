@@ -24,8 +24,10 @@ import type {
   AdminInput,
   AdminProfile,
   AdminRegistrationBody,
+  AdminRemoveManualDeduction200,
   AdminUpdate,
   ApplyToEventResponse,
+  AssignmentDeduction,
   AssignmentInput,
   AuditLogEntry,
   AuthResult,
@@ -36,6 +38,7 @@ import type {
   CancelInput,
   CancellationResult,
   CreateAdminInvitationResponse,
+  CreateAssignmentDeductionBody,
   CurrentUser,
   DeclineInput,
   DeductionRule,
@@ -6811,4 +6814,153 @@ export function useGetUsherReliabilityEvents<TData = Awaited<ReturnType<typeof g
 
 
 
+
+export const getAdminAddManualDeductionUrl = (id: number,
+    assignmentId: number,) => {
+
+
+
+
+  return `/api/events/${id}/assignments/${assignmentId}/deductions`
+}
+
+/**
+ * @summary Add manual deduction to an assignment
+ */
+export const adminAddManualDeduction = async (id: number,
+    assignmentId: number,
+    createAssignmentDeductionBody: CreateAssignmentDeductionBody, options?: Parameters<typeof customFetch>[1]): Promise<AssignmentDeduction> => {
+
+  return customFetch<AssignmentDeduction>(getAdminAddManualDeductionUrl(id,assignmentId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(createAssignmentDeductionBody)
+  }
+);}
+
+
+
+
+
+export const getAdminAddManualDeductionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminAddManualDeduction>>, TError,{id: number;assignmentId: number;data: BodyType<CreateAssignmentDeductionBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof adminAddManualDeduction>>, TError,{id: number;assignmentId: number;data: BodyType<CreateAssignmentDeductionBody>}, TContext> => {
+
+const mutationKey = ['adminAddManualDeduction'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof adminAddManualDeduction>>, {id: number;assignmentId: number;data: BodyType<CreateAssignmentDeductionBody>}> = (props) => {
+          const {id,assignmentId,data} = props ?? {};
+
+          return  adminAddManualDeduction(id,assignmentId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AdminAddManualDeductionMutationResult = NonNullable<Awaited<ReturnType<typeof adminAddManualDeduction>>>
+    export type AdminAddManualDeductionMutationBody = BodyType<CreateAssignmentDeductionBody>
+    export type AdminAddManualDeductionMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Add manual deduction to an assignment
+ */
+export const useAdminAddManualDeduction = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminAddManualDeduction>>, TError,{id: number;assignmentId: number;data: BodyType<CreateAssignmentDeductionBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof adminAddManualDeduction>>,
+        TError,
+        {id: number;assignmentId: number;data: BodyType<CreateAssignmentDeductionBody>},
+        TContext
+      > => {
+      return useMutation(getAdminAddManualDeductionMutationOptions(options));
+    }
+
+export const getAdminRemoveManualDeductionUrl = (id: number,
+    assignmentId: number,
+    deductionId: number,) => {
+
+
+
+
+  return `/api/events/${id}/assignments/${assignmentId}/deductions/${deductionId}`
+}
+
+/**
+ * @summary Remove manual deduction from an assignment
+ */
+export const adminRemoveManualDeduction = async (id: number,
+    assignmentId: number,
+    deductionId: number, options?: Parameters<typeof customFetch>[1]): Promise<AdminRemoveManualDeduction200> => {
+
+  return customFetch<AdminRemoveManualDeduction200>(getAdminRemoveManualDeductionUrl(id,assignmentId,deductionId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getAdminRemoveManualDeductionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminRemoveManualDeduction>>, TError,{id: number;assignmentId: number;deductionId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof adminRemoveManualDeduction>>, TError,{id: number;assignmentId: number;deductionId: number}, TContext> => {
+
+const mutationKey = ['adminRemoveManualDeduction'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof adminRemoveManualDeduction>>, {id: number;assignmentId: number;deductionId: number}> = (props) => {
+          const {id,assignmentId,deductionId} = props ?? {};
+
+          return  adminRemoveManualDeduction(id,assignmentId,deductionId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AdminRemoveManualDeductionMutationResult = NonNullable<Awaited<ReturnType<typeof adminRemoveManualDeduction>>>
+
+    export type AdminRemoveManualDeductionMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Remove manual deduction from an assignment
+ */
+export const useAdminRemoveManualDeduction = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminRemoveManualDeduction>>, TError,{id: number;assignmentId: number;deductionId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof adminRemoveManualDeduction>>,
+        TError,
+        {id: number;assignmentId: number;deductionId: number},
+        TContext
+      > => {
+      return useMutation(getAdminRemoveManualDeductionMutationOptions(options));
+    }
 

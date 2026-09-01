@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { randomBytes } from "crypto";
-import { db, eventsTable, eventAssignmentsTable, deductionRulesTable, eventHolderLinksTable, ushersTable, usherAvailabilityTable, eventTeamsTable, adminsTable, eventFeedbackLinksTable, balanceTransactionsTable, notificationsTable } from "@workspace/db";
+import { db, eventsTable, eventAssignmentsTable, deductionRulesTable, eventHolderLinksTable, ushersTable, usherAvailabilityTable, eventTeamsTable, adminsTable, eventFeedbackLinksTable, balanceTransactionsTable, notificationsTable, assignmentDeductionsTable } from "@workspace/db";
 import { eq, and, gte, sql, desc, lt, gt, ne, inArray, lte } from "drizzle-orm";
 import { requireAdmin, requireAuth } from "../middleware/auth.js";
 import { audit } from "../lib/audit.js";
@@ -143,6 +143,12 @@ usher: {
     .where(eq(eventAssignmentsTable.eventId, eventId));
 
   const deductionRules = await db.select().from(deductionRulesTable).where(eq(deductionRulesTable.eventId, eventId));
+  const manualDeductions = await db.select().from(assignmentDeductionsTable).innerJoin(eventAssignmentsTable, eq(assignmentDeductionsTable.eventAssignmentId, eventAssignmentsTable.id)).where(eq(eventAssignmentsTable.eventId, eventId));
+  
+  // Attach manual deductions to assignments
+  for (const a of assignments) {
+    (a as any).manualDeductions = manualDeductions.filter(md => md.assignment_deductions.eventAssignmentId === a.id).map(md => md.assignment_deductions);
+  }
 
   if (req.user!.type === "usher") {
     // Determine if usher is assigned or applied
@@ -773,29 +779,79 @@ router.post("/events/:id/assignments/:assignmentId/checkout", requireAdmin, asyn
       const baseRate = assignment.isTeamLead ? (event.leaderRate || 0) : (event.regularRate || 0);
       const grossAmount = assignment.overriddenPay ?? baseRate;
 
-      // Apply event deduction rules
+      // Apply event deduction rules based on triggers
       const deductionRules = await db.select().from(deductionRulesTable).where(eq(deductionRulesTable.eventId, assignment.eventId));
-      const totalDeduction = deductionRules.reduce((sum: number, rule: any) => sum + rule.amount, 0);
+      const appliedRules = deductionRules.filter((rule: any) => {
+        if (rule.triggerType === "always") return true;
+        if (rule.triggerType === "late_arrival") return (assignment.lateArrivalMinutes || 0) > (rule.thresholdMinutes || 0);
+        if (rule.triggerType === "early_leave") return (assignment.earlyLeaveMinutes || 0) > (rule.thresholdMinutes || 0);
+        return false;
+      });
+
+      // Apply manual assignment deductions
+      const manualDeductions = await db.select().from(assignmentDeductionsTable).where(eq(assignmentDeductionsTable.eventAssignmentId, assignment.id));
+      
+      const automaticDeductionAmount = appliedRules.reduce((sum: number, rule: any) => sum + rule.amount, 0);
+      const manualDeductionAmount = manualDeductions.reduce((sum: number, d: any) => sum + d.amount, 0);
+      const totalDeduction = automaticDeductionAmount + manualDeductionAmount;
+      
       const finalAmount = Math.max(0, grossAmount - totalDeduction);
 
-      if (finalAmount > 0) {
-        const deductionSummary = deductionRules.length > 0
-          ? ` (Deductions: ${deductionRules.map((r: any) => `${r.ruleType}: -${r.amount} EGP`).join(', ')})`
+      if (finalAmount > 0 || totalDeduction > 0) {
+        const deductionSummaryList = [
+          ...appliedRules.map((r: any) => `${r.ruleType}: -${r.amount} EGP`),
+          ...manualDeductions.map((d: any) => `${d.reason}: -${d.amount} EGP`)
+        ];
+        
+        const deductionSummary = deductionSummaryList.length > 0
+          ? ` (Deductions: ${deductionSummaryList.join(', ')})`
           : '';
-        await db.insert(balanceTransactionsTable).values({
-          usherId: assignment.usherId,
-          eventAssignmentId: assignment.id,
-          amount: finalAmount,
-          type: "credit",
-          reason: `Completed event: ${event.title} (Admin checkout)${deductionSummary}`
-        });
-        await db.update(ushersTable).set({ balance: sql`COALESCE(${ushersTable.balance}, 0) + ${finalAmount}` }).where(eq(ushersTable.id, assignment.usherId));
+          
+        if (finalAmount > 0) {
+          await db.insert(balanceTransactionsTable).values({
+            usherId: assignment.usherId,
+            eventAssignmentId: assignment.id,
+            amount: finalAmount,
+            type: "credit",
+            reason: `Completed event: ${event.title} (Admin checkout)${deductionSummary}`
+          });
+          await db.update(ushersTable).set({ balance: sql`COALESCE(${ushersTable.balance}, 0) + ${finalAmount}` }).where(eq(ushersTable.id, assignment.usherId));
+        }
       }
     }
   }
 
   await audit(req.user!.id, "ADMIN_CHECKOUT", "event_assignments", assignment.id);
   res.json(assignment);
+});
+
+// POST /events/:id/assignments/:assignmentId/deductions - admin add manual deduction
+router.post("/events/:id/assignments/:assignmentId/deductions", requireAdmin, async (req, res) => {
+  const assignmentId = parseInt(req.params.assignmentId as string, 10);
+  const parsed = z.object({ reason: z.string().min(1), amount: z.number().positive() }).safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.flatten() }); return; }
+
+  const [assignment] = await db.select().from(eventAssignmentsTable).where(eq(eventAssignmentsTable.id, assignmentId));
+  if (!assignment) { res.status(404).json({ error: "Assignment not found" }); return; }
+
+  const [deduction] = await db.insert(assignmentDeductionsTable).values({
+    eventAssignmentId: assignment.id,
+    adminId: req.user!.id,
+    reason: parsed.data.reason,
+    amount: parsed.data.amount,
+  }).returning();
+
+  await audit(req.user!.id, "ADD_MANUAL_DEDUCTION", "assignment_deductions", deduction.id);
+  res.json(deduction);
+});
+
+// DELETE /events/:id/assignments/:assignmentId/deductions/:deductionId - admin remove manual deduction
+router.delete("/events/:id/assignments/:assignmentId/deductions/:deductionId", requireAdmin, async (req, res) => {
+  const deductionId = parseInt(req.params.deductionId as string, 10);
+  const [deleted] = await db.delete(assignmentDeductionsTable).where(eq(assignmentDeductionsTable.id, deductionId)).returning();
+  if (!deleted) { res.status(404).json({ error: "Not found" }); return; }
+  await audit(req.user!.id, "DELETE_MANUAL_DEDUCTION", "assignment_deductions", deductionId);
+  res.json({ success: true });
 });
 
 const smartAssignSchema = z.object({

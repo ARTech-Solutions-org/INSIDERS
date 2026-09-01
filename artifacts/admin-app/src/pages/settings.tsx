@@ -230,11 +230,11 @@ export default function Settings() {
                     name="punctualityPenaltyPerInterval"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Penalty</FormLabel>
+                        <FormLabel>Rating Penalty</FormLabel>
                         <FormControl>
                           <Input type="number" step="0.1" {...field} />
                         </FormControl>
-                        <FormDescription>Points lost</FormDescription>
+                        <FormDescription>Rating points lost</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -270,11 +270,11 @@ export default function Settings() {
                     name="noShowPenalty"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>No-Show Penalty</FormLabel>
+                        <FormLabel>No-Show Rating Penalty</FormLabel>
                         <FormControl>
                           <Input type="number" step="0.1" {...field} />
                         </FormControl>
-                        <FormDescription>Points deducted for a missed event.</FormDescription>
+                        <FormDescription>Rating points deducted for a missed event.</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -286,7 +286,7 @@ export default function Settings() {
                       name="lateCancellationPenalty"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Late Cancel Penalty</FormLabel>
+                          <FormLabel>Late Cancel Rating Penalty</FormLabel>
                           <FormControl>
                             <Input type="number" step="0.1" {...field} />
                           </FormControl>

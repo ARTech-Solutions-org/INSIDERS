@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { db, eventAssignmentsTable, eventsTable, ushersTable, deductionRulesTable, cancellationsTable, balanceTransactionsTable, eventTeamsTable, reliabilityEventsTable, systemSettingsTable, DEFAULT_RATING_CONFIG } from "@workspace/db";
+import { db, eventAssignmentsTable, eventsTable, ushersTable, deductionRulesTable, cancellationsTable, balanceTransactionsTable, eventTeamsTable, reliabilityEventsTable, systemSettingsTable, DEFAULT_RATING_CONFIG, assignmentDeductionsTable } from "@workspace/db";
 import { eq, and, ne, sql, inArray, lt } from "drizzle-orm";
 import { requireUsher } from "../middleware/auth.js";
 import {
@@ -285,23 +285,44 @@ router.post("/my/assignments/:assignmentId/checkout", requireUsher, async (req, 
     const baseRate = assignment.isTeamLead ? (event.leaderRate || 0) : (event.regularRate || 0);
     const grossAmount = assignment.overriddenPay ?? baseRate;
 
-    // Apply event deduction rules
+    // Apply event deduction rules based on triggers
     const deductionRules = await db.select().from(deductionRulesTable).where(eq(deductionRulesTable.eventId, assignment.eventId));
-    const totalDeduction = deductionRules.reduce((sum, rule) => sum + rule.amount, 0);
+    const appliedRules = deductionRules.filter((rule: any) => {
+      if (rule.triggerType === "always") return true;
+      if (rule.triggerType === "late_arrival") return (updated.lateArrivalMinutes || 0) > (rule.thresholdMinutes || 0);
+      if (rule.triggerType === "early_leave") return (updated.earlyLeaveMinutes || 0) > (rule.thresholdMinutes || 0);
+      return false;
+    });
+
+    // Apply manual assignment deductions
+    const manualDeductions = await db.select().from(assignmentDeductionsTable).where(eq(assignmentDeductionsTable.eventAssignmentId, assignment.id));
+    
+    const automaticDeductionAmount = appliedRules.reduce((sum, rule) => sum + rule.amount, 0);
+    const manualDeductionAmount = manualDeductions.reduce((sum, d) => sum + d.amount, 0);
+    const totalDeduction = automaticDeductionAmount + manualDeductionAmount;
+    
     const finalAmount = Math.max(0, grossAmount - totalDeduction);
 
-    if (finalAmount > 0) {
-      const deductionSummary = deductionRules.length > 0
-        ? ` (Deductions: ${deductionRules.map(r => `${r.ruleType}: -${r.amount} EGP`).join(', ')})`
+    if (finalAmount > 0 || totalDeduction > 0) {
+      const deductionSummaryList = [
+        ...appliedRules.map(r => `${r.ruleType}: -${r.amount} EGP`),
+        ...manualDeductions.map(d => `${d.reason}: -${d.amount} EGP`)
+      ];
+      
+      const deductionSummary = deductionSummaryList.length > 0
+        ? ` (Deductions: ${deductionSummaryList.join(', ')})`
         : '';
-      await db.insert(balanceTransactionsTable).values({
-        usherId: assignment.usherId,
-        eventAssignmentId: assignment.id,
-        amount: finalAmount,
-        type: "credit",
-        reason: `Completed event: ${event.title}${deductionSummary}`
-      });
-      await db.update(ushersTable).set({ balance: sql`COALESCE(${ushersTable.balance}, 0) + ${finalAmount}` }).where(eq(ushersTable.id, assignment.usherId));
+        
+      if (finalAmount > 0) {
+        await db.insert(balanceTransactionsTable).values({
+          usherId: assignment.usherId,
+          eventAssignmentId: assignment.id,
+          amount: finalAmount,
+          type: "credit",
+          reason: `Completed event: ${event.title}${deductionSummary}`
+        });
+        await db.update(ushersTable).set({ balance: sql`COALESCE(${ushersTable.balance}, 0) + ${finalAmount}` }).where(eq(ushersTable.id, assignment.usherId));
+      }
     }
   }
 

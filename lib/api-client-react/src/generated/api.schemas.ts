@@ -398,6 +398,8 @@ export interface DeductionRule {
   eventId: number;
   ruleType: string;
   amount: number;
+  triggerType?: string;
+  thresholdMinutes?: number | null;
 }
 
 export interface EventDetail {
@@ -518,6 +520,15 @@ export interface EventStats {
   totalAssigned?: number;
 }
 
+export interface AssignmentDeduction {
+  id: number;
+  eventAssignmentId: number;
+  adminId: number;
+  reason: string;
+  amount: number;
+  createdAt?: string;
+}
+
 export interface AssignmentWithUsher {
   id: number;
   eventId: number;
@@ -534,6 +545,7 @@ export interface AssignmentWithUsher {
   /** @nullable */
   checkinMethod?: string | null;
   usher: UsherProfile;
+  manualDeductions?: AssignmentDeduction[];
 }
 
 export interface AssignmentInput {
@@ -904,6 +916,11 @@ export interface AdminDashboard {
   eventTrends: AdminDashboardEventTrendsItem[];
 }
 
+export interface CreateAssignmentDeductionBody {
+  reason: string;
+  amount: number;
+}
+
 export type ListUshersParams = {
 status?: string;
 search?: string;
@@ -998,5 +1015,9 @@ export type GetAdminDashboardParams = {
  * @pattern ^\d{4}-\d{2}$
  */
 month?: string;
+};
+
+export type AdminRemoveManualDeduction200 = {
+  success?: boolean;
 };
 

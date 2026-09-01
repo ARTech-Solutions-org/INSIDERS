@@ -1696,6 +1696,64 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ReliabilityEventsResult'
+  /events/{id}/assignments/{assignmentId}/deductions:
+    post:
+      operationId: adminAddManualDeduction
+      summary: Add manual deduction to an assignment
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: assignmentId
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAssignmentDeductionBody'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssignmentDeduction'
+  /events/{id}/assignments/{assignmentId}/deductions/{deductionId}:
+    delete:
+      operationId: adminRemoveManualDeduction
+      summary: Remove manual deduction from an assignment
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: assignmentId
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: deductionId
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
 components:
   schemas:
     AdminInvitation:
@@ -2756,6 +2814,10 @@ components:
           - 'null'
         usher:
           $ref: '#/components/schemas/UsherProfile'
+        manualDeductions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AssignmentDeduction'
     EventAssignment:
       type: object
       required:
@@ -3060,6 +3122,13 @@ components:
           type: string
         amount:
           type: number
+        triggerType:
+          type: string
+          default: always
+        thresholdMinutes:
+          type: integer
+          nullable: true
+          default: 0
     DeductionRuleInput:
       type: object
       required:
@@ -3620,3 +3689,35 @@ components:
                 type: integer
               completedCount:
                 type: integer
+    AssignmentDeduction:
+      type: object
+      properties:
+        id:
+          type: integer
+        eventAssignmentId:
+          type: integer
+        adminId:
+          type: integer
+        reason:
+          type: string
+        amount:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+      required:
+      - id
+      - eventAssignmentId
+      - adminId
+      - reason
+      - amount
+    CreateAssignmentDeductionBody:
+      type: object
+      properties:
+        reason:
+          type: string
+        amount:
+          type: number
+      required:
+      - reason
+      - amount
