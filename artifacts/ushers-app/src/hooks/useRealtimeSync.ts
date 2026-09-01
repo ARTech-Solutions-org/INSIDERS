@@ -21,24 +21,30 @@ export function useRealtimeSync() {
       console.log("[SSE] Connected to Realtime Sync");
     };
 
-    eventSource.onmessage = (event) => {
-      if (event.data === "connected") return;
-
+    const handleEventUpdate = (event: MessageEvent) => {
       try {
         const data = JSON.parse(event.data);
-        console.log("[SSE] Event received:", data);
-
-        if (data.type === "EVENT_UPDATED" || data.type === "ASSIGNMENT_CREATED") {
-          queryClient.invalidateQueries({ queryKey: getListEventsQueryKey() });
-          queryClient.invalidateQueries({ queryKey: getListMyAssignmentsQueryKey() });
-          if (data.id) {
-            queryClient.invalidateQueries({ queryKey: getGetEventQueryKey(data.id) });
-            queryClient.invalidateQueries({ queryKey: ['events', data.id] }); // used in event-detail.tsx
-          }
+        console.log("[SSE] Event received:", event.type, data);
+        
+        queryClient.invalidateQueries({ queryKey: getListEventsQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getListMyAssignmentsQueryKey() });
+        if (data.id) {
+          queryClient.invalidateQueries({ queryKey: getGetEventQueryKey(data.id) });
+          queryClient.invalidateQueries({ queryKey: ['events', data.id] }); // used in event-detail.tsx
         }
       } catch (err) {
         console.error("[SSE] Failed to parse event:", err);
       }
+    };
+
+    eventSource.addEventListener("EVENT_UPDATED", handleEventUpdate);
+    eventSource.addEventListener("ASSIGNMENT_CREATED", handleEventUpdate);
+    eventSource.addEventListener("USHER_UPDATED", () => {
+       queryClient.invalidateQueries({ queryKey: ['/ushers/me/profile'] });
+    });
+
+    eventSource.onmessage = (event) => {
+      if (event.data === "connected") return;
     };
 
     eventSource.onerror = (err) => {
