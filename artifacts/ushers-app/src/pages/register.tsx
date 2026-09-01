@@ -156,7 +156,7 @@ export default function Register() {
     try {
       setIsUploading(true);
       
-      let profilePhotoUrl, profilePhotoKey;
+      let profilePhotoUrl = '', profilePhotoKey = '';
       if (data.profilePhotoFile instanceof File) {
         toast.loading('Uploading profile photo...', { id: 'upload' });
         const res = await uploadToR2(data.profilePhotoFile, 'profilePhoto');
@@ -164,7 +164,7 @@ export default function Register() {
         profilePhotoKey = res.key;
       }
 
-      let nationalIdDocUrl, nationalIdDocKey;
+      let nationalIdDocUrl = '', nationalIdDocKey = '';
       if (data.idFrontFile instanceof File) {
         toast.loading('Uploading ID front...', { id: 'upload' });
         const res = await uploadToR2(data.idFrontFile, 'idDocumentFront');
@@ -172,7 +172,7 @@ export default function Register() {
         nationalIdDocKey = res.key;
       }
 
-      let nationalIdDocBackUrl, nationalIdDocBackKey;
+      let nationalIdDocBackUrl = '', nationalIdDocBackKey = '';
       if (data.idBackFile instanceof File) {
         toast.loading('Uploading ID back...', { id: 'upload' });
         const res = await uploadToR2(data.idBackFile, 'idDocumentBack');
