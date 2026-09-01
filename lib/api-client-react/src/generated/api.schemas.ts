@@ -544,6 +544,7 @@ export interface AssignmentInput {
   role?: string;
   /** @nullable */
   overriddenPay?: number | null;
+  status?: string;
 }
 
 export interface MyWaitlistEntry {

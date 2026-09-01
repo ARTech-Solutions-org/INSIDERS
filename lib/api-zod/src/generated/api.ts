@@ -1221,7 +1221,8 @@ export const AssignUsherToEventBody = zod.object({
   "eventTeamId": zod.number().int().nullish(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
-  "overriddenPay": zod.number().nullish()
+  "overriddenPay": zod.number().nullish(),
+  "status": zod.string().optional()
 })
 
 export const AssignUsherToEventResponse = zod.object({
@@ -1287,7 +1288,8 @@ export const UpdateAssignmentBody = zod.object({
   "eventTeamId": zod.number().int().nullish(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
-  "overriddenPay": zod.number().nullish()
+  "overriddenPay": zod.number().nullish(),
+  "status": zod.string().optional()
 })
 
 export const UpdateAssignmentResponse = zod.object({
