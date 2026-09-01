@@ -1,10 +1,10 @@
 import { Router } from "express";
-import { requireAdmin } from "../middleware/auth.js";
+import { requireAuth } from "../middleware/auth.js";
 import { sseManager } from "../lib/sse.js";
 
 const router = Router();
 
-router.get("/sync", requireAdmin, (req, res) => {
+router.get("/sync", requireAuth, (req, res) => {
   res.writeHead(200, {
     "Content-Type": "text/event-stream",
     "Cache-Control": "no-cache",
