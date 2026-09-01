@@ -293,9 +293,9 @@ export default function Profile() {
               </div>
             </div>
           ) : (
-            <div className="relative z-10 flex flex-col items-center">
+            <div className="relative z-10 flex flex-col items-center w-full">
               <h2 className="brand-display text-2xl uppercase tracking-wide">{profile.fullName}</h2>
-              <div className="flex items-center gap-3 mt-2 mb-5">
+              <div className="flex items-center gap-3 mt-2 mb-4">
                 <span className="brand-meta inline-flex items-center px-2 py-1 bg-green-500/10 text-green-600 border border-green-500/20 rounded-md">
                   <CheckCircle2 className="w-3 h-3 mr-1" /> ACTIVE
                 </span>
@@ -304,8 +304,38 @@ export default function Profile() {
                   {profile.avgRating?.toFixed(1) || 'N/A'}
                 </span>
               </div>
+
+              {/* Languages display - prominent in view mode */}
+              <div className="w-full bg-muted/30 border border-border/50 rounded-xl p-3 mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] font-bold tracking-widest uppercase text-muted-foreground">Languages</span>
+                  <button
+                    className="text-[10px] text-primary font-bold tracking-wider uppercase flex items-center gap-1 hover:opacity-70 transition-opacity"
+                    onClick={() => {
+                      setFormData({
+                        fullName: profile.fullName || '',
+                        phone: profile.phone || '',
+                        languages: profile.languages || []
+                      });
+                      setIsEditing(true);
+                    }}
+                  >
+                    <Pencil className="w-3 h-3" /> EDIT
+                  </button>
+                </div>
+                {profile.languages && profile.languages.length > 0 ? (
+                  <div className="flex flex-wrap gap-1.5">
+                    {profile.languages.map((lang: string) => (
+                      <span key={lang} className="text-[9px] font-bold bg-primary/10 text-primary px-2 py-1 rounded-md uppercase tracking-wider">{lang}</span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground italic">No languages added yet — tap Edit to add</p>
+                )}
+              </div>
+
               <button 
-                className="relative flex items-center justify-center w-full h-11 bg-primary text-primary-foreground text-xs font-bold tracking-widest uppercase rounded-xl shadow-[5px_5px_0px_hsl(165,35%,12%)] transition-all duration-300 group hover:text-transparent active:translate-x-[3px] active:translate-y-[3px] active:shadow-[2px_2px_0px_hsl(165,35%,12%)] mt-2"
+                className="relative flex items-center justify-center w-full h-11 bg-primary text-primary-foreground text-xs font-bold tracking-widest uppercase rounded-xl shadow-[5px_5px_0px_hsl(165,35%,12%)] transition-all duration-300 group hover:text-transparent active:translate-x-[3px] active:translate-y-[3px] active:shadow-[2px_2px_0px_hsl(165,35%,12%)]"
                 onClick={() => {
                   setFormData({
                     fullName: profile.fullName || '',
@@ -318,16 +348,9 @@ export default function Profile() {
                 <span className="transition-colors duration-300 group-hover:text-transparent">EDIT PROFILE</span>
                 <Pencil className="w-4 h-4 absolute right-5 text-primary-foreground transition-all duration-300 group-hover:right-1/2 group-hover:translate-x-1/2" strokeWidth={2.5} />
               </button>
-              
-              {profile.languages && profile.languages.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 justify-center mt-4">
-                  {profile.languages.map((lang: string) => (
-                    <span key={lang} className="text-[9px] font-bold bg-primary/10 text-primary px-2 py-1 rounded-md uppercase tracking-wider">{lang}</span>
-                  ))}
-                </div>
-              )}
             </div>
           )}
+
         </div>
 
         {/* Skills */}
