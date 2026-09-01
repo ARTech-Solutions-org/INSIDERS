@@ -4,7 +4,7 @@
  * Api
  * OpenAPI spec version: 1.0.0
  */
-import * as zod from 'zod';
+import { z as zod } from 'zod/v4';
 
 
 /**
@@ -23,7 +23,7 @@ export const RegisterUsherBody = zod.object({
   "fullNameArabic": zod.string(),
   "gender": zod.enum(['male', 'female']),
   "dateOfBirth": zod.coerce.date(),
-  "height": zod.int(),
+  "height": zod.number().int(),
   "university": zod.string(),
   "major": zod.string(),
   "languages": zod.array(zod.string()),
@@ -33,7 +33,7 @@ export const RegisterUsherBody = zod.object({
   "pantsSize": zod.string(),
   "shortsSize": zod.string(),
   "phone": zod.string(),
-  "email": zod.email(),
+  "email": zod.string().email(),
   "nationalIdNumber": zod.string(),
   "password": zod.string(),
   "nationalIdDocUrl": zod.string(),
@@ -50,7 +50,7 @@ export const RegisterUsherBody = zod.object({
 export const RegisterUsherResponse = zod.object({
   "token": zod.string(),
   "usher": zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "fullName": zod.string(),
   "phone": zod.string(),
   "email": zod.string(),
@@ -61,13 +61,13 @@ export const RegisterUsherResponse = zod.object({
   "shoeSize": zod.string().nullish(),
   "gender": zod.string().nullish(),
   "dateOfBirth": zod.coerce.date().nullish(),
-  "height": zod.int().nullish(),
+  "height": zod.number().int().nullish(),
   "languages": zod.array(zod.string()).nullish(),
   "status": zod.string(),
   "avgRating": zod.number(),
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
-  "version": zod.int().optional(),
+  "version": zod.number().int().optional(),
   "paymentMethod": zod.string().nullish(),
   "paymentMethodDetails": zod.string().nullish(),
   "profilePhotoKey": zod.string().nullish(),
@@ -87,14 +87,14 @@ export const RegisterUsherResponse = zod.object({
  * @summary Usher login
  */
 export const LoginUsherBody = zod.object({
-  "email": zod.email(),
+  "email": zod.string().email(),
   "password": zod.string()
 })
 
 export const LoginUsherResponse = zod.object({
   "token": zod.string(),
   "usher": zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "fullName": zod.string(),
   "phone": zod.string(),
   "email": zod.string(),
@@ -105,13 +105,13 @@ export const LoginUsherResponse = zod.object({
   "shoeSize": zod.string().nullish(),
   "gender": zod.string().nullish(),
   "dateOfBirth": zod.coerce.date().nullish(),
-  "height": zod.int().nullish(),
+  "height": zod.number().int().nullish(),
   "languages": zod.array(zod.string()).nullish(),
   "status": zod.string(),
   "avgRating": zod.number(),
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
-  "version": zod.int().optional(),
+  "version": zod.number().int().optional(),
   "paymentMethod": zod.string().nullish(),
   "paymentMethodDetails": zod.string().nullish(),
   "profilePhotoKey": zod.string().nullish(),
@@ -131,18 +131,18 @@ export const LoginUsherResponse = zod.object({
  * @summary Admin login
  */
 export const LoginAdminBody = zod.object({
-  "email": zod.email(),
+  "email": zod.string().email(),
   "password": zod.string()
 })
 
 export const LoginAdminResponse = zod.object({
   "token": zod.string(),
   "admin": zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "name": zod.string(),
   "email": zod.string(),
   "role": zod.string(),
-  "createdByAdminId": zod.int().nullish(),
+  "createdByAdminId": zod.number().int().nullish(),
   "canManageFinance": zod.boolean().optional(),
   "createdAt": zod.coerce.date()
 })
@@ -154,7 +154,7 @@ export const LoginAdminResponse = zod.object({
  */
 export const GetMeResponse = zod.object({
   "type": zod.string(),
-  "id": zod.int(),
+  "id": zod.number().int(),
   "name": zod.string().optional(),
   "email": zod.string().optional(),
   "role": zod.string().nullish(),
@@ -181,7 +181,7 @@ export const ListUshersQueryParams = zod.object({
 
 export const ListUshersResponse = zod.object({
   "data": zod.array(zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "fullName": zod.string(),
   "phone": zod.string(),
   "email": zod.string(),
@@ -192,13 +192,13 @@ export const ListUshersResponse = zod.object({
   "shoeSize": zod.string().nullish(),
   "gender": zod.string().nullish(),
   "dateOfBirth": zod.coerce.date().nullish(),
-  "height": zod.int().nullish(),
+  "height": zod.number().int().nullish(),
   "languages": zod.array(zod.string()).nullish(),
   "status": zod.string(),
   "avgRating": zod.number(),
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
-  "version": zod.int().optional(),
+  "version": zod.number().int().optional(),
   "paymentMethod": zod.string().nullish(),
   "paymentMethodDetails": zod.string().nullish(),
   "profilePhotoKey": zod.string().nullish(),
@@ -211,7 +211,7 @@ export const ListUshersResponse = zod.object({
   "reliabilityScore": zod.number().nullish(),
   "lastRatingRecalcAt": zod.coerce.date().nullish()
 })),
-  "total": zod.int()
+  "total": zod.number().int()
 })
 
 
@@ -219,7 +219,7 @@ export const ListUshersResponse = zod.object({
  * @summary Get authenticated usher's profile
  */
 export const GetMyUsherProfileResponse = zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "fullName": zod.string(),
   "phone": zod.string(),
   "email": zod.string(),
@@ -230,13 +230,13 @@ export const GetMyUsherProfileResponse = zod.object({
   "shoeSize": zod.string().nullish(),
   "gender": zod.string().nullish(),
   "dateOfBirth": zod.coerce.date().nullish(),
-  "height": zod.int().nullish(),
+  "height": zod.number().int().nullish(),
   "languages": zod.array(zod.string()).nullish(),
   "status": zod.string(),
   "avgRating": zod.number(),
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
-  "version": zod.int().optional(),
+  "version": zod.number().int().optional(),
   "paymentMethod": zod.string().nullish(),
   "paymentMethodDetails": zod.string().nullish(),
   "profilePhotoKey": zod.string().nullish(),
@@ -269,7 +269,7 @@ export const UpdateMyUsherProfileBody = zod.object({
 })
 
 export const UpdateMyUsherProfileResponse = zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "fullName": zod.string(),
   "phone": zod.string(),
   "email": zod.string(),
@@ -280,13 +280,13 @@ export const UpdateMyUsherProfileResponse = zod.object({
   "shoeSize": zod.string().nullish(),
   "gender": zod.string().nullish(),
   "dateOfBirth": zod.coerce.date().nullish(),
-  "height": zod.int().nullish(),
+  "height": zod.number().int().nullish(),
   "languages": zod.array(zod.string()).nullish(),
   "status": zod.string(),
   "avgRating": zod.number(),
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
-  "version": zod.int().optional(),
+  "version": zod.number().int().optional(),
   "paymentMethod": zod.string().nullish(),
   "paymentMethodDetails": zod.string().nullish(),
   "profilePhotoKey": zod.string().nullish(),
@@ -309,7 +309,7 @@ export const GetUsherParams = zod.object({
 })
 
 export const GetUsherResponse = zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "fullName": zod.string(),
   "phone": zod.string(),
   "email": zod.string(),
@@ -320,13 +320,13 @@ export const GetUsherResponse = zod.object({
   "shoeSize": zod.string().nullish(),
   "gender": zod.string().nullish(),
   "dateOfBirth": zod.coerce.date().nullish(),
-  "height": zod.int().nullish(),
+  "height": zod.number().int().nullish(),
   "languages": zod.array(zod.string()).nullish(),
   "status": zod.string(),
   "avgRating": zod.number(),
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
-  "version": zod.int().optional(),
+  "version": zod.number().int().optional(),
   "paymentMethod": zod.string().nullish(),
   "paymentMethodDetails": zod.string().nullish(),
   "profilePhotoKey": zod.string().nullish(),
@@ -363,7 +363,7 @@ export const UpdateUsherBody = zod.object({
 })
 
 export const UpdateUsherResponse = zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "fullName": zod.string(),
   "phone": zod.string(),
   "email": zod.string(),
@@ -374,13 +374,13 @@ export const UpdateUsherResponse = zod.object({
   "shoeSize": zod.string().nullish(),
   "gender": zod.string().nullish(),
   "dateOfBirth": zod.coerce.date().nullish(),
-  "height": zod.int().nullish(),
+  "height": zod.number().int().nullish(),
   "languages": zod.array(zod.string()).nullish(),
   "status": zod.string(),
   "avgRating": zod.number(),
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
-  "version": zod.int().optional(),
+  "version": zod.number().int().optional(),
   "paymentMethod": zod.string().nullish(),
   "paymentMethodDetails": zod.string().nullish(),
   "profilePhotoKey": zod.string().nullish(),
@@ -404,11 +404,11 @@ export const UpdateUsherStatusParams = zod.object({
 
 export const UpdateUsherStatusBody = zod.object({
   "status": zod.string(),
-  "version": zod.int().optional()
+  "version": zod.number().int().optional()
 })
 
 export const UpdateUsherStatusResponse = zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "fullName": zod.string(),
   "phone": zod.string(),
   "email": zod.string(),
@@ -419,13 +419,13 @@ export const UpdateUsherStatusResponse = zod.object({
   "shoeSize": zod.string().nullish(),
   "gender": zod.string().nullish(),
   "dateOfBirth": zod.coerce.date().nullish(),
-  "height": zod.int().nullish(),
+  "height": zod.number().int().nullish(),
   "languages": zod.array(zod.string()).nullish(),
   "status": zod.string(),
   "avgRating": zod.number(),
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
-  "version": zod.int().optional(),
+  "version": zod.number().int().optional(),
   "paymentMethod": zod.string().nullish(),
   "paymentMethodDetails": zod.string().nullish(),
   "profilePhotoKey": zod.string().nullish(),
@@ -444,8 +444,8 @@ export const UpdateUsherStatusResponse = zod.object({
  * @summary List documents for the authenticated usher
  */
 export const ListMyDocumentsResponseItem = zod.object({
-  "id": zod.int(),
-  "usherId": zod.int(),
+  "id": zod.number().int(),
+  "usherId": zod.number().int(),
   "docType": zod.string(),
   "fileUrl": zod.string(),
   "fileKey": zod.string(),
@@ -466,8 +466,8 @@ export const AddMyDocumentBody = zod.object({
 })
 
 export const AddMyDocumentResponse = zod.object({
-  "id": zod.int(),
-  "usherId": zod.int(),
+  "id": zod.number().int(),
+  "usherId": zod.number().int(),
   "docType": zod.string(),
   "fileUrl": zod.string(),
   "fileKey": zod.string(),
@@ -484,8 +484,8 @@ export const ListUsherDocumentsParams = zod.object({
 })
 
 export const ListUsherDocumentsResponseItem = zod.object({
-  "id": zod.int(),
-  "usherId": zod.int(),
+  "id": zod.number().int(),
+  "usherId": zod.number().int(),
   "docType": zod.string(),
   "fileUrl": zod.string(),
   "fileKey": zod.string(),
@@ -508,8 +508,8 @@ export const UpdateUsherDocumentStatusBody = zod.object({
 })
 
 export const UpdateUsherDocumentStatusResponse = zod.object({
-  "id": zod.int(),
-  "usherId": zod.int(),
+  "id": zod.number().int(),
+  "usherId": zod.number().int(),
   "docType": zod.string(),
   "fileUrl": zod.string(),
   "fileKey": zod.string(),
@@ -522,8 +522,8 @@ export const UpdateUsherDocumentStatusResponse = zod.object({
  * @summary List skills for authenticated usher
  */
 export const ListMySkillsResponseItem = zod.object({
-  "id": zod.int(),
-  "usherId": zod.int(),
+  "id": zod.number().int(),
+  "usherId": zod.number().int(),
   "skillType": zod.string(),
   "value": zod.string()
 })
@@ -539,8 +539,8 @@ export const AddMySkillBody = zod.object({
 })
 
 export const AddMySkillResponse = zod.object({
-  "id": zod.int(),
-  "usherId": zod.int(),
+  "id": zod.number().int(),
+  "usherId": zod.number().int(),
   "skillType": zod.string(),
   "value": zod.string()
 })
@@ -565,8 +565,8 @@ export const ListMyAvailabilityQueryParams = zod.object({
 })
 
 export const ListMyAvailabilityResponseItem = zod.object({
-  "id": zod.int(),
-  "usherId": zod.int(),
+  "id": zod.number().int(),
+  "usherId": zod.number().int(),
   "date": zod.coerce.date(),
   "startTime": zod.string(),
   "endTime": zod.string()
@@ -584,8 +584,8 @@ export const SetMyAvailabilityBody = zod.object({
 })
 
 export const SetMyAvailabilityResponse = zod.object({
-  "id": zod.int(),
-  "usherId": zod.int(),
+  "id": zod.number().int(),
+  "usherId": zod.number().int(),
   "date": zod.coerce.date(),
   "startTime": zod.string(),
   "endTime": zod.string()
@@ -616,7 +616,7 @@ export const ListEventsQueryParams = zod.object({
 
 export const ListEventsResponse = zod.object({
   "data": zod.array(zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "title": zod.string(),
   "eventLocName": zod.string().nullish(),
   "eventLocUrl": zod.string().nullish(),
@@ -628,7 +628,7 @@ export const ListEventsResponse = zod.object({
   "instructions": zod.string().nullish(),
   "startTime": zod.coerce.date(),
   "endTime": zod.coerce.date(),
-  "checkinRadiusM": zod.int().optional(),
+  "checkinRadiusM": zod.number().int().optional(),
   "budget": zod.number().optional(),
   "leaderRate": zod.number().optional(),
   "regularRate": zod.number().optional(),
@@ -636,10 +636,10 @@ export const ListEventsResponse = zod.object({
   "contactName": zod.string().nullish(),
   "contactPhone": zod.string().nullish(),
   "status": zod.string(),
-  "version": zod.int().optional(),
-  "createdByAdminId": zod.int().nullish()
+  "version": zod.number().int().optional(),
+  "createdByAdminId": zod.number().int().nullish()
 })),
-  "total": zod.int()
+  "total": zod.number().int()
 })
 
 
@@ -652,14 +652,14 @@ export const CreateEventBody = zod.object({
   "eventLocUrl": zod.string().nullish(),
   "venueLat": zod.number().nullish(),
   "venueLng": zod.number().nullish(),
-  "checkinWindowMinutes": zod.int().nullish(),
+  "checkinWindowMinutes": zod.number().int().nullish(),
   "meetingPointLat": zod.number().nullish(),
   "meetingPointLng": zod.number().nullish(),
   "dressCode": zod.string().nullish(),
   "instructions": zod.string().nullish(),
   "startTime": zod.coerce.date(),
   "endTime": zod.coerce.date(),
-  "checkinRadiusM": zod.int().optional(),
+  "checkinRadiusM": zod.number().int().optional(),
   "budget": zod.number().optional(),
   "leaderRate": zod.number().optional(),
   "regularRate": zod.number().optional(),
@@ -670,7 +670,7 @@ export const CreateEventBody = zod.object({
 })
 
 export const CreateEventResponse = zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "title": zod.string(),
   "eventLocName": zod.string().nullish(),
   "eventLocUrl": zod.string().nullish(),
@@ -682,7 +682,7 @@ export const CreateEventResponse = zod.object({
   "instructions": zod.string().nullish(),
   "startTime": zod.coerce.date(),
   "endTime": zod.coerce.date(),
-  "checkinRadiusM": zod.int().optional(),
+  "checkinRadiusM": zod.number().int().optional(),
   "budget": zod.number().optional(),
   "leaderRate": zod.number().optional(),
   "regularRate": zod.number().optional(),
@@ -690,8 +690,8 @@ export const CreateEventResponse = zod.object({
   "contactName": zod.string().nullish(),
   "contactPhone": zod.string().nullish(),
   "status": zod.string(),
-  "version": zod.int().optional(),
-  "createdByAdminId": zod.int().nullish()
+  "version": zod.number().int().optional(),
+  "createdByAdminId": zod.number().int().nullish()
 })
 
 
@@ -703,7 +703,7 @@ export const GetEventParams = zod.object({
 })
 
 export const GetEventResponse = zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "title": zod.string(),
   "eventLocName": zod.string().nullish(),
   "eventLocUrl": zod.string().nullish(),
@@ -715,7 +715,7 @@ export const GetEventResponse = zod.object({
   "instructions": zod.string().nullish(),
   "startTime": zod.coerce.date(),
   "endTime": zod.coerce.date(),
-  "checkinRadiusM": zod.int().optional(),
+  "checkinRadiusM": zod.number().int().optional(),
   "budget": zod.number().optional(),
   "leaderRate": zod.number().optional(),
   "regularRate": zod.number().optional(),
@@ -723,13 +723,13 @@ export const GetEventResponse = zod.object({
   "contactName": zod.string().nullish(),
   "contactPhone": zod.string().nullish(),
   "status": zod.string(),
-  "version": zod.int().optional(),
-  "createdByAdminId": zod.int().nullish(),
+  "version": zod.number().int().optional(),
+  "createdByAdminId": zod.number().int().nullish(),
   "assignments": zod.array(zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
-  "eventTeamId": zod.int().nullish(),
-  "usherId": zod.int(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
+  "eventTeamId": zod.number().int().nullish(),
+  "usherId": zod.number().int(),
   "status": zod.string(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
@@ -742,7 +742,7 @@ export const GetEventResponse = zod.object({
   "checkoutLat": zod.number().nullish(),
   "checkoutLng": zod.number().nullish(),
   "usher": zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "fullName": zod.string(),
   "phone": zod.string(),
   "email": zod.string(),
@@ -753,13 +753,13 @@ export const GetEventResponse = zod.object({
   "shoeSize": zod.string().nullish(),
   "gender": zod.string().nullish(),
   "dateOfBirth": zod.coerce.date().nullish(),
-  "height": zod.int().nullish(),
+  "height": zod.number().int().nullish(),
   "languages": zod.array(zod.string()).nullish(),
   "status": zod.string(),
   "avgRating": zod.number(),
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
-  "version": zod.int().optional(),
+  "version": zod.number().int().optional(),
   "paymentMethod": zod.string().nullish(),
   "paymentMethodDetails": zod.string().nullish(),
   "profilePhotoKey": zod.string().nullish(),
@@ -774,8 +774,8 @@ export const GetEventResponse = zod.object({
 }).optional()
 })),
   "deductionRules": zod.array(zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
   "ruleType": zod.string(),
   "amount": zod.number()
 })).optional()
@@ -790,7 +790,7 @@ export const UpdateEventParams = zod.object({
 })
 
 export const UpdateEventBody = zod.object({
-  "version": zod.int().optional(),
+  "version": zod.number().int().optional(),
   "title": zod.string().optional(),
   "eventLocName": zod.string().nullish(),
   "eventLocUrl": zod.string().nullish(),
@@ -802,7 +802,7 @@ export const UpdateEventBody = zod.object({
   "instructions": zod.string().nullish(),
   "startTime": zod.coerce.date().optional(),
   "endTime": zod.coerce.date().optional(),
-  "checkinRadiusM": zod.int().optional(),
+  "checkinRadiusM": zod.number().int().optional(),
   "budget": zod.number().optional(),
   "leaderRate": zod.number().optional(),
   "regularRate": zod.number().optional(),
@@ -813,7 +813,7 @@ export const UpdateEventBody = zod.object({
 })
 
 export const UpdateEventResponse = zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "title": zod.string(),
   "eventLocName": zod.string().nullish(),
   "eventLocUrl": zod.string().nullish(),
@@ -825,7 +825,7 @@ export const UpdateEventResponse = zod.object({
   "instructions": zod.string().nullish(),
   "startTime": zod.coerce.date(),
   "endTime": zod.coerce.date(),
-  "checkinRadiusM": zod.int().optional(),
+  "checkinRadiusM": zod.number().int().optional(),
   "budget": zod.number().optional(),
   "leaderRate": zod.number().optional(),
   "regularRate": zod.number().optional(),
@@ -833,8 +833,8 @@ export const UpdateEventResponse = zod.object({
   "contactName": zod.string().nullish(),
   "contactPhone": zod.string().nullish(),
   "status": zod.string(),
-  "version": zod.int().optional(),
-  "createdByAdminId": zod.int().nullish()
+  "version": zod.number().int().optional(),
+  "createdByAdminId": zod.number().int().nullish()
 })
 
 
@@ -856,8 +856,8 @@ export const ListDeductionRulesParams = zod.object({
 })
 
 export const ListDeductionRulesResponseItem = zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
   "ruleType": zod.string(),
   "amount": zod.number()
 })
@@ -877,8 +877,8 @@ export const CreateDeductionRuleBody = zod.object({
 })
 
 export const CreateDeductionRuleResponse = zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
   "ruleType": zod.string(),
   "amount": zod.number()
 })
@@ -903,8 +903,8 @@ export const GetEventFeedbackLinkParams = zod.object({
 })
 
 export const GetEventFeedbackLinkResponse = zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
   "token": zod.string(),
   "createdAt": zod.coerce.date(),
   "revokedAt": zod.coerce.date().nullish(),
@@ -920,8 +920,8 @@ export const CreateEventFeedbackLinkParams = zod.object({
 })
 
 export const CreateEventFeedbackLinkResponse = zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
   "token": zod.string(),
   "createdAt": zod.coerce.date(),
   "revokedAt": zod.coerce.date().nullish(),
@@ -937,16 +937,16 @@ export const GetPublicEventFeedbackParams = zod.object({
 })
 
 export const GetPublicEventFeedbackResponse = zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "title": zod.string(),
   "eventLocName": zod.string(),
   "startTime": zod.coerce.date(),
   "endTime": zod.coerce.date(),
   "teams": zod.array(zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "name": zod.string(),
   "ushers": zod.array(zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "name": zod.string()
 }))
 }))
@@ -961,15 +961,15 @@ export const SubmitPublicEventFeedbackParams = zod.object({
 })
 
 export const SubmitPublicEventFeedbackBody = zod.object({
-  "overallRating": zod.int(),
+  "overallRating": zod.number().int(),
   "comment": zod.string().optional(),
   "teamRatings": zod.array(zod.object({
-  "teamId": zod.int(),
-  "rating": zod.int()
+  "teamId": zod.number().int(),
+  "rating": zod.number().int()
 })).optional(),
   "usherOverrides": zod.array(zod.object({
-  "usherId": zod.int(),
-  "rating": zod.int()
+  "usherId": zod.number().int(),
+  "rating": zod.number().int()
 })).optional()
 })
 
@@ -986,8 +986,8 @@ export const GetEventHolderLinkParams = zod.object({
 })
 
 export const GetEventHolderLinkResponse = zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
   "uniqueToken": zod.string()
 })
 
@@ -1000,8 +1000,8 @@ export const CreateEventHolderLinkParams = zod.object({
 })
 
 export const CreateEventHolderLinkResponse = zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
   "uniqueToken": zod.string()
 })
 
@@ -1020,7 +1020,7 @@ export const GetEventByHolderTokenResponse = zod.object({
   "endTime": zod.coerce.date()
 }),
   "ushers": zod.array(zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "fullName": zod.string(),
   "profilePhotoUrl": zod.string().nullish()
 }))
@@ -1035,8 +1035,8 @@ export const ListEventTeamsParams = zod.object({
 })
 
 export const ListEventTeamsResponseItem = zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
   "name": zod.string(),
   "createdAt": zod.coerce.date()
 })
@@ -1055,8 +1055,8 @@ export const CreateEventTeamBody = zod.object({
 })
 
 export const CreateEventTeamResponse = zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
   "name": zod.string(),
   "createdAt": zod.coerce.date()
 })
@@ -1082,7 +1082,7 @@ export const GetTeamLeaderSuggestionsParams = zod.object({
 })
 
 export const GetTeamLeaderSuggestionsResponseItem = zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "fullName": zod.string(),
   "avgRating": zod.number(),
   "profilePhotoUrl": zod.string().nullish(),
@@ -1102,10 +1102,10 @@ export const ApplyToEventParams = zod.object({
 })
 
 export const ApplyToEventResponse = zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
-  "eventTeamId": zod.int().nullish(),
-  "usherId": zod.int(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
+  "eventTeamId": zod.number().int().nullish(),
+  "usherId": zod.number().int(),
   "status": zod.string(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
@@ -1118,7 +1118,7 @@ export const ApplyToEventResponse = zod.object({
   "checkoutLat": zod.number().nullish(),
   "checkoutLng": zod.number().nullish(),
   "usher": zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "fullName": zod.string(),
   "phone": zod.string(),
   "email": zod.string(),
@@ -1129,13 +1129,13 @@ export const ApplyToEventResponse = zod.object({
   "shoeSize": zod.string().nullish(),
   "gender": zod.string().nullish(),
   "dateOfBirth": zod.coerce.date().nullish(),
-  "height": zod.int().nullish(),
+  "height": zod.number().int().nullish(),
   "languages": zod.array(zod.string()).nullish(),
   "status": zod.string(),
   "avgRating": zod.number(),
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
-  "version": zod.int().optional(),
+  "version": zod.number().int().optional(),
   "paymentMethod": zod.string().nullish(),
   "paymentMethodDetails": zod.string().nullish(),
   "profilePhotoKey": zod.string().nullish(),
@@ -1159,10 +1159,10 @@ export const ListEventAssignmentsParams = zod.object({
 })
 
 export const ListEventAssignmentsResponseItem = zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
-  "eventTeamId": zod.int().nullish(),
-  "usherId": zod.int(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
+  "eventTeamId": zod.number().int().nullish(),
+  "usherId": zod.number().int(),
   "status": zod.string(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
@@ -1175,7 +1175,7 @@ export const ListEventAssignmentsResponseItem = zod.object({
   "checkoutLat": zod.number().nullish(),
   "checkoutLng": zod.number().nullish(),
   "usher": zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "fullName": zod.string(),
   "phone": zod.string(),
   "email": zod.string(),
@@ -1186,13 +1186,13 @@ export const ListEventAssignmentsResponseItem = zod.object({
   "shoeSize": zod.string().nullish(),
   "gender": zod.string().nullish(),
   "dateOfBirth": zod.coerce.date().nullish(),
-  "height": zod.int().nullish(),
+  "height": zod.number().int().nullish(),
   "languages": zod.array(zod.string()).nullish(),
   "status": zod.string(),
   "avgRating": zod.number(),
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
-  "version": zod.int().optional(),
+  "version": zod.number().int().optional(),
   "paymentMethod": zod.string().nullish(),
   "paymentMethodDetails": zod.string().nullish(),
   "profilePhotoKey": zod.string().nullish(),
@@ -1217,18 +1217,18 @@ export const AssignUsherToEventParams = zod.object({
 })
 
 export const AssignUsherToEventBody = zod.object({
-  "usherId": zod.int(),
-  "eventTeamId": zod.int().nullish(),
+  "usherId": zod.number().int(),
+  "eventTeamId": zod.number().int().nullish(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
   "overriddenPay": zod.number().nullish()
 })
 
 export const AssignUsherToEventResponse = zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
-  "eventTeamId": zod.int().nullish(),
-  "usherId": zod.int(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
+  "eventTeamId": zod.number().int().nullish(),
+  "usherId": zod.number().int(),
   "status": zod.string(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
@@ -1241,7 +1241,7 @@ export const AssignUsherToEventResponse = zod.object({
   "checkoutLat": zod.number().nullish(),
   "checkoutLng": zod.number().nullish(),
   "usher": zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "fullName": zod.string(),
   "phone": zod.string(),
   "email": zod.string(),
@@ -1252,13 +1252,13 @@ export const AssignUsherToEventResponse = zod.object({
   "shoeSize": zod.string().nullish(),
   "gender": zod.string().nullish(),
   "dateOfBirth": zod.coerce.date().nullish(),
-  "height": zod.int().nullish(),
+  "height": zod.number().int().nullish(),
   "languages": zod.array(zod.string()).nullish(),
   "status": zod.string(),
   "avgRating": zod.number(),
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
-  "version": zod.int().optional(),
+  "version": zod.number().int().optional(),
   "paymentMethod": zod.string().nullish(),
   "paymentMethodDetails": zod.string().nullish(),
   "profilePhotoKey": zod.string().nullish(),
@@ -1283,18 +1283,18 @@ export const UpdateAssignmentParams = zod.object({
 })
 
 export const UpdateAssignmentBody = zod.object({
-  "usherId": zod.int(),
-  "eventTeamId": zod.int().nullish(),
+  "usherId": zod.number().int(),
+  "eventTeamId": zod.number().int().nullish(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
   "overriddenPay": zod.number().nullish()
 })
 
 export const UpdateAssignmentResponse = zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
-  "eventTeamId": zod.int().nullish(),
-  "usherId": zod.int(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
+  "eventTeamId": zod.number().int().nullish(),
+  "usherId": zod.number().int(),
   "status": zod.string(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
@@ -1307,7 +1307,7 @@ export const UpdateAssignmentResponse = zod.object({
   "checkoutLat": zod.number().nullish(),
   "checkoutLng": zod.number().nullish(),
   "usher": zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "fullName": zod.string(),
   "phone": zod.string(),
   "email": zod.string(),
@@ -1318,13 +1318,13 @@ export const UpdateAssignmentResponse = zod.object({
   "shoeSize": zod.string().nullish(),
   "gender": zod.string().nullish(),
   "dateOfBirth": zod.coerce.date().nullish(),
-  "height": zod.int().nullish(),
+  "height": zod.number().int().nullish(),
   "languages": zod.array(zod.string()).nullish(),
   "status": zod.string(),
   "avgRating": zod.number(),
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
-  "version": zod.int().optional(),
+  "version": zod.number().int().optional(),
   "paymentMethod": zod.string().nullish(),
   "paymentMethodDetails": zod.string().nullish(),
   "profilePhotoKey": zod.string().nullish(),
@@ -1360,10 +1360,10 @@ export const AdminCheckinParams = zod.object({
 })
 
 export const AdminCheckinResponse = zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
-  "eventTeamId": zod.int().nullish(),
-  "usherId": zod.int(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
+  "eventTeamId": zod.number().int().nullish(),
+  "usherId": zod.number().int(),
   "status": zod.string(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
@@ -1376,7 +1376,7 @@ export const AdminCheckinResponse = zod.object({
   "checkoutLat": zod.number().nullish(),
   "checkoutLng": zod.number().nullish(),
   "usher": zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "fullName": zod.string(),
   "phone": zod.string(),
   "email": zod.string(),
@@ -1387,13 +1387,13 @@ export const AdminCheckinResponse = zod.object({
   "shoeSize": zod.string().nullish(),
   "gender": zod.string().nullish(),
   "dateOfBirth": zod.coerce.date().nullish(),
-  "height": zod.int().nullish(),
+  "height": zod.number().int().nullish(),
   "languages": zod.array(zod.string()).nullish(),
   "status": zod.string(),
   "avgRating": zod.number(),
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
-  "version": zod.int().optional(),
+  "version": zod.number().int().optional(),
   "paymentMethod": zod.string().nullish(),
   "paymentMethodDetails": zod.string().nullish(),
   "profilePhotoKey": zod.string().nullish(),
@@ -1418,10 +1418,10 @@ export const AdminCheckoutParams = zod.object({
 })
 
 export const AdminCheckoutResponse = zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
-  "eventTeamId": zod.int().nullish(),
-  "usherId": zod.int(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
+  "eventTeamId": zod.number().int().nullish(),
+  "usherId": zod.number().int(),
   "status": zod.string(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
@@ -1434,7 +1434,7 @@ export const AdminCheckoutResponse = zod.object({
   "checkoutLat": zod.number().nullish(),
   "checkoutLng": zod.number().nullish(),
   "usher": zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "fullName": zod.string(),
   "phone": zod.string(),
   "email": zod.string(),
@@ -1445,13 +1445,13 @@ export const AdminCheckoutResponse = zod.object({
   "shoeSize": zod.string().nullish(),
   "gender": zod.string().nullish(),
   "dateOfBirth": zod.coerce.date().nullish(),
-  "height": zod.int().nullish(),
+  "height": zod.number().int().nullish(),
   "languages": zod.array(zod.string()).nullish(),
   "status": zod.string(),
   "avgRating": zod.number(),
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
-  "version": zod.int().optional(),
+  "version": zod.number().int().optional(),
   "paymentMethod": zod.string().nullish(),
   "paymentMethodDetails": zod.string().nullish(),
   "profilePhotoKey": zod.string().nullish(),
@@ -1479,7 +1479,7 @@ export const GetSmartCandidatesQueryParams = zod.object({
 })
 
 export const GetSmartCandidatesResponseItem = zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "fullName": zod.string(),
   "avgRating": zod.number(),
   "profilePhotoUrl": zod.string().nullish(),
@@ -1499,22 +1499,22 @@ export const SmartAssignBatchParams = zod.object({
 })
 
 export const SmartAssignBatchBody = zod.object({
-  "count": zod.int().describe('Number of ushers to assign'),
-  "eventTeamId": zod.int().optional(),
+  "count": zod.number().int().describe('Number of ushers to assign'),
+  "eventTeamId": zod.number().int().optional(),
   "role": zod.enum(['regular', 'leader']).optional(),
   "overriddenPay": zod.number().nullish(),
   "gender": zod.enum(['male', 'female']).optional(),
   "minRating": zod.number().optional(),
-  "minCompletedEvents": zod.int().optional(),
+  "minCompletedEvents": zod.number().int().optional(),
   "requiresLeadershipExp": zod.boolean().optional(),
-  "maxDistanceMeters": zod.int().optional()
+  "maxDistanceMeters": zod.number().int().optional()
 })
 
 export const SmartAssignBatchResponseItem = zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
-  "eventTeamId": zod.int().nullish(),
-  "usherId": zod.int(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
+  "eventTeamId": zod.number().int().nullish(),
+  "usherId": zod.number().int(),
   "status": zod.string(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
@@ -1527,7 +1527,7 @@ export const SmartAssignBatchResponseItem = zod.object({
   "checkoutLat": zod.number().nullish(),
   "checkoutLng": zod.number().nullish(),
   "usher": zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "fullName": zod.string(),
   "phone": zod.string(),
   "email": zod.string(),
@@ -1538,13 +1538,13 @@ export const SmartAssignBatchResponseItem = zod.object({
   "shoeSize": zod.string().nullish(),
   "gender": zod.string().nullish(),
   "dateOfBirth": zod.coerce.date().nullish(),
-  "height": zod.int().nullish(),
+  "height": zod.number().int().nullish(),
   "languages": zod.array(zod.string()).nullish(),
   "status": zod.string(),
   "avgRating": zod.number(),
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
-  "version": zod.int().optional(),
+  "version": zod.number().int().optional(),
   "paymentMethod": zod.string().nullish(),
   "paymentMethodDetails": zod.string().nullish(),
   "profilePhotoKey": zod.string().nullish(),
@@ -1569,18 +1569,18 @@ export const ListMyAssignmentsQueryParams = zod.object({
 })
 
 export const ListMyAssignmentsResponseItem = zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
-  "eventTeamId": zod.int().nullish(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
+  "eventTeamId": zod.number().int().nullish(),
   "status": zod.string(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
-  "overriddenPay": zod.int().nullish(),
+  "overriddenPay": zod.number().int().nullish(),
   "checkinTime": zod.string().nullish(),
   "checkoutTime": zod.string().nullish(),
   "checkinMethod": zod.string().nullish(),
   "event": zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "title": zod.string(),
   "eventLocName": zod.string().nullish(),
   "eventLocUrl": zod.string().nullish(),
@@ -1592,7 +1592,7 @@ export const ListMyAssignmentsResponseItem = zod.object({
   "instructions": zod.string().nullish(),
   "startTime": zod.coerce.date(),
   "endTime": zod.coerce.date(),
-  "checkinRadiusM": zod.int().optional(),
+  "checkinRadiusM": zod.number().int().optional(),
   "budget": zod.number().optional(),
   "leaderRate": zod.number().optional(),
   "regularRate": zod.number().optional(),
@@ -1600,13 +1600,13 @@ export const ListMyAssignmentsResponseItem = zod.object({
   "contactName": zod.string().nullish(),
   "contactPhone": zod.string().nullish(),
   "status": zod.string(),
-  "version": zod.int().optional(),
-  "createdByAdminId": zod.int().nullish(),
+  "version": zod.number().int().optional(),
+  "createdByAdminId": zod.number().int().nullish(),
   "assignments": zod.array(zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
-  "eventTeamId": zod.int().nullish(),
-  "usherId": zod.int(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
+  "eventTeamId": zod.number().int().nullish(),
+  "usherId": zod.number().int(),
   "status": zod.string(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
@@ -1619,7 +1619,7 @@ export const ListMyAssignmentsResponseItem = zod.object({
   "checkoutLat": zod.number().nullish(),
   "checkoutLng": zod.number().nullish(),
   "usher": zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "fullName": zod.string(),
   "phone": zod.string(),
   "email": zod.string(),
@@ -1630,13 +1630,13 @@ export const ListMyAssignmentsResponseItem = zod.object({
   "shoeSize": zod.string().nullish(),
   "gender": zod.string().nullish(),
   "dateOfBirth": zod.coerce.date().nullish(),
-  "height": zod.int().nullish(),
+  "height": zod.number().int().nullish(),
   "languages": zod.array(zod.string()).nullish(),
   "status": zod.string(),
   "avgRating": zod.number(),
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
-  "version": zod.int().optional(),
+  "version": zod.number().int().optional(),
   "paymentMethod": zod.string().nullish(),
   "paymentMethodDetails": zod.string().nullish(),
   "profilePhotoKey": zod.string().nullish(),
@@ -1651,14 +1651,14 @@ export const ListMyAssignmentsResponseItem = zod.object({
 }).optional()
 })),
   "deductionRules": zod.array(zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
   "ruleType": zod.string(),
   "amount": zod.number()
 })).optional()
 }),
   "teamMembers": zod.array(zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "fullName": zod.string(),
   "profilePhotoUrl": zod.string().nullish(),
   "isTeamLead": zod.boolean(),
@@ -1667,8 +1667,8 @@ export const ListMyAssignmentsResponseItem = zod.object({
   "status": zod.string().optional()
 })).optional(),
   "team": zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
   "name": zod.string(),
   "createdAt": zod.coerce.date()
 }).optional()
@@ -1684,18 +1684,18 @@ export const AcceptAssignmentParams = zod.object({
 })
 
 export const AcceptAssignmentResponse = zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
-  "eventTeamId": zod.int().nullish(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
+  "eventTeamId": zod.number().int().nullish(),
   "status": zod.string(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
-  "overriddenPay": zod.int().nullish(),
+  "overriddenPay": zod.number().int().nullish(),
   "checkinTime": zod.string().nullish(),
   "checkoutTime": zod.string().nullish(),
   "checkinMethod": zod.string().nullish(),
   "event": zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "title": zod.string(),
   "eventLocName": zod.string().nullish(),
   "eventLocUrl": zod.string().nullish(),
@@ -1707,7 +1707,7 @@ export const AcceptAssignmentResponse = zod.object({
   "instructions": zod.string().nullish(),
   "startTime": zod.coerce.date(),
   "endTime": zod.coerce.date(),
-  "checkinRadiusM": zod.int().optional(),
+  "checkinRadiusM": zod.number().int().optional(),
   "budget": zod.number().optional(),
   "leaderRate": zod.number().optional(),
   "regularRate": zod.number().optional(),
@@ -1715,13 +1715,13 @@ export const AcceptAssignmentResponse = zod.object({
   "contactName": zod.string().nullish(),
   "contactPhone": zod.string().nullish(),
   "status": zod.string(),
-  "version": zod.int().optional(),
-  "createdByAdminId": zod.int().nullish(),
+  "version": zod.number().int().optional(),
+  "createdByAdminId": zod.number().int().nullish(),
   "assignments": zod.array(zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
-  "eventTeamId": zod.int().nullish(),
-  "usherId": zod.int(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
+  "eventTeamId": zod.number().int().nullish(),
+  "usherId": zod.number().int(),
   "status": zod.string(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
@@ -1734,7 +1734,7 @@ export const AcceptAssignmentResponse = zod.object({
   "checkoutLat": zod.number().nullish(),
   "checkoutLng": zod.number().nullish(),
   "usher": zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "fullName": zod.string(),
   "phone": zod.string(),
   "email": zod.string(),
@@ -1745,13 +1745,13 @@ export const AcceptAssignmentResponse = zod.object({
   "shoeSize": zod.string().nullish(),
   "gender": zod.string().nullish(),
   "dateOfBirth": zod.coerce.date().nullish(),
-  "height": zod.int().nullish(),
+  "height": zod.number().int().nullish(),
   "languages": zod.array(zod.string()).nullish(),
   "status": zod.string(),
   "avgRating": zod.number(),
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
-  "version": zod.int().optional(),
+  "version": zod.number().int().optional(),
   "paymentMethod": zod.string().nullish(),
   "paymentMethodDetails": zod.string().nullish(),
   "profilePhotoKey": zod.string().nullish(),
@@ -1766,14 +1766,14 @@ export const AcceptAssignmentResponse = zod.object({
 }).optional()
 })),
   "deductionRules": zod.array(zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
   "ruleType": zod.string(),
   "amount": zod.number()
 })).optional()
 }),
   "teamMembers": zod.array(zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "fullName": zod.string(),
   "profilePhotoUrl": zod.string().nullish(),
   "isTeamLead": zod.boolean(),
@@ -1782,8 +1782,8 @@ export const AcceptAssignmentResponse = zod.object({
   "status": zod.string().optional()
 })).optional(),
   "team": zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
   "name": zod.string(),
   "createdAt": zod.coerce.date()
 }).optional()
@@ -1802,18 +1802,18 @@ export const DeclineAssignmentBody = zod.object({
 })
 
 export const DeclineAssignmentResponse = zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
-  "eventTeamId": zod.int().nullish(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
+  "eventTeamId": zod.number().int().nullish(),
   "status": zod.string(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
-  "overriddenPay": zod.int().nullish(),
+  "overriddenPay": zod.number().int().nullish(),
   "checkinTime": zod.string().nullish(),
   "checkoutTime": zod.string().nullish(),
   "checkinMethod": zod.string().nullish(),
   "event": zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "title": zod.string(),
   "eventLocName": zod.string().nullish(),
   "eventLocUrl": zod.string().nullish(),
@@ -1825,7 +1825,7 @@ export const DeclineAssignmentResponse = zod.object({
   "instructions": zod.string().nullish(),
   "startTime": zod.coerce.date(),
   "endTime": zod.coerce.date(),
-  "checkinRadiusM": zod.int().optional(),
+  "checkinRadiusM": zod.number().int().optional(),
   "budget": zod.number().optional(),
   "leaderRate": zod.number().optional(),
   "regularRate": zod.number().optional(),
@@ -1833,13 +1833,13 @@ export const DeclineAssignmentResponse = zod.object({
   "contactName": zod.string().nullish(),
   "contactPhone": zod.string().nullish(),
   "status": zod.string(),
-  "version": zod.int().optional(),
-  "createdByAdminId": zod.int().nullish(),
+  "version": zod.number().int().optional(),
+  "createdByAdminId": zod.number().int().nullish(),
   "assignments": zod.array(zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
-  "eventTeamId": zod.int().nullish(),
-  "usherId": zod.int(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
+  "eventTeamId": zod.number().int().nullish(),
+  "usherId": zod.number().int(),
   "status": zod.string(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
@@ -1852,7 +1852,7 @@ export const DeclineAssignmentResponse = zod.object({
   "checkoutLat": zod.number().nullish(),
   "checkoutLng": zod.number().nullish(),
   "usher": zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "fullName": zod.string(),
   "phone": zod.string(),
   "email": zod.string(),
@@ -1863,13 +1863,13 @@ export const DeclineAssignmentResponse = zod.object({
   "shoeSize": zod.string().nullish(),
   "gender": zod.string().nullish(),
   "dateOfBirth": zod.coerce.date().nullish(),
-  "height": zod.int().nullish(),
+  "height": zod.number().int().nullish(),
   "languages": zod.array(zod.string()).nullish(),
   "status": zod.string(),
   "avgRating": zod.number(),
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
-  "version": zod.int().optional(),
+  "version": zod.number().int().optional(),
   "paymentMethod": zod.string().nullish(),
   "paymentMethodDetails": zod.string().nullish(),
   "profilePhotoKey": zod.string().nullish(),
@@ -1884,14 +1884,14 @@ export const DeclineAssignmentResponse = zod.object({
 }).optional()
 })),
   "deductionRules": zod.array(zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
   "ruleType": zod.string(),
   "amount": zod.number()
 })).optional()
 }),
   "teamMembers": zod.array(zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "fullName": zod.string(),
   "profilePhotoUrl": zod.string().nullish(),
   "isTeamLead": zod.boolean(),
@@ -1900,8 +1900,8 @@ export const DeclineAssignmentResponse = zod.object({
   "status": zod.string().optional()
 })).optional(),
   "team": zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
   "name": zod.string(),
   "createdAt": zod.coerce.date()
 }).optional()
@@ -1921,18 +1921,18 @@ export const UsherCheckinBody = zod.object({
 })
 
 export const UsherCheckinResponse = zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
-  "eventTeamId": zod.int().nullish(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
+  "eventTeamId": zod.number().int().nullish(),
   "status": zod.string(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
-  "overriddenPay": zod.int().nullish(),
+  "overriddenPay": zod.number().int().nullish(),
   "checkinTime": zod.string().nullish(),
   "checkoutTime": zod.string().nullish(),
   "checkinMethod": zod.string().nullish(),
   "event": zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "title": zod.string(),
   "eventLocName": zod.string().nullish(),
   "eventLocUrl": zod.string().nullish(),
@@ -1944,7 +1944,7 @@ export const UsherCheckinResponse = zod.object({
   "instructions": zod.string().nullish(),
   "startTime": zod.coerce.date(),
   "endTime": zod.coerce.date(),
-  "checkinRadiusM": zod.int().optional(),
+  "checkinRadiusM": zod.number().int().optional(),
   "budget": zod.number().optional(),
   "leaderRate": zod.number().optional(),
   "regularRate": zod.number().optional(),
@@ -1952,13 +1952,13 @@ export const UsherCheckinResponse = zod.object({
   "contactName": zod.string().nullish(),
   "contactPhone": zod.string().nullish(),
   "status": zod.string(),
-  "version": zod.int().optional(),
-  "createdByAdminId": zod.int().nullish(),
+  "version": zod.number().int().optional(),
+  "createdByAdminId": zod.number().int().nullish(),
   "assignments": zod.array(zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
-  "eventTeamId": zod.int().nullish(),
-  "usherId": zod.int(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
+  "eventTeamId": zod.number().int().nullish(),
+  "usherId": zod.number().int(),
   "status": zod.string(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
@@ -1971,7 +1971,7 @@ export const UsherCheckinResponse = zod.object({
   "checkoutLat": zod.number().nullish(),
   "checkoutLng": zod.number().nullish(),
   "usher": zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "fullName": zod.string(),
   "phone": zod.string(),
   "email": zod.string(),
@@ -1982,13 +1982,13 @@ export const UsherCheckinResponse = zod.object({
   "shoeSize": zod.string().nullish(),
   "gender": zod.string().nullish(),
   "dateOfBirth": zod.coerce.date().nullish(),
-  "height": zod.int().nullish(),
+  "height": zod.number().int().nullish(),
   "languages": zod.array(zod.string()).nullish(),
   "status": zod.string(),
   "avgRating": zod.number(),
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
-  "version": zod.int().optional(),
+  "version": zod.number().int().optional(),
   "paymentMethod": zod.string().nullish(),
   "paymentMethodDetails": zod.string().nullish(),
   "profilePhotoKey": zod.string().nullish(),
@@ -2003,14 +2003,14 @@ export const UsherCheckinResponse = zod.object({
 }).optional()
 })),
   "deductionRules": zod.array(zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
   "ruleType": zod.string(),
   "amount": zod.number()
 })).optional()
 }),
   "teamMembers": zod.array(zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "fullName": zod.string(),
   "profilePhotoUrl": zod.string().nullish(),
   "isTeamLead": zod.boolean(),
@@ -2019,8 +2019,8 @@ export const UsherCheckinResponse = zod.object({
   "status": zod.string().optional()
 })).optional(),
   "team": zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
   "name": zod.string(),
   "createdAt": zod.coerce.date()
 }).optional()
@@ -2040,18 +2040,18 @@ export const UsherCheckoutBody = zod.object({
 })
 
 export const UsherCheckoutResponse = zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
-  "eventTeamId": zod.int().nullish(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
+  "eventTeamId": zod.number().int().nullish(),
   "status": zod.string(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
-  "overriddenPay": zod.int().nullish(),
+  "overriddenPay": zod.number().int().nullish(),
   "checkinTime": zod.string().nullish(),
   "checkoutTime": zod.string().nullish(),
   "checkinMethod": zod.string().nullish(),
   "event": zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "title": zod.string(),
   "eventLocName": zod.string().nullish(),
   "eventLocUrl": zod.string().nullish(),
@@ -2063,7 +2063,7 @@ export const UsherCheckoutResponse = zod.object({
   "instructions": zod.string().nullish(),
   "startTime": zod.coerce.date(),
   "endTime": zod.coerce.date(),
-  "checkinRadiusM": zod.int().optional(),
+  "checkinRadiusM": zod.number().int().optional(),
   "budget": zod.number().optional(),
   "leaderRate": zod.number().optional(),
   "regularRate": zod.number().optional(),
@@ -2071,13 +2071,13 @@ export const UsherCheckoutResponse = zod.object({
   "contactName": zod.string().nullish(),
   "contactPhone": zod.string().nullish(),
   "status": zod.string(),
-  "version": zod.int().optional(),
-  "createdByAdminId": zod.int().nullish(),
+  "version": zod.number().int().optional(),
+  "createdByAdminId": zod.number().int().nullish(),
   "assignments": zod.array(zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
-  "eventTeamId": zod.int().nullish(),
-  "usherId": zod.int(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
+  "eventTeamId": zod.number().int().nullish(),
+  "usherId": zod.number().int(),
   "status": zod.string(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
@@ -2090,7 +2090,7 @@ export const UsherCheckoutResponse = zod.object({
   "checkoutLat": zod.number().nullish(),
   "checkoutLng": zod.number().nullish(),
   "usher": zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "fullName": zod.string(),
   "phone": zod.string(),
   "email": zod.string(),
@@ -2101,13 +2101,13 @@ export const UsherCheckoutResponse = zod.object({
   "shoeSize": zod.string().nullish(),
   "gender": zod.string().nullish(),
   "dateOfBirth": zod.coerce.date().nullish(),
-  "height": zod.int().nullish(),
+  "height": zod.number().int().nullish(),
   "languages": zod.array(zod.string()).nullish(),
   "status": zod.string(),
   "avgRating": zod.number(),
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
-  "version": zod.int().optional(),
+  "version": zod.number().int().optional(),
   "paymentMethod": zod.string().nullish(),
   "paymentMethodDetails": zod.string().nullish(),
   "profilePhotoKey": zod.string().nullish(),
@@ -2122,14 +2122,14 @@ export const UsherCheckoutResponse = zod.object({
 }).optional()
 })),
   "deductionRules": zod.array(zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
   "ruleType": zod.string(),
   "amount": zod.number()
 })).optional()
 }),
   "teamMembers": zod.array(zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "fullName": zod.string(),
   "profilePhotoUrl": zod.string().nullish(),
   "isTeamLead": zod.boolean(),
@@ -2138,8 +2138,8 @@ export const UsherCheckoutResponse = zod.object({
   "status": zod.string().optional()
 })).optional(),
   "team": zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
   "name": zod.string(),
   "createdAt": zod.coerce.date()
 }).optional()
@@ -2159,18 +2159,18 @@ export const CancelAssignmentBody = zod.object({
 
 export const CancelAssignmentResponse = zod.object({
   "assignment": zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
-  "eventTeamId": zod.int().nullish(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
+  "eventTeamId": zod.number().int().nullish(),
   "status": zod.string(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
-  "overriddenPay": zod.int().nullish(),
+  "overriddenPay": zod.number().int().nullish(),
   "checkinTime": zod.string().nullish(),
   "checkoutTime": zod.string().nullish(),
   "checkinMethod": zod.string().nullish(),
   "event": zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "title": zod.string(),
   "eventLocName": zod.string().nullish(),
   "eventLocUrl": zod.string().nullish(),
@@ -2182,7 +2182,7 @@ export const CancelAssignmentResponse = zod.object({
   "instructions": zod.string().nullish(),
   "startTime": zod.coerce.date(),
   "endTime": zod.coerce.date(),
-  "checkinRadiusM": zod.int().optional(),
+  "checkinRadiusM": zod.number().int().optional(),
   "budget": zod.number().optional(),
   "leaderRate": zod.number().optional(),
   "regularRate": zod.number().optional(),
@@ -2190,13 +2190,13 @@ export const CancelAssignmentResponse = zod.object({
   "contactName": zod.string().nullish(),
   "contactPhone": zod.string().nullish(),
   "status": zod.string(),
-  "version": zod.int().optional(),
-  "createdByAdminId": zod.int().nullish(),
+  "version": zod.number().int().optional(),
+  "createdByAdminId": zod.number().int().nullish(),
   "assignments": zod.array(zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
-  "eventTeamId": zod.int().nullish(),
-  "usherId": zod.int(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
+  "eventTeamId": zod.number().int().nullish(),
+  "usherId": zod.number().int(),
   "status": zod.string(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
@@ -2209,7 +2209,7 @@ export const CancelAssignmentResponse = zod.object({
   "checkoutLat": zod.number().nullish(),
   "checkoutLng": zod.number().nullish(),
   "usher": zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "fullName": zod.string(),
   "phone": zod.string(),
   "email": zod.string(),
@@ -2220,13 +2220,13 @@ export const CancelAssignmentResponse = zod.object({
   "shoeSize": zod.string().nullish(),
   "gender": zod.string().nullish(),
   "dateOfBirth": zod.coerce.date().nullish(),
-  "height": zod.int().nullish(),
+  "height": zod.number().int().nullish(),
   "languages": zod.array(zod.string()).nullish(),
   "status": zod.string(),
   "avgRating": zod.number(),
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
-  "version": zod.int().optional(),
+  "version": zod.number().int().optional(),
   "paymentMethod": zod.string().nullish(),
   "paymentMethodDetails": zod.string().nullish(),
   "profilePhotoKey": zod.string().nullish(),
@@ -2241,14 +2241,14 @@ export const CancelAssignmentResponse = zod.object({
 }).optional()
 })),
   "deductionRules": zod.array(zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
   "ruleType": zod.string(),
   "amount": zod.number()
 })).optional()
 }),
   "teamMembers": zod.array(zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "fullName": zod.string(),
   "profilePhotoUrl": zod.string().nullish(),
   "isTeamLead": zod.boolean(),
@@ -2257,15 +2257,15 @@ export const CancelAssignmentResponse = zod.object({
   "status": zod.string().optional()
 })).optional(),
   "team": zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
   "name": zod.string(),
   "createdAt": zod.coerce.date()
 }).optional()
 }),
   "cancellation": zod.object({
-  "id": zod.int(),
-  "eventAssignmentId": zod.int(),
+  "id": zod.number().int(),
+  "eventAssignmentId": zod.number().int(),
   "cancelledAt": zod.coerce.date(),
   "reason": zod.string().nullish(),
   "penaltyApplied": zod.boolean().optional()
@@ -2284,18 +2284,18 @@ export const TeamCheckinMemberParams = zod.object({
 })
 
 export const TeamCheckinMemberResponse = zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
-  "eventTeamId": zod.int().nullish(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
+  "eventTeamId": zod.number().int().nullish(),
   "status": zod.string(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
-  "overriddenPay": zod.int().nullish(),
+  "overriddenPay": zod.number().int().nullish(),
   "checkinTime": zod.string().nullish(),
   "checkoutTime": zod.string().nullish(),
   "checkinMethod": zod.string().nullish(),
   "event": zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "title": zod.string(),
   "eventLocName": zod.string().nullish(),
   "eventLocUrl": zod.string().nullish(),
@@ -2307,7 +2307,7 @@ export const TeamCheckinMemberResponse = zod.object({
   "instructions": zod.string().nullish(),
   "startTime": zod.coerce.date(),
   "endTime": zod.coerce.date(),
-  "checkinRadiusM": zod.int().optional(),
+  "checkinRadiusM": zod.number().int().optional(),
   "budget": zod.number().optional(),
   "leaderRate": zod.number().optional(),
   "regularRate": zod.number().optional(),
@@ -2315,13 +2315,13 @@ export const TeamCheckinMemberResponse = zod.object({
   "contactName": zod.string().nullish(),
   "contactPhone": zod.string().nullish(),
   "status": zod.string(),
-  "version": zod.int().optional(),
-  "createdByAdminId": zod.int().nullish(),
+  "version": zod.number().int().optional(),
+  "createdByAdminId": zod.number().int().nullish(),
   "assignments": zod.array(zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
-  "eventTeamId": zod.int().nullish(),
-  "usherId": zod.int(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
+  "eventTeamId": zod.number().int().nullish(),
+  "usherId": zod.number().int(),
   "status": zod.string(),
   "isTeamLead": zod.boolean().optional(),
   "role": zod.string().optional(),
@@ -2334,7 +2334,7 @@ export const TeamCheckinMemberResponse = zod.object({
   "checkoutLat": zod.number().nullish(),
   "checkoutLng": zod.number().nullish(),
   "usher": zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "fullName": zod.string(),
   "phone": zod.string(),
   "email": zod.string(),
@@ -2345,13 +2345,13 @@ export const TeamCheckinMemberResponse = zod.object({
   "shoeSize": zod.string().nullish(),
   "gender": zod.string().nullish(),
   "dateOfBirth": zod.coerce.date().nullish(),
-  "height": zod.int().nullish(),
+  "height": zod.number().int().nullish(),
   "languages": zod.array(zod.string()).nullish(),
   "status": zod.string(),
   "avgRating": zod.number(),
   "balance": zod.number(),
   "createdAt": zod.coerce.date(),
-  "version": zod.int().optional(),
+  "version": zod.number().int().optional(),
   "paymentMethod": zod.string().nullish(),
   "paymentMethodDetails": zod.string().nullish(),
   "profilePhotoKey": zod.string().nullish(),
@@ -2366,14 +2366,14 @@ export const TeamCheckinMemberResponse = zod.object({
 }).optional()
 })),
   "deductionRules": zod.array(zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
   "ruleType": zod.string(),
   "amount": zod.number()
 })).optional()
 }),
   "teamMembers": zod.array(zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "fullName": zod.string(),
   "profilePhotoUrl": zod.string().nullish(),
   "isTeamLead": zod.boolean(),
@@ -2382,8 +2382,8 @@ export const TeamCheckinMemberResponse = zod.object({
   "status": zod.string().optional()
 })).optional(),
   "team": zod.object({
-  "id": zod.int(),
-  "eventId": zod.int(),
+  "id": zod.number().int(),
+  "eventId": zod.number().int(),
   "name": zod.string(),
   "createdAt": zod.coerce.date()
 }).optional()
@@ -2396,9 +2396,9 @@ export const TeamCheckinMemberResponse = zod.object({
 export const GetMyBalanceResponse = zod.object({
   "balance": zod.number(),
   "recentTransactions": zod.array(zod.object({
-  "id": zod.int(),
-  "usherId": zod.int(),
-  "eventAssignmentId": zod.int().nullish(),
+  "id": zod.number().int(),
+  "usherId": zod.number().int(),
+  "eventAssignmentId": zod.number().int().nullish(),
   "amount": zod.number(),
   "type": zod.string(),
   "reason": zod.string().nullish(),
@@ -2416,9 +2416,9 @@ export const ListMyTransactionsQueryParams = zod.object({
 })
 
 export const ListMyTransactionsResponseItem = zod.object({
-  "id": zod.int(),
-  "usherId": zod.int(),
-  "eventAssignmentId": zod.int().nullish(),
+  "id": zod.number().int(),
+  "usherId": zod.number().int(),
+  "eventAssignmentId": zod.number().int().nullish(),
   "amount": zod.number(),
   "type": zod.string(),
   "reason": zod.string().nullish(),
@@ -2431,8 +2431,8 @@ export const ListMyTransactionsResponse = zod.array(ListMyTransactionsResponseIt
  * @summary List payout history for authenticated usher
  */
 export const ListMyPayoutsResponseItem = zod.object({
-  "id": zod.int(),
-  "usherId": zod.int(),
+  "id": zod.number().int(),
+  "usherId": zod.number().int(),
   "amount": zod.number(),
   "method": zod.string(),
   "status": zod.string(),
@@ -2449,8 +2449,8 @@ export const RequestMyPayoutBody = zod.object({
 })
 
 export const RequestMyPayoutResponse = zod.object({
-  "id": zod.int(),
-  "usherId": zod.int(),
+  "id": zod.number().int(),
+  "usherId": zod.number().int(),
   "amount": zod.number(),
   "method": zod.string(),
   "status": zod.string(),
@@ -2462,17 +2462,17 @@ export const RequestMyPayoutResponse = zod.object({
  * @summary Submit rating for a usher on an assignment
  */
 export const CreateRatingBody = zod.object({
-  "eventAssignmentId": zod.int(),
+  "eventAssignmentId": zod.number().int(),
   "ratedByType": zod.string(),
-  "ratingValue": zod.int(),
+  "ratingValue": zod.number().int(),
   "comment": zod.string().nullish()
 })
 
 export const CreateRatingResponse = zod.object({
-  "id": zod.int(),
-  "eventAssignmentId": zod.int(),
+  "id": zod.number().int(),
+  "eventAssignmentId": zod.number().int(),
   "ratedByType": zod.string(),
-  "ratingValue": zod.int(),
+  "ratingValue": zod.number().int(),
   "comment": zod.string().nullish()
 })
 
@@ -2485,16 +2485,16 @@ export const SubmitHolderRatingParams = zod.object({
 })
 
 export const SubmitHolderRatingBody = zod.object({
-  "eventAssignmentId": zod.int(),
-  "ratingValue": zod.int(),
+  "eventAssignmentId": zod.number().int(),
+  "ratingValue": zod.number().int(),
   "comment": zod.string().nullish()
 })
 
 export const SubmitHolderRatingResponse = zod.object({
-  "id": zod.int(),
-  "eventAssignmentId": zod.int(),
+  "id": zod.number().int(),
+  "eventAssignmentId": zod.number().int(),
   "ratedByType": zod.string(),
-  "ratingValue": zod.int(),
+  "ratingValue": zod.number().int(),
   "comment": zod.string().nullish()
 })
 
@@ -2503,10 +2503,10 @@ export const SubmitHolderRatingResponse = zod.object({
  * @summary List ratings for authenticated usher
  */
 export const ListMyRatingsResponseItem = zod.object({
-  "id": zod.int(),
-  "eventAssignmentId": zod.int(),
+  "id": zod.number().int(),
+  "eventAssignmentId": zod.number().int(),
   "ratedByType": zod.string(),
-  "ratingValue": zod.int(),
+  "ratingValue": zod.number().int(),
   "comment": zod.string().nullish()
 })
 export const ListMyRatingsResponse = zod.array(ListMyRatingsResponseItem)
@@ -2520,9 +2520,9 @@ export const ListMyNotificationsQueryParams = zod.object({
 })
 
 export const ListMyNotificationsResponseItem = zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "recipientType": zod.string(),
-  "recipientId": zod.int(),
+  "recipientId": zod.number().int(),
   "type": zod.string(),
   "message": zod.string(),
   "isRead": zod.boolean(),
@@ -2556,9 +2556,9 @@ export const ListAllTransactionsQueryParams = zod.object({
 })
 
 export const ListAllTransactionsResponseItem = zod.object({
-  "id": zod.int(),
-  "usherId": zod.int(),
-  "eventAssignmentId": zod.int().nullish(),
+  "id": zod.number().int(),
+  "usherId": zod.number().int(),
+  "eventAssignmentId": zod.number().int().nullish(),
   "amount": zod.number(),
   "type": zod.string(),
   "reason": zod.string().nullish(),
@@ -2571,17 +2571,17 @@ export const ListAllTransactionsResponse = zod.array(ListAllTransactionsResponse
  * @summary Admin manually adjusts usher balance
  */
 export const CreateTransactionBody = zod.object({
-  "usherId": zod.int(),
-  "eventAssignmentId": zod.int().nullish(),
+  "usherId": zod.number().int(),
+  "eventAssignmentId": zod.number().int().nullish(),
   "amount": zod.number(),
   "type": zod.string(),
   "reason": zod.string().nullish()
 })
 
 export const CreateTransactionResponse = zod.object({
-  "id": zod.int(),
-  "usherId": zod.int(),
-  "eventAssignmentId": zod.int().nullish(),
+  "id": zod.number().int(),
+  "usherId": zod.number().int(),
+  "eventAssignmentId": zod.number().int().nullish(),
   "amount": zod.number(),
   "type": zod.string(),
   "reason": zod.string().nullish(),
@@ -2598,8 +2598,8 @@ export const ListAllPayoutsQueryParams = zod.object({
 })
 
 export const ListAllPayoutsResponseItem = zod.object({
-  "id": zod.int(),
-  "usherId": zod.int(),
+  "id": zod.number().int(),
+  "usherId": zod.number().int(),
   "amount": zod.number(),
   "method": zod.string(),
   "status": zod.string(),
@@ -2612,14 +2612,14 @@ export const ListAllPayoutsResponse = zod.array(ListAllPayoutsResponseItem)
  * @summary Create payout for usher (admin)
  */
 export const CreatePayoutBody = zod.object({
-  "usherId": zod.int(),
+  "usherId": zod.number().int(),
   "amount": zod.number(),
   "method": zod.string()
 })
 
 export const CreatePayoutResponse = zod.object({
-  "id": zod.int(),
-  "usherId": zod.int(),
+  "id": zod.number().int(),
+  "usherId": zod.number().int(),
   "amount": zod.number(),
   "method": zod.string(),
   "status": zod.string(),
@@ -2640,8 +2640,8 @@ export const UpdatePayoutStatusBody = zod.object({
 })
 
 export const UpdatePayoutStatusResponse = zod.object({
-  "id": zod.int(),
-  "usherId": zod.int(),
+  "id": zod.number().int(),
+  "usherId": zod.number().int(),
   "amount": zod.number(),
   "method": zod.string(),
   "status": zod.string(),
@@ -2685,11 +2685,11 @@ export const RegisterAdminBody = zod.object({
 })
 
 export const RegisterAdminResponse = zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "name": zod.string(),
   "email": zod.string(),
   "role": zod.string(),
-  "createdByAdminId": zod.int().nullish(),
+  "createdByAdminId": zod.number().int().nullish(),
   "canManageFinance": zod.boolean().optional(),
   "createdAt": zod.coerce.date()
 })
@@ -2699,11 +2699,11 @@ export const RegisterAdminResponse = zod.object({
  * @summary List all admin accounts (super admin)
  */
 export const ListAdminsResponseItem = zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "name": zod.string(),
   "email": zod.string(),
   "role": zod.string(),
-  "createdByAdminId": zod.int().nullish(),
+  "createdByAdminId": zod.number().int().nullish(),
   "canManageFinance": zod.boolean().optional(),
   "createdAt": zod.coerce.date()
 })
@@ -2715,18 +2715,18 @@ export const ListAdminsResponse = zod.array(ListAdminsResponseItem)
  */
 export const CreateAdminBody = zod.object({
   "name": zod.string(),
-  "email": zod.email(),
+  "email": zod.string().email(),
   "password": zod.string(),
   "role": zod.string(),
   "canManageFinance": zod.boolean().optional()
 })
 
 export const CreateAdminResponse = zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "name": zod.string(),
   "email": zod.string(),
   "role": zod.string(),
-  "createdByAdminId": zod.int().nullish(),
+  "createdByAdminId": zod.number().int().nullish(),
   "canManageFinance": zod.boolean().optional(),
   "createdAt": zod.coerce.date()
 })
@@ -2746,11 +2746,11 @@ export const UpdateAdminBody = zod.object({
 })
 
 export const UpdateAdminResponse = zod.object({
-  "id": zod.int(),
+  "id": zod.number().int(),
   "name": zod.string(),
   "email": zod.string(),
   "role": zod.string(),
-  "createdByAdminId": zod.int().nullish(),
+  "createdByAdminId": zod.number().int().nullish(),
   "canManageFinance": zod.boolean().optional(),
   "createdAt": zod.coerce.date()
 })
@@ -2770,8 +2770,8 @@ export const DeleteAdminResponse = zod.void()
  * @summary List broadcast messages (admin)
  */
 export const ListBroadcastsResponseItem = zod.object({
-  "id": zod.int(),
-  "sentByAdminId": zod.int().nullish(),
+  "id": zod.number().int(),
+  "sentByAdminId": zod.number().int().nullish(),
   "message": zod.string(),
   "targetFilter": zod.string().nullish(),
   "sentAt": zod.coerce.date()
@@ -2788,8 +2788,8 @@ export const SendBroadcastBody = zod.object({
 })
 
 export const SendBroadcastResponse = zod.object({
-  "id": zod.int(),
-  "sentByAdminId": zod.int().nullish(),
+  "id": zod.number().int(),
+  "sentByAdminId": zod.number().int().nullish(),
   "message": zod.string(),
   "targetFilter": zod.string().nullish(),
   "sentAt": zod.coerce.date()
@@ -2809,11 +2809,11 @@ export const ListAuditLogQueryParams = zod.object({
 })
 
 export const ListAuditLogResponseItem = zod.object({
-  "id": zod.int(),
-  "adminId": zod.int().nullish(),
+  "id": zod.number().int(),
+  "adminId": zod.number().int().nullish(),
   "actionType": zod.string(),
   "targetTable": zod.string(),
-  "targetId": zod.int().nullish(),
+  "targetId": zod.number().int().nullish(),
   "targetName": zod.string().nullish(),
   "userAgent": zod.string().nullish(),
   "details": zod.string().nullish(),
@@ -2831,14 +2831,14 @@ export const ListExpiringDocumentsQueryParams = zod.object({
 })
 
 export const ListExpiringDocumentsResponseItem = zod.object({
-  "id": zod.int(),
-  "usherId": zod.int(),
+  "id": zod.number().int(),
+  "usherId": zod.number().int(),
   "docType": zod.string(),
   "fileUrl": zod.string().optional(),
   "expiryDate": zod.string(),
   "status": zod.string(),
   "usherName": zod.string(),
-  "daysUntilExpiry": zod.int().optional()
+  "daysUntilExpiry": zod.number().int().optional()
 })
 export const ListExpiringDocumentsResponse = zod.array(ListExpiringDocumentsResponseItem)
 
@@ -2855,25 +2855,25 @@ export const GetAdminDashboardQueryParams = zod.object({
 })
 
 export const GetAdminDashboardResponse = zod.object({
-  "totalActiveUshers": zod.int(),
-  "pendingApprovals": zod.int(),
-  "upcomingEventsThisWeek": zod.int(),
-  "waitlistCount": zod.int(),
-  "completedJobsCount": zod.int(),
-  "cancelledJobsCount": zod.int(),
-  "totalEvents": zod.int(),
-  "ongoingEvents": zod.int(),
+  "totalActiveUshers": zod.number().int(),
+  "pendingApprovals": zod.number().int(),
+  "upcomingEventsThisWeek": zod.number().int(),
+  "waitlistCount": zod.number().int(),
+  "completedJobsCount": zod.number().int(),
+  "cancelledJobsCount": zod.number().int(),
+  "totalEvents": zod.number().int(),
+  "ongoingEvents": zod.number().int(),
   "avgUsherRating": zod.number(),
-  "pendingPayouts": zod.int().nullable(),
+  "pendingPayouts": zod.number().int().nullable(),
   "totalPaidOutThisMonth": zod.number().nullable(),
   "totalBalanceOwed": zod.number(),
-  "expiringDocumentCount": zod.int().optional(),
+  "expiringDocumentCount": zod.number().int().optional(),
   "recentActivity": zod.array(zod.object({
-  "id": zod.int(),
-  "adminId": zod.int().nullish(),
+  "id": zod.number().int(),
+  "adminId": zod.number().int().nullish(),
   "actionType": zod.string(),
   "targetTable": zod.string(),
-  "targetId": zod.int().nullish(),
+  "targetId": zod.number().int().nullish(),
   "targetName": zod.string().nullish(),
   "userAgent": zod.string().nullish(),
   "details": zod.string().nullish(),
@@ -2882,8 +2882,8 @@ export const GetAdminDashboardResponse = zod.object({
 })),
   "eventTrends": zod.array(zod.object({
   "month": zod.string(),
-  "eventCount": zod.int(),
-  "completedCount": zod.int()
+  "eventCount": zod.number().int(),
+  "completedCount": zod.number().int()
 }))
 })
 
@@ -2896,10 +2896,10 @@ export const GetUsherStatsParams = zod.object({
 })
 
 export const GetUsherStatsResponse = zod.object({
-  "jobsCompleted": zod.int(),
+  "jobsCompleted": zod.number().int(),
   "avgRating": zod.number(),
-  "cancelCount": zod.int(),
-  "noShowCount": zod.int(),
+  "cancelCount": zod.number().int(),
+  "noShowCount": zod.number().int(),
   "totalEarned": zod.number().optional()
 })
 
@@ -2914,9 +2914,9 @@ export const GetEventStatsParams = zod.object({
 export const GetEventStatsResponse = zod.object({
   "attendanceRate": zod.number(),
   "punctualityRate": zod.number(),
-  "completedCount": zod.int(),
-  "cancelledCount": zod.int(),
-  "totalAssigned": zod.int().optional()
+  "completedCount": zod.number().int(),
+  "cancelledCount": zod.number().int(),
+  "totalAssigned": zod.number().int().optional()
 })
 
 
@@ -2927,14 +2927,14 @@ export const GetRatingConfigResponse = zod.object({
   "clientRatingWeight": zod.number().optional(),
   "punctualityWeight": zod.number().optional(),
   "reliabilityWeight": zod.number().optional(),
-  "gracePeriodMinutes": zod.int().optional(),
+  "gracePeriodMinutes": zod.number().int().optional(),
   "punctualityPenaltyPerInterval": zod.number().optional(),
-  "punctualityIntervalMinutes": zod.int().optional(),
-  "reliabilityWindowDays": zod.int().optional(),
+  "punctualityIntervalMinutes": zod.number().int().optional(),
+  "reliabilityWindowDays": zod.number().int().optional(),
   "noShowPenalty": zod.number().optional(),
   "lateCancellationPenalty": zod.number().optional(),
-  "lateCancellationWindowHours": zod.int().optional(),
-  "reliabilityFlagThreshold": zod.int().optional()
+  "lateCancellationWindowHours": zod.number().int().optional(),
+  "reliabilityFlagThreshold": zod.number().int().optional()
 })
 
 
@@ -2945,28 +2945,28 @@ export const UpdateRatingConfigBody = zod.object({
   "clientRatingWeight": zod.number().optional(),
   "punctualityWeight": zod.number().optional(),
   "reliabilityWeight": zod.number().optional(),
-  "gracePeriodMinutes": zod.int().optional(),
+  "gracePeriodMinutes": zod.number().int().optional(),
   "punctualityPenaltyPerInterval": zod.number().optional(),
-  "punctualityIntervalMinutes": zod.int().optional(),
-  "reliabilityWindowDays": zod.int().optional(),
+  "punctualityIntervalMinutes": zod.number().int().optional(),
+  "reliabilityWindowDays": zod.number().int().optional(),
   "noShowPenalty": zod.number().optional(),
   "lateCancellationPenalty": zod.number().optional(),
-  "lateCancellationWindowHours": zod.int().optional(),
-  "reliabilityFlagThreshold": zod.int().optional()
+  "lateCancellationWindowHours": zod.number().int().optional(),
+  "reliabilityFlagThreshold": zod.number().int().optional()
 })
 
 export const UpdateRatingConfigResponse = zod.object({
   "clientRatingWeight": zod.number().optional(),
   "punctualityWeight": zod.number().optional(),
   "reliabilityWeight": zod.number().optional(),
-  "gracePeriodMinutes": zod.int().optional(),
+  "gracePeriodMinutes": zod.number().int().optional(),
   "punctualityPenaltyPerInterval": zod.number().optional(),
-  "punctualityIntervalMinutes": zod.int().optional(),
-  "reliabilityWindowDays": zod.int().optional(),
+  "punctualityIntervalMinutes": zod.number().int().optional(),
+  "reliabilityWindowDays": zod.number().int().optional(),
   "noShowPenalty": zod.number().optional(),
   "lateCancellationPenalty": zod.number().optional(),
-  "lateCancellationWindowHours": zod.int().optional(),
-  "reliabilityFlagThreshold": zod.int().optional()
+  "lateCancellationWindowHours": zod.number().int().optional(),
+  "reliabilityFlagThreshold": zod.number().int().optional()
 })
 
 
@@ -2979,15 +2979,15 @@ export const GetUsherReliabilityEventsParams = zod.object({
 
 export const GetUsherReliabilityEventsResponse = zod.object({
   "events": zod.array(zod.object({
-  "id": zod.int().optional(),
-  "usherId": zod.int().optional(),
-  "eventId": zod.int().optional(),
+  "id": zod.number().int().optional(),
+  "usherId": zod.number().int().optional(),
+  "eventId": zod.number().int().optional(),
   "type": zod.string().optional(),
   "occurredAt": zod.coerce.date().optional()
 })).optional(),
   "isFlagged": zod.boolean().optional(),
-  "flagThreshold": zod.int().optional(),
-  "windowDays": zod.int().optional()
+  "flagThreshold": zod.number().int().optional(),
+  "windowDays": zod.number().int().optional()
 })
 
 
