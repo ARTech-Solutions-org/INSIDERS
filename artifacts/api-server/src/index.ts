@@ -17,28 +17,10 @@ if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
 
-// Background worker to auto-close events whose end time has passed
-const autoCloseEvents = async () => {
-  try {
-    await db
-      .update(eventsTable)
-      .set({ status: "completed" })
-      .where(
-        and(
-          lt(eventsTable.endTime, new Date()),
-          ne(eventsTable.status, "completed")
-        )
-      );
-  } catch (err) {
-    logger.error({ err }, "Error auto-closing events");
-  }
-};
+import { startCronJobs } from "./lib/cron.js";
 
-// Run immediately on startup
-autoCloseEvents();
-// Then run every minute
-
-setInterval(autoCloseEvents, 60 * 1000);
+// Run background cron jobs
+startCronJobs();
 
 app.listen(port, (err) => {
   if (err) {
