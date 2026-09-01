@@ -422,6 +422,16 @@ export default function EventDetail() {
                 </div>
               )}
 
+              {status === 'rejected' && (
+                <div className="space-y-4 text-center">
+                  <div className="bg-destructive/10 border border-destructive/20 p-4 rounded-xl text-destructive">
+                    <XCircle className="w-8 h-8 mx-auto mb-2 text-destructive" />
+                    <p className="brand-display text-xl tracking-wide uppercase">APPLICATION NOT SELECTED</p>
+                    <p className="text-sm font-medium mt-1">Unfortunately, your application for this event was not selected.</p>
+                  </div>
+                </div>
+              )}
+
               {assignment && (
                 <>
                   {isPending && (
