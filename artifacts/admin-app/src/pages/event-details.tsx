@@ -1117,7 +1117,7 @@ export default function EventDetails() {
                       </div>
 
                       <div className="flex flex-col items-end gap-1">
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap justify-end items-center gap-2">
                           {assignment.checkinTime && !assignment.checkoutTime && (
                             <Button
                               size="sm"
