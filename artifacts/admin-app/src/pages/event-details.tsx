@@ -1285,15 +1285,15 @@ export default function EventDetails() {
                               </Badge>
                             )}
                           </div>
-                          <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1">
+                          <div className="text-[10px] text-muted-foreground mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
                              <span className="capitalize">{applicant.usher?.gender}</span>
-                             {applicant.usher?.shirtSize && <span>| Shirt: {applicant.usher.shirtSize}</span>}
-                             {applicant.usher?.tShirtSize && <span>| T-Shirt: {applicant.usher.tShirtSize}</span>}
-                             {applicant.usher?.pantsSize && <span>| Pants: {applicant.usher.pantsSize}</span>}
-                             {applicant.usher?.shortsSize && <span>| Shorts: {applicant.usher.shortsSize}</span>}
-                             {applicant.usher?.gender === 'female' && applicant.usher?.dressSize && <span>| Dress: {applicant.usher.dressSize}</span>}
-                             {applicant.usher?.shoeSize && <span>| Shoe: {applicant.usher.shoeSize}</span>}
-                          </p>
+                             {applicant.usher?.shirtSize && <span className="whitespace-nowrap">• Shirt: {applicant.usher.shirtSize}</span>}
+                             {applicant.usher?.tShirtSize && <span className="whitespace-nowrap">• T-Shirt: {applicant.usher.tShirtSize}</span>}
+                             {applicant.usher?.pantsSize && <span className="whitespace-nowrap">• Pants: {applicant.usher.pantsSize}</span>}
+                             {applicant.usher?.shortsSize && <span className="whitespace-nowrap">• Shorts: {applicant.usher.shortsSize}</span>}
+                             {applicant.usher?.gender === 'female' && applicant.usher?.dressSize && <span className="whitespace-nowrap">• Dress: {applicant.usher.dressSize}</span>}
+                             {applicant.usher?.shoeSize && <span className="whitespace-nowrap">• Shoe: {applicant.usher.shoeSize}</span>}
+                          </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-1">
