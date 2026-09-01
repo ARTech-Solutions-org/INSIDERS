@@ -3,7 +3,7 @@ import { useListMyAssignments, MyAssignment, useListEvents } from '@workspace/ap
 import { Link } from 'wouter';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MapPin, Clock, ArrowUpRight } from 'lucide-react';
+import { MapPin, Clock, ArrowUpRight, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 
 
@@ -59,6 +59,14 @@ function OpenEventList() {
                       <span className="line-clamp-1">{event.eventLocName || 'Location TBA'}</span>
                     </div>
                   </div>
+                  {event.deductionRules && event.deductionRules.length > 0 && (
+                    <div className="flex items-center gap-2 pt-1">
+                      <span className="bg-destructive/10 text-destructive text-[10px] font-bold px-2 py-0.5 rounded-sm uppercase tracking-wider border border-destructive/20 flex items-center gap-1">
+                        <AlertTriangle className="w-3 h-3" />
+                        Rules Apply
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -128,6 +136,14 @@ function AssignmentList({ status, colorClass }: { status: string, colorClass: st
                       </div>
                     )}
                   </div>
+                  {assignment.event.deductionRules && assignment.event.deductionRules.length > 0 && (
+                    <div className="flex items-center gap-2 pt-1">
+                      <span className="bg-destructive/10 text-destructive text-[10px] font-bold px-2 py-0.5 rounded-sm uppercase tracking-wider border border-destructive/20 flex items-center gap-1">
+                        <AlertTriangle className="w-3 h-3" />
+                        Rules Apply
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {assignment.isTeamLead && (

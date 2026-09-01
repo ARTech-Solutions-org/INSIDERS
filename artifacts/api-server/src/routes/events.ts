@@ -48,6 +48,19 @@ router.get("/events", requireAuth, async (req, res) => {
   }
   
   const data = await query.limit(parseInt(limit)).offset(offset);
+  
+  // Fetch deduction rules for these events
+  const eventIds = data.map((e: any) => e.id);
+  let allDeductionRules: any[] = [];
+  if (eventIds.length > 0) {
+    allDeductionRules = await db.select().from(deductionRulesTable).where(inArray(deductionRulesTable.eventId, eventIds));
+  }
+  
+  const dataWithRules = data.map((event: any) => ({
+    ...event,
+    deductionRules: allDeductionRules.filter((r: any) => r.eventId === event.id)
+  }));
+
   // Count
   let countQuery = db.select({ count: sql<number>`count(*)::int` }).from(eventsTable).$dynamic();
   if (req.user!.type === "usher") {
@@ -56,7 +69,7 @@ router.get("/events", requireAuth, async (req, res) => {
     countQuery = countQuery.where(eq(eventsTable.status, status));
   }
   const [{ count }] = await countQuery;
-  res.json({ data, total: count });
+  res.json({ data: dataWithRules, total: count });
 });
 
 // POST /events
