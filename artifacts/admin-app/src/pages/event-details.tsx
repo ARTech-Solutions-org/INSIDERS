@@ -165,6 +165,7 @@ export default function EventDetails() {
   const [newRuleThreshold, setNewRuleThreshold] = useState('');
 
   const [manualDeductionAssignment, setManualDeductionAssignment] = useState<any>(null);
+  const [checkinDetailsAssignment, setCheckinDetailsAssignment] = useState<any>(null);
   const [manualDeductionReason, setManualDeductionReason] = useState('');
   const [manualDeductionAmount, setManualDeductionAmount] = useState('');
 
@@ -1184,15 +1185,15 @@ export default function EventDetails() {
 
                       <div className="flex flex-col items-end gap-1">
                         <div className="flex flex-wrap justify-end items-center gap-2">
-                          {assignment.checkinPhotoKey && (
+                          {(assignment.checkinTime || assignment.checkinPhotoKey) && (
                             <Button
                               size="sm"
                               variant="ghost"
                               className="h-8 text-xs gap-1 text-primary hover:bg-primary/10"
-                              onClick={() => window.open(getImageUrl(assignment.checkinPhotoKey), '_blank')}
+                              onClick={() => setCheckinDetailsAssignment(assignment)}
                             >
                               <Camera className="w-3.5 h-3.5" />
-                              Selfie
+                              Check-in Info
                             </Button>
                           )}
                           {assignment.checkinTime && !assignment.checkoutTime && (
@@ -1767,6 +1768,61 @@ export default function EventDetails() {
               Add Deduction
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Check-in Details Dialog */}
+      <Dialog open={!!checkinDetailsAssignment} onOpenChange={(open) => !open && setCheckinDetailsAssignment(null)}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Check-in Details</DialogTitle>
+            <DialogDescription>
+              Attendance information for {checkinDetailsAssignment?.usher?.fullName}
+            </DialogDescription>
+          </DialogHeader>
+          {checkinDetailsAssignment && (
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col space-y-1">
+                  <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Check-in Time</span>
+                  <span className="text-sm font-medium">
+                    {checkinDetailsAssignment.checkinTime ? format(new Date(checkinDetailsAssignment.checkinTime), "MMM d, h:mm a") : "Not checked in"}
+                  </span>
+                </div>
+                <div className="flex flex-col space-y-1">
+                  <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Checkout Time</span>
+                  <span className="text-sm font-medium">
+                    {checkinDetailsAssignment.checkoutTime ? format(new Date(checkinDetailsAssignment.checkoutTime), "MMM d, h:mm a") : "Not checked out"}
+                  </span>
+                </div>
+                <div className="flex flex-col space-y-1">
+                  <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Late Arrival</span>
+                  <span className={`text-sm font-medium ${checkinDetailsAssignment.lateArrivalMinutes > 0 ? "text-destructive" : "text-green-600"}`}>
+                    {checkinDetailsAssignment.lateArrivalMinutes || 0} mins
+                  </span>
+                </div>
+                <div className="flex flex-col space-y-1">
+                  <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Early Leave</span>
+                  <span className={`text-sm font-medium ${checkinDetailsAssignment.earlyLeaveMinutes > 0 ? "text-destructive" : "text-green-600"}`}>
+                    {checkinDetailsAssignment.earlyLeaveMinutes || 0} mins
+                  </span>
+                </div>
+              </div>
+
+              {checkinDetailsAssignment.checkinPhotoKey && (
+                <div className="flex flex-col space-y-2 mt-4 border-t pt-4">
+                  <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Selfie / Proof</span>
+                  <div className="rounded-xl overflow-hidden border bg-muted/20 relative w-full aspect-video flex items-center justify-center">
+                    <img 
+                      src={getImageUrl(checkinDetailsAssignment.checkinPhotoKey)} 
+                      alt="Check-in Proof" 
+                      className="max-w-full max-h-[300px] object-contain rounded-lg shadow-sm"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
