@@ -1,6 +1,6 @@
 import { setAuthTokenGetter } from '@workspace/api-client-react';
 import { getMessagingToken } from './firebase';
-import { toast } from 'sonner';
+
 
 export const TOKEN_KEY = 'artech_token';
 
@@ -44,12 +44,11 @@ export async function registerPushToken(): Promise<void> {
     });
     
     if (!res.ok) {
-      toast.error('Failed to save push token on server: ' + await res.text());
+      console.warn('[FCM] Failed to save push token on server:', await res.text());
     }
   } catch (err: any) {
     // Non-fatal — the app works fine without push notifications
     console.warn('[FCM] Could not register push token:', err);
-    toast.error('Failed to activate notifications: ' + (err.message || String(err)));
   }
 }
 

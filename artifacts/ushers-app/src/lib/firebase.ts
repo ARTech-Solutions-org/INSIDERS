@@ -10,7 +10,7 @@
 
 import { initializeApp, getApps, type FirebaseApp } from "firebase/app";
 import { getMessaging, getToken, onMessage, type Messaging } from "firebase/messaging";
-import { toast } from "sonner";
+
 
 const firebaseConfig = {
   apiKey:            import.meta.env.VITE_FIREBASE_API_KEY            ?? "YOUR_API_KEY",
@@ -47,20 +47,20 @@ function getFirebaseMessaging(): Messaging | null {
  */
 export async function getMessagingToken(): Promise<string | null> {
   if (typeof window === "undefined" || !("serviceWorker" in navigator)) {
-    toast.error("المتصفح لا يدعم Service Worker");
+    console.warn("[FCM] Browser does not support Service Worker");
     return null;
   }
 
   // Request permission
   const permission = await Notification.requestPermission();
   if (permission !== "granted") {
-    toast.error(`Notification permission not granted: ${permission}`);
+    console.warn(`[FCM] Notification permission not granted: ${permission}`);
     return null;
   }
 
   const messaging = getFirebaseMessaging();
   if (!messaging) {
-    toast.error("Failed to initialize Firebase Messaging (your device might not support push notifications)");
+    console.warn("[FCM] Failed to initialize Firebase Messaging");
     return null;
   }
 
@@ -87,7 +87,6 @@ export async function getMessagingToken(): Promise<string | null> {
     return token || null;
   } catch (err: any) {
     console.warn("[FCM] Failed to get token:", err);
-    toast.error("Failed to get token: " + (err.message || String(err)));
     return null;
   }
 }
