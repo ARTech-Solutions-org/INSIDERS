@@ -804,8 +804,11 @@ export default function EventDetail() {
               <div className="space-y-3">
                 {eventDetails.deductionRules.map((rule: any) => (
                   <div key={rule.id} className="flex justify-between items-center bg-destructive/5 p-3 rounded-xl border border-destructive/10">
-                    <span className="text-sm font-semibold text-destructive/90">{rule.description}</span>
-                    <span className="text-xs font-bold text-destructive bg-destructive/10 px-2 py-1 rounded-md">-{rule.deductionAmount} EGP</span>
+                    <span className="text-sm font-semibold text-destructive/90">
+                      {rule.ruleType}
+                      {rule.triggerType !== 'always' && rule.thresholdMinutes > 0 ? ` (>${rule.thresholdMinutes}m)` : ''}
+                    </span>
+                    <span className="text-xs font-bold text-destructive bg-destructive/10 px-2 py-1 rounded-md">-{rule.amount} EGP</span>
                   </div>
                 ))}
               </div>
