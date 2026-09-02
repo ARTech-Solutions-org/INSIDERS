@@ -541,8 +541,9 @@ export default function EventDetails() {
       doc.setTextColor(100);
       doc.text(`${event?.eventLocName || ''} | ${event?.startTime ? format(new Date(event.startTime), 'MMM d, yyyy - h:mm a') : ''}`, 14, 40);
 
-      const assignedUshers = event?.assignments?.filter((a: any) => 
-        a.status !== 'pending' && a.status !== 'applied' && a.status !== 'rejected'
+      const ACTIVE_STATUSES = ['assigned', 'accepted', 'checked_in', 'completed'];
+      const assignedUshers = event?.assignments?.filter((a: any) =>
+        ACTIVE_STATUSES.includes(a.status)
       ) || [];
 
       const imagePromises = assignedUshers.map((assignment: any) => {
@@ -701,8 +702,9 @@ export default function EventDetails() {
       const workbook = new ExcelJS.Workbook();
       const sheet = workbook.addWorksheet('Salary Sheet');
 
+      const SALARY_ACTIVE_STATUSES = ['assigned', 'accepted', 'checked_in', 'completed'];
       const assignedUshers = (event?.assignments || []).filter((a: any) =>
-        a.status !== 'pending' && a.status !== 'applied' && a.status !== 'rejected'
+        SALARY_ACTIVE_STATUSES.includes(a.status)
       );
       const supervisors = assignedUshers.filter((a: any) => a.isTeamLead);
       const regulars = assignedUshers.filter((a: any) => !a.isTeamLead);
