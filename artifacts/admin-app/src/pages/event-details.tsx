@@ -806,8 +806,14 @@ export default function EventDetails() {
 
       const supDataEnd = 3 + supRows.length;
 
-      // Set F3 formula = SUM of supervisor subtotals
-      supHeaderRow.getCell(6).value = { formula: `SUM(E${supDataStart}:E${supDataEnd})`, result: 0 } as any;
+      // Calculate supervisor total from actual data
+      const supTotal = supervisors.reduce((sum: number, a: any) => {
+        const overridden = a.overriddenPay;
+        const salary = overridden !== null && overridden !== undefined ? overridden : leaderRate;
+        const manualDed = ((a as any).manualDeductions || []).reduce((s: number, d: any) => s + d.amount, 0);
+        return sum + (salary - (globalDeductionTotal + manualDed));
+      }, 0);
+      supHeaderRow.getCell(6).value = { formula: `SUM(E${supDataStart}:E${supDataEnd})`, result: supTotal } as any;
       supHeaderRow.getCell(6).numFmt = '#,##0';
 
       // ─── ROW: Ushers header ────────────────────────────────────────────
@@ -857,8 +863,14 @@ export default function EventDetails() {
 
       const usherDataEnd = usherHeaderRowNum + usherRows.length;
 
-      // Set Ushers header total formula
-      ushHeaderRow.getCell(6).value = { formula: `SUM(E${usherDataStart}:E${usherDataEnd})`, result: 0 } as any;
+      // Calculate usher total from actual data
+      const ushTotal = regulars.reduce((sum: number, a: any) => {
+        const overridden = a.overriddenPay;
+        const salary = overridden !== null && overridden !== undefined ? overridden : regularRate;
+        const manualDed = ((a as any).manualDeductions || []).reduce((s: number, d: any) => s + d.amount, 0);
+        return sum + (salary - (globalDeductionTotal + manualDed));
+      }, 0);
+      ushHeaderRow.getCell(6).value = { formula: `SUM(E${usherDataStart}:E${usherDataEnd})`, result: ushTotal } as any;
       ushHeaderRow.getCell(6).numFmt = '#,##0';
 
       // ─── Total row ─────────────────────────────────────────────────────
@@ -866,7 +878,7 @@ export default function EventDetails() {
       const totalRow = sheet.addRow(['Total', '', '', '', '', null]);
       sheet.mergeCells(`A${totalRowNum}:E${totalRowNum}`);
       applyNavyRow(totalRow);
-      totalRow.getCell(6).value = { formula: `F3+F${usherHeaderRowNum}`, result: 0 } as any;
+      totalRow.getCell(6).value = { formula: `F3+F${usherHeaderRowNum}`, result: supTotal + ushTotal } as any;
       totalRow.getCell(6).numFmt = '#,##0';
       totalRow.getCell(6).style = { ...navyStyle } as any;
 
