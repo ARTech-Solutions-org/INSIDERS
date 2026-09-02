@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useRoute, Link } from "wouter";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import { 
   useGetEvent, 
   useGetSmartCandidates, 
@@ -77,7 +79,8 @@ import {
   MinusCircle,
   Camera,
   Ruler,
-  Shirt
+  Shirt,
+  FileText
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -140,6 +143,7 @@ export default function EventDetails() {
   );
 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isExportingPDF, setIsExportingPDF] = useState(false);
   const [ratingAssignment, setRatingAssignment] = useState<any>(null);
   const [ratingValue, setRatingValue] = useState(5);
   const [ratingComment, setRatingComment] = useState("");
@@ -519,6 +523,111 @@ export default function EventDetails() {
     });
   };
 
+  const handleExportPDF = async () => {
+    setIsExportingPDF(true);
+    try {
+      const doc = new jsPDF();
+      
+      doc.setFontSize(20);
+      doc.text('Attendance Sheet', 14, 22);
+      
+      doc.setFontSize(14);
+      doc.text(event?.title || 'Event', 14, 32);
+
+      doc.setFontSize(11);
+      doc.setTextColor(100);
+      doc.text(`${event?.eventLocName || ''} | ${event?.startTime ? format(new Date(event.startTime), 'MMM d, yyyy - h:mm a') : ''}`, 14, 40);
+
+      const assignedUshers = event?.assignments?.filter((a: any) => 
+        a.status !== 'pending' && a.status !== 'applied' && a.status !== 'rejected'
+      ) || [];
+
+      const imagePromises = assignedUshers.map((assignment: any) => {
+        const usher = assignment.usher;
+        const photoUrl = getImageUrl(usher?.profilePhotoKey) || usher?.profilePhotoUrl;
+        if (!photoUrl) return Promise.resolve({ id: usher?.id, img: null });
+
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.crossOrigin = 'Anonymous';
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              // Create a circular crop for the photo
+              ctx.beginPath();
+              ctx.arc(img.width / 2, img.height / 2, Math.min(img.width, img.height) / 2, 0, Math.PI * 2, true);
+              ctx.closePath();
+              ctx.clip();
+              ctx.drawImage(img, 0, 0, img.width, img.height);
+            }
+            const dataUrl = canvas.toDataURL('image/jpeg');
+            resolve({ id: usher?.id, img: dataUrl });
+          };
+          img.onerror = () => resolve({ id: usher?.id, img: null });
+          img.src = photoUrl;
+        });
+      });
+
+      const loadedImages = await Promise.all(imagePromises);
+      const imageMap = loadedImages.reduce((acc: any, curr: any) => {
+        acc[curr.id] = curr.img;
+        return acc;
+      }, {});
+
+      const tableData = assignedUshers.map((assignment: any) => {
+        const usher = assignment.usher;
+        const teamName = teams?.find((t: any) => t.id === assignment.eventTeamId)?.name || 'Unassigned';
+        const roleStr = assignment.isTeamLead ? 'Team Lead' : 'Regular';
+        
+        return [
+          '', // Placeholder for photo
+          usher?.fullName || 'N/A',
+          `${teamName}\n${roleStr}`,
+          usher?.phone || 'N/A',
+          '' // Signature
+        ];
+      });
+
+      autoTable(doc, {
+        startY: 50,
+        head: [['Photo', 'Name', 'Role/Team', 'Phone', 'Signature / Notes']],
+        body: tableData,
+        headStyles: { fillColor: [15, 23, 42], textColor: 255 }, // Dark slate for header
+        bodyStyles: { minCellHeight: 25, valign: 'middle' },
+        columnStyles: {
+          0: { cellWidth: 25 },
+          1: { cellWidth: 45 },
+          2: { cellWidth: 40 },
+          3: { cellWidth: 35 },
+          4: { cellWidth: 'auto' }
+        },
+        didDrawCell: function(data: any) {
+          if (data.column.index === 0 && data.cell.section === 'body') {
+            const assignment = assignedUshers[data.row.index];
+            const imgData = imageMap[assignment.usher?.id];
+            if (imgData) {
+              const dim = 16;
+              const x = data.cell.x + (data.cell.width - dim) / 2;
+              const y = data.cell.y + (data.cell.height - dim) / 2;
+              doc.addImage(imgData, 'JPEG', x, y, dim, dim);
+            }
+          }
+        }
+      });
+
+      doc.save(`Attendance-${event?.title?.replace(/[^a-zA-Z0-9]/g, '_') || 'Event'}.pdf`);
+      toast({ title: "PDF exported successfully!" });
+    } catch (error) {
+      console.error(error);
+      toast({ title: "Export failed", description: "Could not generate PDF", variant: "destructive" });
+    } finally {
+      setIsExportingPDF(false);
+    }
+  };
+
   if (isEventLoading) {
     return <div className="p-8 text-center text-muted-foreground flex items-center justify-center gap-2">
       <Loader2 className="w-5 h-5 animate-spin" /> Loading event details...
@@ -783,6 +892,16 @@ export default function EventDetails() {
               Complete & Process
             </Button>
           )}
+
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={handleExportPDF}
+            disabled={isExportingPDF}
+          >
+            {isExportingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
+            Export PDF
+          </Button>
 
           <Button 
             variant={event.status === "published" ? "outline" : "default"} 
