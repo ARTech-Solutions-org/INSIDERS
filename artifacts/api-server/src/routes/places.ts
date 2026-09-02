@@ -37,12 +37,13 @@ router.get("/api/places/search", async (req: Request, res: Response) => {
         const lng = parseFloat(lngStr);
         if (!isNaN(lat) && !isNaN(lng)) {
           const offset = 0.5;
-          url += `&viewbox=${lng - offset},${lat + offset},${lng + offset},${lat - offset}&bounded=1`;
+          url += `&viewbox=${lng - offset},${lat + offset},${lng + offset},${lat - offset}`;
         }
       }
       const res = await fetch(url, {
         headers: { 'Accept': 'application/json', 'User-Agent': 'UsherManagementApp/1.0' }
       });
+      if (res.status === 404) return [];
       if (!res.ok) throw new Error(`Nominatim error: ${res.statusText}`);
       return (await res.json()) as any[];
     };
@@ -57,13 +58,14 @@ router.get("/api/places/search", async (req: Request, res: Response) => {
         const lng = parseFloat(lngStr);
         if (!isNaN(lat) && !isNaN(lng)) {
           const offset = 0.5;
-          locationIqUrl += `&viewbox=${lng - offset},${lat + offset},${lng + offset},${lat - offset}&bounded=1`;
+          locationIqUrl += `&viewbox=${lng - offset},${lat + offset},${lng + offset},${lat - offset}`;
         }
       }
 
       externalPromise = fetch(locationIqUrl, {
         headers: { 'Accept': 'application/json' }
       }).then(async res => {
+        if (res.status === 404) return [];
         if (!res.ok) throw new Error(`LocationIQ error: ${res.statusText}`);
         return (await res.json()) as any[];
       }).catch(err => {
