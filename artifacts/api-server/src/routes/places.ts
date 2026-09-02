@@ -51,23 +51,43 @@ router.get("/places/search", async (req: Request, res: Response) => {
     const locationIqKey = process.env.LOCATIONIQ_API_KEY;
     let externalPromise: Promise<any[]>;
 
-    if (locationIqKey) {
-      let locationIqUrl = `https://api.locationiq.com/v1/autocomplete?key=${locationIqKey}&q=${encodeURIComponent(query)}&countrycodes=eg&limit=30&format=json`;
-      if (latStr && lngStr) {
-        const lat = parseFloat(latStr);
-        const lng = parseFloat(lngStr);
-        if (!isNaN(lat) && !isNaN(lng)) {
-          const offset = 0.5;
-          locationIqUrl += `&viewbox=${lng - offset},${lat + offset},${lng + offset},${lat - offset}`;
-        }
-      }
+    const isArabic = /[\u0600-\u06FF]/.test(query);
+    const langHeader = isArabic ? 'ar' : 'en';
 
-      externalPromise = fetch(locationIqUrl, {
-        headers: { 'Accept': 'application/json' }
+    if (locationIqKey) {
+      const getBoundingBox = () => {
+        if (latStr && lngStr) {
+          const lat = parseFloat(latStr);
+          const lng = parseFloat(lngStr);
+          if (!isNaN(lat) && !isNaN(lng)) {
+            const offset = 0.5;
+            return `&viewbox=${lng - offset},${lat + offset},${lng + offset},${lat - offset}`;
+          }
+        }
+        return '';
+      };
+
+      const qEncoded = encodeURIComponent(query);
+      const autocompleteUrl = `https://api.locationiq.com/v1/autocomplete?key=${locationIqKey}&q=${qEncoded}&countrycodes=eg&limit=30&format=json&accept-language=${langHeader}${getBoundingBox()}`;
+      const searchUrl = `https://api.locationiq.com/v1/search?key=${locationIqKey}&q=${qEncoded}&countrycodes=eg&limit=30&format=json&accept-language=${langHeader}${getBoundingBox()}`;
+
+      externalPromise = fetch(autocompleteUrl, {
+        headers: { 'Accept': 'application/json', 'Accept-Language': langHeader }
       }).then(async res => {
         if (res.status === 404) return [];
-        if (!res.ok) throw new Error(`LocationIQ error: ${res.statusText}`);
+        if (!res.ok) throw new Error(`LocationIQ autocomplete error: ${res.statusText}`);
         return (await res.json()) as any[];
+      }).then(async autocompleteResults => {
+        // If autocomplete yielded nothing (e.g. for some specific malls like Majarra), fallback to full search
+        if (autocompleteResults.length === 0) {
+          const searchRes = await fetch(searchUrl, {
+            headers: { 'Accept': 'application/json', 'Accept-Language': langHeader }
+          });
+          if (searchRes.status === 404) return [];
+          if (!searchRes.ok) throw new Error(`LocationIQ search error: ${searchRes.statusText}`);
+          return (await searchRes.json()) as any[];
+        }
+        return autocompleteResults;
       }).catch(err => {
         console.error("LocationIQ search failed, falling back to Nominatim:", err);
         return fetchNominatim();
