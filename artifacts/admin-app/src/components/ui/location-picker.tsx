@@ -200,26 +200,28 @@ export function LocationPicker({ value, onChange, radiusMeters = 100 }: Location
 
           {/* Autocomplete Results Dropdown */}
           {searchResults.length > 0 && (
-            <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-xl shadow-lg max-h-60 overflow-y-auto divide-y divide-border">
-              {searchResults.map((result) => (
-                <button
-                  key={result.place_id}
-                  type="button"
-                  onClick={() => handleSelectResult(result)}
-                  className="w-full text-left p-3 text-sm hover:bg-accent transition-colors flex items-start gap-2.5"
-                >
-                  <MapPin className={`w-4 h-4 shrink-0 mt-0.5 ${result.isCustom ? 'text-green-500' : 'text-primary'}`} />
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium text-foreground">{result.display_name.split(",")[0]}</p>
-                      {result.isCustom && (
-                        <Badge variant="outline" className="text-[9px] h-4 px-1 py-0 bg-green-500/10 text-green-600 border-green-200">Recommended</Badge>
-                      )}
+            <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-xl shadow-lg overflow-hidden">
+              <div className="max-h-[260px] overflow-y-auto overscroll-contain flex flex-col divide-y divide-border">
+                {searchResults.map((result) => (
+                  <button
+                    key={result.place_id}
+                    type="button"
+                    onClick={() => handleSelectResult(result)}
+                    className="w-full text-left p-3 text-sm hover:bg-accent transition-colors flex items-start gap-2.5 shrink-0"
+                  >
+                    <MapPin className={`w-4 h-4 shrink-0 mt-0.5 ${result.isCustom ? 'text-green-500' : 'text-primary'}`} />
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-foreground">{result.display_name.split(",")[0]}</p>
+                        {result.isCustom && (
+                          <Badge variant="outline" className="text-[9px] h-4 px-1 py-0 bg-green-500/10 text-green-600 border-green-200">Recommended</Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground line-clamp-1">{result.display_name}</p>
                     </div>
-                    <p className="text-xs text-muted-foreground line-clamp-1">{result.display_name}</p>
-                  </div>
-                </button>
-              ))}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
         </div>
