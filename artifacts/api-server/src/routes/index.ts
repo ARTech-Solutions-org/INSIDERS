@@ -13,6 +13,7 @@ import pushTokensRouter from "./push-tokens.js";
 import remindersRouter from "./reminders.js";
 import syncRouter from "./sync.js";
 import publicRouter from "./public.js";
+import placesRouter from "./places.js";
 
 const router: IRouter = Router();
 
@@ -29,6 +30,7 @@ router.use(ratingsRouter);
 router.use(pushTokensRouter);
 router.use(remindersRouter);
 router.use(syncRouter);
+router.use(placesRouter);
 router.use("/public", publicRouter);
 
 export default router;

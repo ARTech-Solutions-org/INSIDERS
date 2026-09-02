@@ -46,27 +46,35 @@ export function LocationPicker({ value, onChange, radiusMeters = 100 }: Location
     }
   }, [value.address]);
 
-  // Search places using OpenStreetMap Nominatim API
-  const handleSearch = async (query: string) => {
-    setSearchQuery(query);
-    if (!query || query.length < 3) {
-      setSearchResults([]);
-      return;
-    }
+  // Debounce logic
+  useEffect(() => {
+    const handler = setTimeout(async () => {
+      if (!searchQuery || searchQuery.length < 3) {
+        setSearchResults([]);
+        return;
+      }
 
-    setIsSearching(true);
-    try {
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query + ", Egypt")}&limit=5`
-      );
-      const data: SearchResult[] = await res.json();
-      setSearchResults(data);
-    } catch (err) {
-      console.error("Geocoding search error:", err);
-    } finally {
-      setIsSearching(false);
-    }
-  };
+      setIsSearching(true);
+      try {
+        let url = `/api/places/search?q=${encodeURIComponent(searchQuery)}`;
+        if (value.lat && value.lng) {
+          url += `&lat=${value.lat}&lng=${value.lng}`;
+        }
+        
+        const res = await fetch(url);
+        if (res.ok) {
+          const data: SearchResult[] = await res.json();
+          setSearchResults(data);
+        }
+      } catch (err) {
+        console.error("Places search error:", err);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 400); // 400ms debounce
+
+    return () => clearTimeout(handler);
+  }, [searchQuery, value.lat, value.lng]);
 
   const handleSelectResult = (result: SearchResult) => {
     const lat = parseFloat(result.lat);
@@ -178,7 +186,7 @@ export function LocationPicker({ value, onChange, radiusMeters = 100 }: Location
           </div>
           <Input
             value={searchQuery}
-            onChange={(e) => handleSearch(e.target.value)}
+            onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Type venue name or search location (e.g. Cairo International Center)..."
             className="pl-9 pr-9"
           />
@@ -198,9 +206,14 @@ export function LocationPicker({ value, onChange, radiusMeters = 100 }: Location
                   onClick={() => handleSelectResult(result)}
                   className="w-full text-left p-3 text-sm hover:bg-accent transition-colors flex items-start gap-2.5"
                 >
-                  <MapPin className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                  <MapPin className={`w-4 h-4 shrink-0 mt-0.5 ${result.isCustom ? 'text-green-500' : 'text-primary'}`} />
                   <div>
-                    <p className="font-medium text-foreground">{result.display_name.split(",")[0]}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-foreground">{result.display_name.split(",")[0]}</p>
+                      {result.isCustom && (
+                        <Badge variant="outline" className="text-[9px] h-4 px-1 py-0 bg-green-500/10 text-green-600 border-green-200">Recommended</Badge>
+                      )}
+                    </div>
                     <p className="text-xs text-muted-foreground line-clamp-1">{result.display_name}</p>
                   </div>
                 </button>

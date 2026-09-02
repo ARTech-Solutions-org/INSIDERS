@@ -21,3 +21,4 @@ export * from "./system-settings";
 export * from "./reliability-events";
 export * from "./admin-invitations";
 export * from "./assignment-deductions";
+export * from "./custom-places";
