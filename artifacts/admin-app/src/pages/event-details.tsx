@@ -575,10 +575,10 @@ export default function EventDetails() {
       });
 
       const loadedImages = await Promise.all(imagePromises);
-      const imageMap = loadedImages.reduce((acc: any, curr: any) => {
+      const imageMap = loadedImages.reduce((acc: Record<string, string>, curr: any) => {
         acc[curr.id] = curr.img;
         return acc;
-      }, {});
+      }, {} as Record<string, string>);
 
       const tableData = assignedUshers.map((assignment: any) => {
         const usher = assignment.usher;
@@ -718,8 +718,8 @@ export default function EventDetails() {
       const ALT_ROW = 'FFD6E4F0';
       const WHITE = 'FFFFFFFF';
 
-      const navyStyle: Partial<ExcelJS.Style> = {
-        fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: NAVY } } as any,
+      const navyStyle: any = {
+        fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: NAVY } },
         font: { bold: true, color: { argb: NAVY_TEXT }, size: 12 },
         alignment: { horizontal: 'center', vertical: 'middle' },
         border: {
@@ -730,11 +730,10 @@ export default function EventDetails() {
         }
       };
 
-      const applyNavyRow = (row: ExcelJS.Row) => {
+      const applyNavyRow = (row: any) => {
         row.height = 20;
-        row.eachCell({ includeEmpty: true }, (cell) => {
-          Object.assign(cell, navyStyle);
-          cell.style = { ...navyStyle } as any;
+        row.eachCell({ includeEmpty: true }, (cell: any) => {
+          cell.style = { ...navyStyle };
         });
       };
 
@@ -772,7 +771,7 @@ export default function EventDetails() {
         const usher = assignment.usher;
         const overridden = assignment.overriddenPay;
         const salary = overridden !== null && overridden !== undefined ? overridden : leaderRate;
-        const manualDed = (assignment.manualDeductions || []).reduce((s: number, d: any) => s + d.amount, 0);
+        const manualDed = ((assignment as any).manualDeductions || []).reduce((s: number, d: any) => s + d.amount, 0);
         const deduction = globalDeductionTotal + manualDed;
         const subtotal = salary - deduction;
         supRows.push([usher?.fullName || '', 1, salary, deduction, subtotal, '']);
@@ -827,7 +826,7 @@ export default function EventDetails() {
         const usher = assignment.usher;
         const overridden = assignment.overriddenPay;
         const salary = overridden !== null && overridden !== undefined ? overridden : regularRate;
-        const manualDed = (assignment.manualDeductions || []).reduce((s: number, d: any) => s + d.amount, 0);
+        const manualDed = ((assignment as any).manualDeductions || []).reduce((s: number, d: any) => s + d.amount, 0);
         const deduction = globalDeductionTotal + manualDed;
         const subtotal = salary - deduction;
         usherRows.push([usher?.fullName || '', 1, salary, deduction, subtotal, '']);
