@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRoute, Link } from "wouter";
 // @ts-ignore
-import html2pdf from "html2pdf.js";
+
 import * as XLSX from "xlsx";
 import { 
   useGetEvent, 
@@ -553,7 +553,7 @@ export default function EventDetails() {
     });
   };
 
-  const handleExportPDF = async () => {
+    const handleExportPDF = async () => {
     if (!pdfRef.current) return;
     setIsExportingPDF(true);
     try {
@@ -566,15 +566,15 @@ export default function EventDetails() {
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
       
-      // Temporarily show the element to render it
-      element.style.display = 'block';
-      await html2pdf().set(opt).from(element).save();
-      element.style.display = 'none';
+      const html2pdfModule = await import('html2pdf.js');
+      const pdfGenerator = html2pdfModule.default || html2pdfModule;
+      
+      await pdfGenerator().set(opt).from(element).save();
 
       toast({ title: "PDF exported successfully!" });
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast({ title: "Export failed", description: "Could not generate PDF", variant: "destructive" });
+      toast({ title: "Export failed", description: String(error?.message || error), variant: "destructive" });
     } finally {
       setIsExportingPDF(false);
     }
