@@ -702,7 +702,7 @@ export default function EventDetails() {
       const workbook = new ExcelJS.Workbook();
       const sheet = workbook.addWorksheet('Salary Sheet');
 
-      const SALARY_ACTIVE_STATUSES = ['assigned', 'accepted', 'checked_in', 'completed'];
+      const SALARY_ACTIVE_STATUSES = ['checked_in', 'completed'];
       const assignedUshers = (event?.assignments || []).filter((a: any) =>
         SALARY_ACTIVE_STATUSES.includes(a.status)
       );
