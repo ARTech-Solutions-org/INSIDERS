@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRoute, Link } from "wouter";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+// @ts-ignore
+import html2pdf from "html2pdf.js";
 import * as XLSX from "xlsx";
 import { 
   useGetEvent, 
@@ -151,11 +151,38 @@ export default function EventDetails() {
   const [ratingValue, setRatingValue] = useState(5);
   const [ratingComment, setRatingComment] = useState("");
 
+  const pdfRef = useRef<HTMLDivElement>(null);
+
   const isFieldLocked = (fieldName: string) => {
     if (isSuperAdmin) return false;
     return event?.superAdminLockedFields?.includes(fieldName) ?? false;
   };
   const [isSubmittingRating, setIsSubmittingRating] = useState(false);
+
+  // PDF Data calculations
+  const ACTIVE_STATUSES = ['assigned', 'accepted', 'checked_in', 'completed'];
+  const pdfAssignedUshers = event?.assignments?.filter((a: any) =>
+    ACTIVE_STATUSES.includes(a.status)
+  ) || [];
+
+  const getCountsForPDF = (key: string) => {
+    return Object.entries(
+      pdfAssignedUshers.reduce((acc: any, assignment: any) => {
+        const val = assignment.usher?.[key];
+        if (val) acc[val] = (acc[val] || 0) + 1;
+        return acc;
+      }, {})
+    ).sort((a: any, b: any) => (b[1] as number) - (a[1] as number)) as [string, number][];
+  };
+
+  const pdfSizeCategories = [
+    { label: 'T-Shirts', key: 'tShirtSize' },
+    { label: 'Shirts', key: 'shirtSize' },
+    { label: 'Pants', key: 'pantsSize' },
+    { label: 'Shorts', key: 'shortsSize' },
+    { label: 'Dresses', key: 'dressSize' },
+    { label: 'Shoes', key: 'shoeSize' },
+  ];
 
   // Filters for Pending Applicants
   const [filterGender, setFilterGender] = useState<string>('all');
@@ -527,168 +554,23 @@ export default function EventDetails() {
   };
 
   const handleExportPDF = async () => {
+    if (!pdfRef.current) return;
     setIsExportingPDF(true);
     try {
-      const doc = new jsPDF();
-      
-      doc.setFontSize(20);
-      doc.text('Ushers Sheet', 14, 22);
-      
-      doc.setFontSize(14);
-      doc.text(event?.title || 'Event', 14, 32);
-
-      doc.setFontSize(11);
-      doc.setTextColor(100);
-      doc.text(`${event?.eventLocName || ''} | ${event?.startTime ? format(new Date(event.startTime), 'MMM d, yyyy - h:mm a') : ''}`, 14, 40);
-
-      const ACTIVE_STATUSES = ['assigned', 'accepted', 'checked_in', 'completed'];
-      const assignedUshers = event?.assignments?.filter((a: any) =>
-        ACTIVE_STATUSES.includes(a.status)
-      ) || [];
-
-      const imagePromises = assignedUshers.map((assignment: any) => {
-        const usher = assignment.usher;
-        const photoUrl = getImageUrl(usher?.profilePhotoKey) || usher?.profilePhotoUrl;
-        if (!photoUrl) return Promise.resolve({ id: usher?.id, img: null });
-
-        return new Promise((resolve) => {
-          const img = new Image();
-          img.crossOrigin = 'Anonymous';
-          img.onload = () => {
-            const canvas = document.createElement('canvas');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            const ctx = canvas.getContext('2d');
-            if (ctx) {
-              // Create a circular crop for the photo
-              ctx.beginPath();
-              ctx.arc(img.width / 2, img.height / 2, Math.min(img.width, img.height) / 2, 0, Math.PI * 2, true);
-              ctx.closePath();
-              ctx.clip();
-              ctx.drawImage(img, 0, 0, img.width, img.height);
-            }
-            const dataUrl = canvas.toDataURL('image/jpeg');
-            resolve({ id: usher?.id, img: dataUrl });
-          };
-          img.onerror = () => resolve({ id: usher?.id, img: null });
-          img.src = photoUrl;
-        });
-      });
-
-      const loadedImages = await Promise.all(imagePromises);
-      const imageMap: Record<string, string> = (loadedImages as any[]).reduce((acc: Record<string, string>, curr: any) => {
-        if (curr?.id && curr?.img) {
-          acc[curr.id] = curr.img;
-        }
-        return acc;
-      }, {} as Record<string, string>);
-
-      const tableData = assignedUshers.map((assignment: any) => {
-        const usher = assignment.usher;
-        const teamName = teams?.find((t: any) => t.id === assignment.eventTeamId)?.name || 'Unassigned';
-        const roleStr = assignment.isTeamLead ? 'Team Lead' : 'Regular';
-        
-        return [
-          '', // Placeholder for photo
-          usher?.fullName || 'N/A',
-          `${teamName}\n${roleStr}`,
-          usher?.phone || 'N/A',
-          '' // Signature
-        ];
-      });
-
-      autoTable(doc, {
-        startY: 50,
-        head: [['Photo', 'Name', 'Role/Team', 'Phone', 'Signature / Notes']],
-        body: tableData,
-        headStyles: { fillColor: [15, 23, 42], textColor: 255 }, // Dark slate for header
-        bodyStyles: { minCellHeight: 25, valign: 'middle' },
-        columnStyles: {
-          0: { cellWidth: 25 },
-          1: { cellWidth: 45 },
-          2: { cellWidth: 40 },
-          3: { cellWidth: 35 },
-          4: { cellWidth: 'auto' }
-        },
-        didDrawCell: function(data: any) {
-          if (data.column.index === 0 && data.cell.section === 'body') {
-            const assignment = assignedUshers[data.row.index];
-            const usherId = assignment?.usher?.id;
-            const imgData = usherId ? imageMap[usherId] : undefined;
-            if (imgData) {
-              const dim = 16;
-              const x = data.cell.x + (data.cell.width - dim) / 2;
-              const y = data.cell.y + (data.cell.height - dim) / 2;
-              doc.addImage(imgData, 'JPEG', x, y, dim, dim);
-            }
-          }
-        }
-      });
-
-      const finalY = (doc as any).lastAutoTable?.finalY || doc.internal.pageSize.getHeight();
-      
-      let currentY = finalY + 15;
-      
-      if (currentY + 60 > doc.internal.pageSize.getHeight()) {
-        doc.addPage();
-        currentY = 20;
-      }
-      
-      doc.setFontSize(14);
-      doc.setTextColor(0);
-      doc.text('Sizes Summary', 14, currentY);
-
-      doc.setFontSize(10);
-      doc.setTextColor(100);
-      currentY += 6;
-      doc.text('Aggregate of sizes for all ushers in this sheet:', 14, currentY);
-
-      const getCountsForPDF = (key: string) => {
-        return Object.entries(
-          assignedUshers.reduce((acc: any, assignment: any) => {
-            const val = assignment.usher?.[key];
-            if (val) acc[val] = (acc[val] || 0) + 1;
-            return acc;
-          }, {})
-        ).sort((a: any, b: any) => b[1] - a[1]) as [string, number][];
+      const element = pdfRef.current;
+      const opt = {
+        margin:       10,
+        filename:     `Ushers-${event?.title?.replace(/[^a-zA-Z0-9]/g, '_') || 'Event'}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true, allowTaint: true },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
+      
+      // Temporarily show the element to render it
+      element.style.display = 'block';
+      await html2pdf().set(opt).from(element).save();
+      element.style.display = 'none';
 
-      const sizeCategories = [
-        { label: 'T-Shirts', key: 'tShirtSize' },
-        { label: 'Shirts', key: 'shirtSize' },
-        { label: 'Pants', key: 'pantsSize' },
-        { label: 'Shorts', key: 'shortsSize' },
-        { label: 'Dresses', key: 'dressSize' },
-        { label: 'Shoes', key: 'shoeSize' },
-      ];
-
-      let summaryAdded = false;
-      currentY += 10;
-      doc.setFontSize(11);
-      doc.setTextColor(0);
-
-      sizeCategories.forEach(cat => {
-        const counts = getCountsForPDF(cat.key);
-        if (counts.length > 0) {
-          summaryAdded = true;
-          doc.text(`${cat.label}:`, 14, currentY);
-          const sizeStr = counts.map(c => `${c[0]} (${c[1]})`).join('  |  ');
-          doc.setFontSize(10);
-          doc.setTextColor(100);
-          doc.text(sizeStr, 40, currentY);
-          doc.setFontSize(11);
-          doc.setTextColor(0);
-          currentY += 7;
-        }
-      });
-
-      if (!summaryAdded) {
-        doc.setFontSize(10);
-        doc.setTextColor(100);
-        doc.text('No size data available.', 14, currentY);
-      }
-
-      doc.save(`Ushers-${event?.title?.replace(/[^a-zA-Z0-9]/g, '_') || 'Event'}.pdf`);
       toast({ title: "PDF exported successfully!" });
     } catch (error) {
       console.error(error);
@@ -2257,6 +2139,79 @@ export default function EventDetails() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Hidden PDF template */}
+      <div className="absolute top-[-9999px] left-[-9999px]">
+        <div ref={pdfRef} className="p-8 bg-white text-black font-sans" style={{ width: '800px' }}>
+          <h1 className="text-2xl font-bold mb-2">Ushers Sheet</h1>
+          <h2 className="text-xl mb-4">{event?.title || 'Event'}</h2>
+          <p className="text-gray-600 mb-8">
+            {event?.eventLocName || ''} | {event?.startTime ? format(new Date(event.startTime), 'MMM d, yyyy - h:mm a') : ''}
+          </p>
+          
+          <table className="w-full border-collapse border border-gray-300 text-sm mb-8" style={{ tableLayout: 'fixed' }}>
+            <thead>
+              <tr className="bg-slate-800 text-white">
+                <th className="p-2 border border-gray-300 w-16">Photo</th>
+                <th className="p-2 border border-gray-300 text-left">Name</th>
+                <th className="p-2 border border-gray-300 text-left">Role/Team</th>
+                <th className="p-2 border border-gray-300 text-left">Phone</th>
+                <th className="p-2 border border-gray-300 text-left">Signature / Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pdfAssignedUshers.map((assignment: any) => {
+                const usher = assignment.usher;
+                const teamName = teams?.find((t: any) => t.id === assignment.eventTeamId)?.name || 'Unassigned';
+                const roleStr = assignment.isTeamLead ? 'Team Lead' : 'Regular';
+                const photoUrl = getImageUrl(usher?.profilePhotoKey) || usher?.profilePhotoUrl;
+                
+                return (
+                  <tr key={assignment.id} className="border-b border-gray-300" style={{ pageBreakInside: 'avoid' }}>
+                    <td className="p-2 border border-gray-300 text-center">
+                      {photoUrl ? (
+                        <img src={photoUrl} className="w-10 h-10 rounded-full object-cover mx-auto" crossOrigin="anonymous" alt="Photo" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-gray-200 mx-auto" />
+                      )}
+                    </td>
+                    <td className="p-2 border border-gray-300" dir="auto">{usher?.fullName || 'N/A'}</td>
+                    <td className="p-2 border border-gray-300" dir="auto">
+                      <div className="font-medium">{teamName}</div>
+                      <div className="text-gray-500 text-xs">{roleStr}</div>
+                    </td>
+                    <td className="p-2 border border-gray-300" dir="auto">{usher?.phone || 'N/A'}</td>
+                    <td className="p-2 border border-gray-300"></td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+
+          <div style={{ pageBreakBefore: 'always' }} className="mt-8">
+            <h2 className="text-xl font-bold mb-2">Sizes Summary</h2>
+            <p className="text-gray-600 text-sm mb-4">Aggregate of sizes for all ushers in this sheet:</p>
+            
+            <div className="space-y-3">
+              {pdfSizeCategories.map(cat => {
+                const counts = getCountsForPDF(cat.key);
+                if (counts.length === 0) return null;
+                return (
+                  <div key={cat.key} className="flex flex-col gap-1">
+                    <span className="font-semibold">{cat.label}:</span>
+                    <span className="text-gray-600 text-sm ml-4">
+                      {counts.map(c => `${c[0]} (${c[1]})`).join('  |  ')}
+                    </span>
+                  </div>
+                );
+              })}
+              {pdfSizeCategories.every(cat => getCountsForPDF(cat.key).length === 0) && (
+                <div className="text-gray-500 italic">No size data available.</div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
