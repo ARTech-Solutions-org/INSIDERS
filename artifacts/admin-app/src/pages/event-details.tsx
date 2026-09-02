@@ -576,8 +576,10 @@ export default function EventDetails() {
       });
 
       const loadedImages = await Promise.all(imagePromises);
-      const imageMap = loadedImages.reduce((acc: Record<string, string>, curr: any) => {
-        acc[curr.id] = curr.img;
+      const imageMap: Record<string, string> = (loadedImages as any[]).reduce((acc: Record<string, string>, curr: any) => {
+        if (curr?.id && curr?.img) {
+          acc[curr.id] = curr.img;
+        }
         return acc;
       }, {} as Record<string, string>);
 
@@ -611,7 +613,8 @@ export default function EventDetails() {
         didDrawCell: function(data: any) {
           if (data.column.index === 0 && data.cell.section === 'body') {
             const assignment = assignedUshers[data.row.index];
-            const imgData = imageMap[assignment.usher?.id];
+            const usherId = assignment?.usher?.id;
+            const imgData = usherId ? imageMap[usherId] : undefined;
             if (imgData) {
               const dim = 16;
               const x = data.cell.x + (data.cell.width - dim) / 2;

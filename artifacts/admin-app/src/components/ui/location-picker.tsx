@@ -23,6 +23,7 @@ interface SearchResult {
   display_name: string;
   lat: string;
   lon: string;
+  isCustom?: boolean;
 }
 
 const EGYPT_PRESETS = [
