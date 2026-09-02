@@ -200,7 +200,7 @@ export function LocationPicker({ value, onChange, radiusMeters = 100 }: Location
 
           {/* Autocomplete Results Dropdown */}
           {searchResults.length > 0 && (
-            <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-xl shadow-lg overflow-hidden divide-y divide-border">
+            <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-xl shadow-lg max-h-60 overflow-y-auto divide-y divide-border">
               {searchResults.map((result) => (
                 <button
                   key={result.place_id}
