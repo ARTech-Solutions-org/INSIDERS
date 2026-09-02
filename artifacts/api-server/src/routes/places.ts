@@ -126,6 +126,32 @@ router.get("/places/search", async (req: Request, res: Response) => {
       }
     }
 
+    // Sort by relevance to query
+    const qLower = query.toLowerCase().trim();
+    merged.sort((a, b) => {
+      const getScore = (name: string, isCustom: boolean) => {
+        let score = 0;
+        const lowerName = name.toLowerCase();
+        const mainName = lowerName.split(',')[0].trim();
+        
+        if (mainName === qLower) score += 100;
+        else if (mainName.startsWith(qLower)) score += 80;
+        else if (mainName.includes(qLower)) score += 60;
+        else if (lowerName.includes(qLower)) score += 30;
+        
+        if (isCustom) score += 20;
+        return score;
+      };
+      
+      const scoreA = getScore(a.display_name, a.isCustom);
+      const scoreB = getScore(b.display_name, b.isCustom);
+      
+      if (scoreA !== scoreB) {
+        return scoreB - scoreA;
+      }
+      return a.display_name.localeCompare(b.display_name);
+    });
+
     res.json(merged);
   } catch (error) {
     console.error("Places search error:", error);
