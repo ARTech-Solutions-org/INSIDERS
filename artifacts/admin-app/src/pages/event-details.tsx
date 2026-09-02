@@ -694,13 +694,16 @@ export default function EventDetails() {
     }
   };
 
-  const handleExportSalarySheet = () => {
+  const handleExportSalarySheet = async () => {
     setIsExportingSalary(true);
     try {
+      const ExcelJS = (await import('exceljs')).default;
+      const workbook = new ExcelJS.Workbook();
+      const sheet = workbook.addWorksheet('Salary Sheet');
+
       const assignedUshers = (event?.assignments || []).filter((a: any) =>
         a.status !== 'pending' && a.status !== 'applied' && a.status !== 'rejected'
       );
-
       const supervisors = assignedUshers.filter((a: any) => a.isTeamLead);
       const regulars = assignedUshers.filter((a: any) => !a.isTeamLead);
 
@@ -708,28 +711,63 @@ export default function EventDetails() {
       const regularRate = event?.regularRate || 0;
       const globalDeductionTotal = (event?.deductionRules || []).reduce((s: number, r: any) => s + r.amount, 0);
 
-      const wb = XLSX.utils.book_new();
-      const ws: XLSX.WorkSheet = {};
+      // Colors
+      const NAVY = '00003087';
+      const NAVY_TEXT = 'FFFFFFFF';
+      const TEAL = 'FF0070C0';
+      const ALT_ROW = 'FFD6E4F0';
+      const WHITE = 'FFFFFFFF';
 
-      const setCell = (addr: string, value: any, style?: any) => {
-        ws[addr] = { v: value, t: typeof value === 'number' ? 'n' : 's', ...style };
+      const navyStyle: Partial<ExcelJS.Style> = {
+        fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: NAVY } } as any,
+        font: { bold: true, color: { argb: NAVY_TEXT }, size: 12 },
+        alignment: { horizontal: 'center', vertical: 'middle' },
+        border: {
+          top: { style: 'thin', color: { argb: 'FF000000' } },
+          bottom: { style: 'thin', color: { argb: 'FF000000' } },
+          left: { style: 'thin', color: { argb: 'FF000000' } },
+          right: { style: 'thin', color: { argb: 'FF000000' } },
+        }
       };
 
-      // Row 1: Event Name
-      setCell('A1', event?.title || 'Event');
-      setCell('B1', event?.eventLocName || '');
-      setCell('C1', event?.startTime ? format(new Date(event.startTime), 'MMM d, yyyy') : '');
+      const applyNavyRow = (row: ExcelJS.Row) => {
+        row.height = 20;
+        row.eachCell({ includeEmpty: true }, (cell) => {
+          Object.assign(cell, navyStyle);
+          cell.style = { ...navyStyle } as any;
+        });
+      };
 
-      // Row 2: Headers
-      const headers = ['Name', '# Days', 'Salary / Day', 'Deduction', 'Subtotal', 'Total'];
-      ['A', 'B', 'C', 'D', 'E', 'F'].forEach((col, i) => setCell(`${col}2`, headers[i]));
+      // Col widths
+      sheet.columns = [
+        { key: 'A', width: 32 },
+        { key: 'B', width: 10 },
+        { key: 'C', width: 14 },
+        { key: 'D', width: 14 },
+        { key: 'E', width: 14 },
+        { key: 'F', width: 14 },
+      ];
 
-      // Row 3: Supervisors section header
-      setCell('A3', 'Supervisors');
+      // ─── ROW 1: Event Name (merged) ───────────────────────────────────
+      const titleRow = sheet.addRow([event?.title || 'Event', '', '', '', '', '']);
+      sheet.mergeCells(`A1:F1`);
+      applyNavyRow(titleRow);
+      titleRow.getCell(1).font = { bold: true, color: { argb: NAVY_TEXT }, size: 14 };
 
-      // Supervisors rows: 4 onwards
-      let row = 4;
-      const supervisorStartRow = row;
+      // ─── ROW 2: Headers ────────────────────────────────────────────────
+      const headerRow = sheet.addRow(['Item', '# Days', 'Salary', 'Deduction', 'Subtotal', 'Total']);
+      applyNavyRow(headerRow);
+
+      // ─── ROW 3: Supervisors header ─────────────────────────────────────
+      const supHeaderRow = sheet.addRow(['Supervisors', '', '', '', '', null]);
+      sheet.mergeCells(`A3:E3`);
+      applyNavyRow(supHeaderRow);
+      const supTotalCell = supHeaderRow.getCell(6);
+      supTotalCell.style = { ...navyStyle } as any;
+
+      // ─── Supervisor data rows ──────────────────────────────────────────
+      const supDataStart = 4;
+      const supRows: any[] = [];
       for (const assignment of supervisors) {
         const usher = assignment.usher;
         const overridden = assignment.overriddenPay;
@@ -737,30 +775,54 @@ export default function EventDetails() {
         const manualDed = (assignment.manualDeductions || []).reduce((s: number, d: any) => s + d.amount, 0);
         const deduction = globalDeductionTotal + manualDed;
         const subtotal = salary - deduction;
-        setCell(`A${row}`, usher?.fullName || 'N/A');
-        setCell(`B${row}`, 1);
-        setCell(`C${row}`, salary);
-        setCell(`D${row}`, deduction);
-        setCell(`E${row}`, subtotal);
-        row++;
+        supRows.push([usher?.fullName || '', 1, salary, deduction, subtotal, '']);
       }
-      // Pad to at least 4 supervisor rows
-      while (row < supervisorStartRow + 4) {
-        setCell(`B${row}`, 1);
-        setCell(`E${row}`, '');
-        row++;
-      }
-      const supervisorEndRow = row - 1;
-      // F3: Supervisors total
-      setCell('F3', { f: `SUM(E${supervisorStartRow}:E${supervisorEndRow})` });
+      // Pad to min 4 rows
+      while (supRows.length < 4) supRows.push(['', 1, '', '', 0, '']);
 
-      // Ushers section header
-      setCell(`A${row}`, 'Ushers');
-      const usherHeaderRow = row;
-      row++;
+      supRows.forEach((rowData, i) => {
+        const r = sheet.addRow(rowData);
+        r.height = 18;
+        const isAlt = i % 2 === 1;
+        const bg = isAlt ? ALT_ROW : WHITE;
+        r.eachCell({ includeEmpty: true }, (cell) => {
+          cell.style = {
+            fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: bg } } as any,
+            alignment: { horizontal: 'center', vertical: 'middle' },
+            border: {
+              top: { style: 'thin', color: { argb: 'FFD0D0D0' } },
+              bottom: { style: 'thin', color: { argb: 'FFD0D0D0' } },
+              left: { style: 'thin', color: { argb: 'FFD0D0D0' } },
+              right: { style: 'thin', color: { argb: 'FFD0D0D0' } },
+            }
+          } as any;
+        });
+        // Name left aligned
+        r.getCell(1).style = { ...r.getCell(1).style, alignment: { horizontal: 'left', vertical: 'middle' } } as any;
+        // # Days teal
+        r.getCell(2).font = { bold: true, color: { argb: TEAL } };
+        // Subtotal bold
+        r.getCell(5).font = { bold: true };
+      });
 
-      // Ushers rows
-      const usherStartRow = row;
+      const supDataEnd = 3 + supRows.length;
+
+      // Set F3 formula = SUM of supervisor subtotals
+      supHeaderRow.getCell(6).value = { formula: `SUM(E${supDataStart}:E${supDataEnd})`, result: 0 } as any;
+      supHeaderRow.getCell(6).numFmt = '#,##0';
+
+      // ─── ROW: Ushers header ────────────────────────────────────────────
+      const usherHeaderRowNum = supDataEnd + 1;
+      const ushHeaderRow = sheet.addRow(['Ushers', '', '', '', '', null]);
+      const usherMergeEnd = `E${usherHeaderRowNum}`;
+      sheet.mergeCells(`A${usherHeaderRowNum}:${usherMergeEnd}`);
+      applyNavyRow(ushHeaderRow);
+      const ushTotalCell = ushHeaderRow.getCell(6);
+      ushTotalCell.style = { ...navyStyle } as any;
+
+      // ─── Usher data rows ───────────────────────────────────────────────
+      const usherDataStart = usherHeaderRowNum + 1;
+      const usherRows: any[] = [];
       for (const assignment of regulars) {
         const usher = assignment.usher;
         const overridden = assignment.overriddenPay;
@@ -768,40 +830,57 @@ export default function EventDetails() {
         const manualDed = (assignment.manualDeductions || []).reduce((s: number, d: any) => s + d.amount, 0);
         const deduction = globalDeductionTotal + manualDed;
         const subtotal = salary - deduction;
-        setCell(`A${row}`, usher?.fullName || 'N/A');
-        setCell(`B${row}`, 1);
-        setCell(`C${row}`, salary);
-        setCell(`D${row}`, deduction);
-        setCell(`E${row}`, subtotal);
-        row++;
+        usherRows.push([usher?.fullName || '', 1, salary, deduction, subtotal, '']);
       }
-      // Pad to at least 4 usher rows
-      while (row < usherStartRow + 4) {
-        setCell(`B${row}`, 1);
-        setCell(`E${row}`, '');
-        row++;
-      }
-      const usherEndRow = row - 1;
-      // F at usher header row: Ushers total
-      setCell(`F${usherHeaderRow}`, { f: `SUM(E${usherStartRow}:E${usherEndRow})` });
+      while (usherRows.length < 4) usherRows.push(['', 1, '', '', 0, '']);
 
-      // Total row
-      setCell(`A${row}`, 'Total');
-      setCell(`F${row}`, { f: `SUM(F3:F${usherEndRow})` });
+      usherRows.forEach((rowData, i) => {
+        const r = sheet.addRow(rowData);
+        r.height = 18;
+        const isAlt = i % 2 === 1;
+        const bg = isAlt ? ALT_ROW : WHITE;
+        r.eachCell({ includeEmpty: true }, (cell) => {
+          cell.style = {
+            fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: bg } } as any,
+            alignment: { horizontal: 'center', vertical: 'middle' },
+            border: {
+              top: { style: 'thin', color: { argb: 'FFD0D0D0' } },
+              bottom: { style: 'thin', color: { argb: 'FFD0D0D0' } },
+              left: { style: 'thin', color: { argb: 'FFD0D0D0' } },
+              right: { style: 'thin', color: { argb: 'FFD0D0D0' } },
+            }
+          } as any;
+        });
+        r.getCell(1).style = { ...r.getCell(1).style, alignment: { horizontal: 'left', vertical: 'middle' } } as any;
+        r.getCell(2).font = { bold: true, color: { argb: TEAL } };
+        r.getCell(5).font = { bold: true };
+      });
 
-      // Set column widths
-      ws['!cols'] = [
-        { wch: 28 }, // A - Name
-        { wch: 8 },  // B - # Days
-        { wch: 14 }, // C - Salary
-        { wch: 12 }, // D - Deduction
-        { wch: 12 }, // E - Subtotal
-        { wch: 12 }, // F - Total
-      ];
-      ws['!ref'] = `A1:F${row}`;
+      const usherDataEnd = usherHeaderRowNum + usherRows.length;
 
-      XLSX.utils.book_append_sheet(wb, ws, 'Salary Sheet');
-      XLSX.writeFile(wb, `Salary-${event?.title?.replace(/[^a-zA-Z0-9]/g, '_') || 'Event'}.xlsx`);
+      // Set Ushers header total formula
+      ushHeaderRow.getCell(6).value = { formula: `SUM(E${usherDataStart}:E${usherDataEnd})`, result: 0 } as any;
+      ushHeaderRow.getCell(6).numFmt = '#,##0';
+
+      // ─── Total row ─────────────────────────────────────────────────────
+      const totalRowNum = usherDataEnd + 1;
+      const totalRow = sheet.addRow(['Total', '', '', '', '', null]);
+      sheet.mergeCells(`A${totalRowNum}:E${totalRowNum}`);
+      applyNavyRow(totalRow);
+      totalRow.getCell(6).value = { formula: `F3+F${usherHeaderRowNum}`, result: 0 } as any;
+      totalRow.getCell(6).numFmt = '#,##0';
+      totalRow.getCell(6).style = { ...navyStyle } as any;
+
+      // Write & download
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Salary-${event?.title?.replace(/[^a-zA-Z0-9]/g, '_') || 'Event'}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+
       toast({ title: 'Salary sheet exported!' });
     } catch (err) {
       console.error(err);
