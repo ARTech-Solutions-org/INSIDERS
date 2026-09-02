@@ -553,23 +553,41 @@ export default function EventDetails() {
     });
   };
 
-    const handleExportPDF = async () => {
+        const handleExportPDF = async () => {
     if (!pdfRef.current) return;
     setIsExportingPDF(true);
     try {
       const element = pdfRef.current;
-      const opt = {
-        margin:       10,
-        filename:     `Ushers-${event?.title?.replace(/[^a-zA-Z0-9]/g, '_') || 'Event'}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true, allowTaint: true },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      };
+      const { toPng } = await import('html-to-image');
+      const { jsPDF } = await import('jspdf');
+
+      // html-to-image works natively with oklch and modern CSS
+      const dataUrl = await toPng(element, { quality: 0.98, pixelRatio: 2 });
       
-      const html2pdfModule = await import('html2pdf.js');
-      const pdfGenerator = html2pdfModule.default || html2pdfModule;
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
       
-      await pdfGenerator().set(opt).from(element).save();
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const pdfHeight = (element.offsetHeight * pdfWidth) / element.offsetWidth;
+      
+      let position = 0;
+      let leftHeight = pdfHeight;
+      
+      pdf.addImage(dataUrl, 'PNG', 0, position, pdfWidth, pdfHeight);
+      leftHeight -= pageHeight;
+      
+      while (leftHeight > 0) {
+        position -= pageHeight;
+        pdf.addPage();
+        pdf.addImage(dataUrl, 'PNG', 0, position, pdfWidth, pdfHeight);
+        leftHeight -= pageHeight;
+      }
+      
+      pdf.save(`Ushers-${event?.title?.replace(/[^a-zA-Z0-9]/g, '_') || 'Event'}.pdf`);
 
       toast({ title: "PDF exported successfully!" });
     } catch (error: any) {
