@@ -27,6 +27,35 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 
 
+
+class ErrorBoundary extends React.Component<any, { hasError: boolean; error: any }> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error: any) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error: any, errorInfo: any) {
+    console.error('ErrorBoundary caught error:', error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-8 text-center text-destructive flex flex-col items-center justify-center min-h-[50vh]">
+          <h3 className="font-bold text-lg mb-2">UI Render Error</h3>
+          <p className="text-sm">A display error occurred. Please refresh to continue.</p>
+          <pre className="text-[10px] mt-4 overflow-auto text-left bg-destructive/10 p-4 rounded-xl border border-destructive/20 text-destructive max-w-full">
+            {this.state.error?.toString()}
+          </pre>
+          <Button className="mt-6 font-bold" onClick={() => window.location.reload()}>Refresh Application</Button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 const uploadToR2 = async (file: File, type: string) => {
   const baseUrl = import.meta.env.VITE_API_URL?.replace(/\/+$/, '') || '';
   const res = await fetch(`${baseUrl}/api/uploads/presigned-url`, {
@@ -382,7 +411,8 @@ export default function EventDetail() {
   const payAmount = assignment?.overriddenPay ?? ((assignment?.role === 'leader' || assignment?.isTeamLead) ? eventDetails?.leaderRate : eventDetails?.regularRate) ?? 0;
 
   return (
-    <div className="pb-24">
+    <ErrorBoundary>
+      <div className="pb-24">
       {/* Location Permission Dialog */}
       <Dialog open={showLocationDialog} onOpenChange={setShowLocationDialog}>
         <DialogContent className="max-w-sm rounded-2xl">
@@ -560,7 +590,7 @@ export default function EventDetail() {
                   <div className="bg-green-500/10 border border-green-500/20 text-green-700 p-3 rounded-xl flex items-center justify-between font-bold text-xs uppercase tracking-wider mb-2">
                     <div className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4" />
-                      CHECKED IN AT {assignment.checkinTime && !isNaN(new Date(assignment.checkinTime).getTime()) ? format(new Date(assignment.checkinTime), 'h:mm a') : ''}
+                      CHECKED IN AT {assignment.checkinTime && !isNaN(new Date(assignment.checkinTime).getTime()) ? format(new Date(assignment.checkinTime), 'h:mm a') : 'UNKNOWN'}
                     </div>
                     {(assignment as any).lateArrivalMinutes > 0 && (
                       <span className="text-[10px] font-bold text-amber-700 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-md">
@@ -894,5 +924,6 @@ export default function EventDetail() {
           </DialogContent>
         </Dialog>
       </div>
+    </ErrorBoundary>
     );
   }
