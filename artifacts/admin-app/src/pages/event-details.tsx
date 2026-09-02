@@ -529,7 +529,7 @@ export default function EventDetails() {
       const doc = new jsPDF();
       
       doc.setFontSize(20);
-      doc.text('Attendance Sheet', 14, 22);
+      doc.text('Ushers Sheet', 14, 22);
       
       doc.setFontSize(14);
       doc.text(event?.title || 'Event', 14, 32);
@@ -618,7 +618,70 @@ export default function EventDetails() {
         }
       });
 
-      doc.save(`Attendance-${event?.title?.replace(/[^a-zA-Z0-9]/g, '_') || 'Event'}.pdf`);
+      const finalY = (doc as any).lastAutoTable?.finalY || doc.internal.pageSize.getHeight();
+      
+      let currentY = finalY + 15;
+      
+      if (currentY + 60 > doc.internal.pageSize.getHeight()) {
+        doc.addPage();
+        currentY = 20;
+      }
+      
+      doc.setFontSize(14);
+      doc.setTextColor(0);
+      doc.text('Sizes Summary', 14, currentY);
+
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      currentY += 6;
+      doc.text('Aggregate of sizes for all ushers in this sheet:', 14, currentY);
+
+      const getCountsForPDF = (key: string) => {
+        return Object.entries(
+          assignedUshers.reduce((acc: any, assignment: any) => {
+            const val = assignment.usher?.[key];
+            if (val) acc[val] = (acc[val] || 0) + 1;
+            return acc;
+          }, {})
+        ).sort((a: any, b: any) => b[1] - a[1]) as [string, number][];
+      };
+
+      const sizeCategories = [
+        { label: 'T-Shirts', key: 'tShirtSize' },
+        { label: 'Shirts', key: 'shirtSize' },
+        { label: 'Pants', key: 'pantsSize' },
+        { label: 'Shorts', key: 'shortsSize' },
+        { label: 'Dresses', key: 'dressSize' },
+        { label: 'Shoes', key: 'shoeSize' },
+      ];
+
+      let summaryAdded = false;
+      currentY += 10;
+      doc.setFontSize(11);
+      doc.setTextColor(0);
+
+      sizeCategories.forEach(cat => {
+        const counts = getCountsForPDF(cat.key);
+        if (counts.length > 0) {
+          summaryAdded = true;
+          doc.text(`${cat.label}:`, 14, currentY);
+          const sizeStr = counts.map(c => `${c[0]} (${c[1]})`).join('  |  ');
+          doc.setFontSize(10);
+          doc.setTextColor(100);
+          doc.text(sizeStr, 40, currentY);
+          doc.setFontSize(11);
+          doc.setTextColor(0);
+          currentY += 7;
+        }
+      });
+
+      if (!summaryAdded) {
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text('No size data available.', 14, currentY);
+      }
+
+      doc.save(`Ushers-${event?.title?.replace(/[^a-zA-Z0-9]/g, '_') || 'Event'}.pdf`);
       toast({ title: "PDF exported successfully!" });
     } catch (error) {
       console.error(error);
