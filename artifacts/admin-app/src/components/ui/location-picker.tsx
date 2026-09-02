@@ -57,7 +57,8 @@ export function LocationPicker({ value, onChange, radiusMeters = 100 }: Location
 
       setIsSearching(true);
       try {
-        let url = `/api/places/search?q=${encodeURIComponent(searchQuery)}`;
+        const baseUrl = import.meta.env.VITE_API_URL?.replace(/\/+$/, '') || '';
+        let url = `${baseUrl}/api/places/search?q=${encodeURIComponent(searchQuery)}`;
         if (value.lat && value.lng) {
           url += `&lat=${value.lat}&lng=${value.lng}`;
         }
