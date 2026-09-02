@@ -4,8 +4,8 @@ import { or, ilike } from "drizzle-orm";
 
 const router = Router();
 
-// GET /api/places/search
-router.get("/api/places/search", async (req: Request, res: Response) => {
+// GET /places/search
+router.get("/places/search", async (req: Request, res: Response) => {
   const query = req.query.q as string;
   const latStr = req.query.lat as string;
   const lngStr = req.query.lng as string;
