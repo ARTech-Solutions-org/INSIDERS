@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useRoute, Link } from "wouter";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
 import { 
   useGetEvent, 
   useGetSmartCandidates, 
@@ -80,7 +81,8 @@ import {
   Camera,
   Ruler,
   Shirt,
-  FileText
+  FileText,
+  TableIcon
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -144,6 +146,7 @@ export default function EventDetails() {
 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isExportingPDF, setIsExportingPDF] = useState(false);
+  const [isExportingSalary, setIsExportingSalary] = useState(false);
   const [ratingAssignment, setRatingAssignment] = useState<any>(null);
   const [ratingValue, setRatingValue] = useState(5);
   const [ratingComment, setRatingComment] = useState("");
@@ -691,6 +694,123 @@ export default function EventDetails() {
     }
   };
 
+  const handleExportSalarySheet = () => {
+    setIsExportingSalary(true);
+    try {
+      const assignedUshers = (event?.assignments || []).filter((a: any) =>
+        a.status !== 'pending' && a.status !== 'applied' && a.status !== 'rejected'
+      );
+
+      const supervisors = assignedUshers.filter((a: any) => a.isTeamLead);
+      const regulars = assignedUshers.filter((a: any) => !a.isTeamLead);
+
+      const leaderRate = event?.leaderRate || 0;
+      const regularRate = event?.regularRate || 0;
+      const globalDeductionTotal = (event?.deductionRules || []).reduce((s: number, r: any) => s + r.amount, 0);
+
+      const wb = XLSX.utils.book_new();
+      const ws: XLSX.WorkSheet = {};
+
+      const setCell = (addr: string, value: any, style?: any) => {
+        ws[addr] = { v: value, t: typeof value === 'number' ? 'n' : 's', ...style };
+      };
+
+      // Row 1: Event Name
+      setCell('A1', event?.title || 'Event');
+      setCell('B1', event?.eventLocName || '');
+      setCell('C1', event?.startTime ? format(new Date(event.startTime), 'MMM d, yyyy') : '');
+
+      // Row 2: Headers
+      const headers = ['Name', '# Days', 'Salary / Day', 'Deduction', 'Subtotal', 'Total'];
+      ['A', 'B', 'C', 'D', 'E', 'F'].forEach((col, i) => setCell(`${col}2`, headers[i]));
+
+      // Row 3: Supervisors section header
+      setCell('A3', 'Supervisors');
+
+      // Supervisors rows: 4 onwards
+      let row = 4;
+      const supervisorStartRow = row;
+      for (const assignment of supervisors) {
+        const usher = assignment.usher;
+        const overridden = assignment.overriddenPay;
+        const salary = overridden !== null && overridden !== undefined ? overridden : leaderRate;
+        const manualDed = (assignment.manualDeductions || []).reduce((s: number, d: any) => s + d.amount, 0);
+        const deduction = globalDeductionTotal + manualDed;
+        const subtotal = salary - deduction;
+        setCell(`A${row}`, usher?.fullName || 'N/A');
+        setCell(`B${row}`, 1);
+        setCell(`C${row}`, salary);
+        setCell(`D${row}`, deduction);
+        setCell(`E${row}`, subtotal);
+        row++;
+      }
+      // Pad to at least 4 supervisor rows
+      while (row < supervisorStartRow + 4) {
+        setCell(`B${row}`, 1);
+        setCell(`E${row}`, '');
+        row++;
+      }
+      const supervisorEndRow = row - 1;
+      // F3: Supervisors total
+      setCell('F3', { f: `SUM(E${supervisorStartRow}:E${supervisorEndRow})` });
+
+      // Ushers section header
+      setCell(`A${row}`, 'Ushers');
+      const usherHeaderRow = row;
+      row++;
+
+      // Ushers rows
+      const usherStartRow = row;
+      for (const assignment of regulars) {
+        const usher = assignment.usher;
+        const overridden = assignment.overriddenPay;
+        const salary = overridden !== null && overridden !== undefined ? overridden : regularRate;
+        const manualDed = (assignment.manualDeductions || []).reduce((s: number, d: any) => s + d.amount, 0);
+        const deduction = globalDeductionTotal + manualDed;
+        const subtotal = salary - deduction;
+        setCell(`A${row}`, usher?.fullName || 'N/A');
+        setCell(`B${row}`, 1);
+        setCell(`C${row}`, salary);
+        setCell(`D${row}`, deduction);
+        setCell(`E${row}`, subtotal);
+        row++;
+      }
+      // Pad to at least 4 usher rows
+      while (row < usherStartRow + 4) {
+        setCell(`B${row}`, 1);
+        setCell(`E${row}`, '');
+        row++;
+      }
+      const usherEndRow = row - 1;
+      // F at usher header row: Ushers total
+      setCell(`F${usherHeaderRow}`, { f: `SUM(E${usherStartRow}:E${usherEndRow})` });
+
+      // Total row
+      setCell(`A${row}`, 'Total');
+      setCell(`F${row}`, { f: `SUM(F3:F${usherEndRow})` });
+
+      // Set column widths
+      ws['!cols'] = [
+        { wch: 28 }, // A - Name
+        { wch: 8 },  // B - # Days
+        { wch: 14 }, // C - Salary
+        { wch: 12 }, // D - Deduction
+        { wch: 12 }, // E - Subtotal
+        { wch: 12 }, // F - Total
+      ];
+      ws['!ref'] = `A1:F${row}`;
+
+      XLSX.utils.book_append_sheet(wb, ws, 'Salary Sheet');
+      XLSX.writeFile(wb, `Salary-${event?.title?.replace(/[^a-zA-Z0-9]/g, '_') || 'Event'}.xlsx`);
+      toast({ title: 'Salary sheet exported!' });
+    } catch (err) {
+      console.error(err);
+      toast({ title: 'Export failed', description: 'Could not generate salary sheet', variant: 'destructive' });
+    } finally {
+      setIsExportingSalary(false);
+    }
+  };
+
   if (isEventLoading) {
     return <div className="p-8 text-center text-muted-foreground flex items-center justify-center gap-2">
       <Loader2 className="w-5 h-5 animate-spin" /> Loading event details...
@@ -964,6 +1084,16 @@ export default function EventDetails() {
           >
             {isExportingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
             Export PDF
+          </Button>
+
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={handleExportSalarySheet}
+            disabled={isExportingSalary}
+          >
+            {isExportingSalary ? <Loader2 className="w-4 h-4 animate-spin" /> : <TableIcon className="w-4 h-4" />}
+            Export Salary
           </Button>
 
           <Button 
