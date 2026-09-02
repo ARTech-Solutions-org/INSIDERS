@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -39,10 +39,12 @@ export function LocationPicker({ value, onChange, radiusMeters = 100 }: Location
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
+  const skipSearchRef = useRef(false);
 
   // Sync searchQuery when value address updates from parent
   useEffect(() => {
     if (value.address && value.address !== searchQuery) {
+      skipSearchRef.current = true;
       setSearchQuery(value.address);
     }
   }, [value.address]);
@@ -50,6 +52,11 @@ export function LocationPicker({ value, onChange, radiusMeters = 100 }: Location
   // Debounce logic
   useEffect(() => {
     const handler = setTimeout(async () => {
+      if (skipSearchRef.current) {
+        skipSearchRef.current = false;
+        return;
+      }
+      
       if (!searchQuery || searchQuery.length < 3) {
         setSearchResults([]);
         return;
@@ -86,6 +93,7 @@ export function LocationPicker({ value, onChange, radiusMeters = 100 }: Location
       lat,
       lng,
     });
+    skipSearchRef.current = true;
     setSearchQuery(result.display_name.split(",")[0]);
     setSearchResults([]);
   };
@@ -96,6 +104,7 @@ export function LocationPicker({ value, onChange, radiusMeters = 100 }: Location
       lat: preset.lat,
       lng: preset.lng,
     });
+    skipSearchRef.current = true;
     setSearchQuery(preset.name);
     setSearchResults([]);
   };
@@ -114,6 +123,7 @@ export function LocationPicker({ value, onChange, radiusMeters = 100 }: Location
           const data = await res.json();
           const addressName = data.display_name ? data.display_name.split(",")[0] : `Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
           onChange({ address: addressName, lat, lng });
+          skipSearchRef.current = true;
           setSearchQuery(addressName);
         } catch {
           onChange({ address: `Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`, lat, lng });
@@ -151,6 +161,7 @@ export function LocationPicker({ value, onChange, radiusMeters = 100 }: Location
           lat: formattedLat,
           lng: formattedLng,
         });
+        skipSearchRef.current = true;
         setSearchQuery(addressName);
       }
     } catch {
