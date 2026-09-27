@@ -58,31 +58,39 @@ export function EventChatViewer({ eventId }: EventChatViewerProps) {
           )}
         </div>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px] h-[500px] flex flex-col p-4 rounded-2xl mx-4">
-        <DialogHeader>
-          <DialogTitle className="text-xl">Event Announcements</DialogTitle>
-          <DialogDescription className="text-xs">
+      <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-[500px] h-[80vh] sm:h-[600px] flex flex-col p-0 gap-0 overflow-hidden rounded-[1.5rem] border-border/50 shadow-2xl">
+        <DialogHeader className="p-5 pb-4 border-b border-border/50 bg-card/80 backdrop-blur-md shrink-0">
+          <DialogTitle className="text-xl font-black tracking-tight text-foreground">Announcements</DialogTitle>
+          <DialogDescription className="text-xs font-medium text-muted-foreground">
             Important updates from the event admins.
           </DialogDescription>
         </DialogHeader>
         
-        <ScrollArea className="flex-1 w-full border rounded-xl p-4 bg-muted/30">
+        <ScrollArea className="flex-1 w-full bg-gradient-to-b from-muted/30 to-muted/10">
           {isLoading ? (
-            <div className="text-center text-muted-foreground p-4 text-sm">Loading announcements...</div>
+            <div className="h-full min-h-[200px] flex items-center justify-center text-muted-foreground text-sm font-medium animate-pulse">
+              Loading announcements...
+            </div>
           ) : chats.length === 0 ? (
-            <div className="text-center text-muted-foreground p-4 text-sm">No announcements yet.</div>
+            <div className="h-full min-h-[200px] flex flex-col items-center justify-center text-muted-foreground gap-3">
+              <MessageSquare className="w-8 h-8 opacity-20" />
+              <p className="text-sm font-medium">No announcements yet.</p>
+            </div>
           ) : (
-            <div className="flex flex-col gap-4">
+            <div className="p-5 flex flex-col gap-6">
               {chats.map((chat: any) => (
-                <div key={chat.id} className="flex flex-col gap-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-xs text-primary">{chat.adminName || "Admin"}</span>
-                    <span className="text-[10px] text-muted-foreground">
+                <div key={chat.id} className="flex flex-col gap-1.5 w-[90%] sm:w-[85%]">
+                  <div className="flex items-baseline gap-2 ml-1">
+                    <span className="font-bold text-[11px] uppercase tracking-wider text-primary">
+                      {chat.adminName || "Admin"}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground font-medium">
                       {format(new Date(chat.createdAt), "MMM d, h:mm a")}
                     </span>
                   </div>
-                  <div className="bg-primary/10 text-primary p-3 rounded-xl border border-primary/20 text-sm">
-                    {chat.message}
+                  <div className="bg-card text-foreground p-4 rounded-2xl rounded-tl-sm border border-border shadow-sm text-sm font-medium leading-relaxed relative">
+                    <div className="absolute top-0 -left-2 w-2 h-3 bg-card border-l border-t border-border clip-path-triangle" style={{ clipPath: 'polygon(100% 0, 0 0, 100% 100%)' }}></div>
+                    <p className="whitespace-pre-wrap break-words">{chat.message}</p>
                   </div>
                 </div>
               ))}
