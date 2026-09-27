@@ -314,7 +314,13 @@ export default function UsherDetails() {
                 className="text-orange-600 border-orange-300 hover:bg-orange-50"
                 disabled={isUpdating}
                 onClick={() => {
-                  setSuspendUntilDate('');
+                  if (ratingConfig?.defaultSuspensionDays) {
+                    const d = new Date();
+                    d.setDate(d.getDate() + ratingConfig.defaultSuspensionDays);
+                    setSuspendUntilDate(d.toISOString().slice(0, 16));
+                  } else {
+                    setSuspendUntilDate('');
+                  }
                   setSuspendDialogOpen(true);
                 }}
               >
