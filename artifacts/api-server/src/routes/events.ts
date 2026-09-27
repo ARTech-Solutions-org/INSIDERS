@@ -1255,9 +1255,13 @@ router.post("/events/:id/chats", requireAdmin, async (req, res) => {
     // Send push notifications
     await sendPushToUshers(
       usherIds,
-      `New Message: ${event.title}`,
-      parsed.data.message,
-      { type: "event_chat", eventId: eventId.toString() }
+      {
+        notification: {
+          title: `New Message: ${event.title}`,
+          body: parsed.data.message,
+        },
+        data: { type: "event_chat", eventId: eventId.toString() }
+      }
     ).catch(e => console.error("Failed to send push for event chat:", e));
   }
   
