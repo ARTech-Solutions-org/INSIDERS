@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
-import { useListMyAssignments, MyAssignment, useListEvents } from '@workspace/api-client-react';
+import { useListMyAssignments, MyAssignment, useListEvents, useGetMyUsherProfile } from '@workspace/api-client-react';
 import { Link } from 'wouter';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MapPin, Clock, ArrowUpRight, AlertTriangle } from 'lucide-react';
+import { MapPin, Clock, ArrowUpRight, AlertTriangle, ShieldOff } from 'lucide-react';
 import { format } from 'date-fns';
 
 
 function OpenEventList() {
   const { data: eventsData, isLoading } = useListEvents();
-  const events = Array.isArray(eventsData) 
-    ? eventsData 
+  const events = Array.isArray(eventsData)
+    ? eventsData
     : (Array.isArray((eventsData as any)?.data) ? (eventsData as any).data : []);
 
   if (isLoading) {
@@ -36,18 +36,15 @@ function OpenEventList() {
         const startDate = new Date(event.startTime);
         return (
           <Link key={event.id} href={`/events/${event.id}`} className="block">
-            <div className={`bg-card border border-border/80 rounded-2xl overflow-hidden hover:shadow-md transition-shadow active:scale-[0.99] transform duration-150 flex items-stretch min-h-[110px]`}>
-              
+            <div className="bg-card border border-border/80 rounded-2xl overflow-hidden hover:shadow-md transition-shadow active:scale-[0.99] transform duration-150 flex items-stretch min-h-[110px]">
               <div className="w-20 border-r border-border/40 flex flex-col items-center justify-center p-2 bg-foreground/[0.02]">
                 <span className="brand-display text-4xl leading-none text-foreground">{format(startDate, 'dd')}</span>
                 <span className="brand-meta text-muted-foreground mt-1">{format(startDate, 'MMM')}</span>
               </div>
-              
               <div className="flex-1 p-4 flex flex-col justify-between">
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="brand-display text-lg text-foreground line-clamp-2 pr-2 leading-tight tracking-wide">{event.title}</h3>
                 </div>
-
                 <div className="space-y-2 text-xs text-muted-foreground font-medium">
                   <div className="flex items-center gap-2">
                     <Clock className="w-3.5 h-3.5 text-foreground/40" />
@@ -106,20 +103,17 @@ function AssignmentList({ status, colorClass }: { status: string, colorClass: st
         const startDate = new Date(assignment.event.startTime);
         return (
           <Link key={assignment.id} href={`/events/${assignment.eventId}`} className="block">
-            <div className={`bg-card border border-border/80 rounded-2xl overflow-hidden hover:shadow-md transition-shadow active:scale-[0.99] transform duration-150 flex items-stretch min-h-[110px]`}>
-              
+            <div className="bg-card border border-border/80 rounded-2xl overflow-hidden hover:shadow-md transition-shadow active:scale-[0.99] transform duration-150 flex items-stretch min-h-[110px]">
               {/* Date Block */}
               <div className="w-20 border-r border-border/40 flex flex-col items-center justify-center p-2 bg-foreground/[0.02]">
                 <span className="brand-display text-4xl leading-none text-foreground">{format(startDate, 'dd')}</span>
                 <span className="brand-meta text-muted-foreground mt-1">{format(startDate, 'MMM')}</span>
               </div>
-              
               {/* Event Info */}
               <div className="flex-1 p-4 flex flex-col justify-between">
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="brand-display text-lg text-foreground line-clamp-2 pr-2 leading-tight tracking-wide">{assignment.event.title}</h3>
                 </div>
-
                 <div className="space-y-2 text-xs text-muted-foreground font-medium">
                   <div className="flex items-center gap-2">
                     <Clock className="w-3.5 h-3.5 text-foreground/40" />
@@ -145,7 +139,6 @@ function AssignmentList({ status, colorClass }: { status: string, colorClass: st
                     </div>
                   )}
                 </div>
-
                 {assignment.isTeamLead && (
                   <div className="mt-3">
                     <span className="brand-meta px-2 py-1 bg-primary text-primary-foreground rounded-md">
@@ -162,8 +155,47 @@ function AssignmentList({ status, colorClass }: { status: string, colorClass: st
   );
 }
 
+function SuspendedScreen() {
+  return (
+    <div className="flex-1 flex flex-col items-center justify-center py-16 px-6 text-center">
+      {/* Icon */}
+      <div className="w-20 h-20 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-6">
+        <ShieldOff className="w-10 h-10 text-red-500" />
+      </div>
+
+      {/* Title */}
+      <h2 className="brand-display text-2xl uppercase tracking-wider text-foreground mb-2">
+        Account Suspended
+      </h2>
+      <p className="text-muted-foreground text-sm mb-6 max-w-xs leading-relaxed">
+        Your account has been suspended due to repeated reliability issues. You cannot view or apply for events during this period.
+      </p>
+
+      {/* Info Card */}
+      <div className="w-full max-w-xs bg-red-500/5 border border-red-500/20 rounded-2xl p-5 text-left space-y-3">
+        <p className="text-xs font-bold uppercase tracking-widest text-red-500 mb-3">What this means</p>
+        <div className="flex items-start gap-3">
+          <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
+          <p className="text-xs text-muted-foreground">All upcoming assignments have been cancelled</p>
+        </div>
+        <div className="flex items-start gap-3">
+          <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
+          <p className="text-xs text-muted-foreground">You cannot apply for new events</p>
+        </div>
+        <div className="flex items-start gap-3">
+          <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
+          <p className="text-xs text-muted-foreground">Contact the admin team to appeal or resolve this</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Events() {
   const [activeTab, setActiveTab] = useState('pending');
+  const { data: profileData } = useGetMyUsherProfile();
+  const profile = (profileData as any)?.data ?? profileData;
+  const isSuspended = profile?.status === 'suspended';
 
   return (
     <div className="p-5 flex flex-col h-full relative overflow-hidden">
@@ -172,67 +204,69 @@ export default function Events() {
         <p className="text-muted-foreground font-medium">Every call time, in one place.</p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 flex flex-col">
-        <TabsList className="w-full h-auto flex flex-wrap bg-transparent border-b border-border/50 p-0 rounded-none justify-start">
-          
-          <TabsTrigger 
-            value="open" 
-            className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground text-xs uppercase tracking-wider font-bold py-3 px-4"
-          >
-            Open
-          </TabsTrigger>
-          <TabsTrigger 
-            value="pending" 
-            className="rounded-none border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:bg-transparent data-[state=active]:text-foreground text-xs uppercase tracking-wider font-bold py-3 px-4"
-          >
-            Pending
-          </TabsTrigger>
-          <TabsTrigger 
-            value="accepted" 
-            className="rounded-none border-b-2 border-transparent data-[state=active]:border-muted data-[state=active]:bg-transparent data-[state=active]:text-foreground text-xs uppercase tracking-wider font-bold py-3 px-4"
-          >
-            Accepted
-          </TabsTrigger>
-          <TabsTrigger 
-            value="completed" 
-            className="rounded-none border-b-2 border-transparent data-[state=active]:border-secondary data-[state=active]:bg-transparent data-[state=active]:text-foreground text-xs uppercase tracking-wider font-bold py-3 px-4"
-          >
-            Completed
-          </TabsTrigger>
-          <TabsTrigger 
-            value="cancelled" 
-            className="rounded-none border-b-2 border-transparent data-[state=active]:border-destructive data-[state=active]:bg-transparent data-[state=active]:text-foreground text-xs uppercase tracking-wider font-bold py-3 px-4"
-          >
-            Past/Cancel
-          </TabsTrigger>
-          <TabsTrigger 
-            value="rejected" 
-            className="rounded-none border-b-2 border-transparent data-[state=active]:border-destructive data-[state=active]:bg-transparent data-[state=active]:text-foreground text-xs uppercase tracking-wider font-bold py-3 px-4"
-          >
-            Rejected
-          </TabsTrigger>
-        </TabsList>
+      {isSuspended ? (
+        <SuspendedScreen />
+      ) : (
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 flex flex-col">
+          <TabsList className="w-full h-auto flex flex-wrap bg-transparent border-b border-border/50 p-0 rounded-none justify-start">
+            <TabsTrigger
+              value="open"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground text-xs uppercase tracking-wider font-bold py-3 px-4"
+            >
+              Open
+            </TabsTrigger>
+            <TabsTrigger
+              value="pending"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:bg-transparent data-[state=active]:text-foreground text-xs uppercase tracking-wider font-bold py-3 px-4"
+            >
+              Pending
+            </TabsTrigger>
+            <TabsTrigger
+              value="accepted"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-muted data-[state=active]:bg-transparent data-[state=active]:text-foreground text-xs uppercase tracking-wider font-bold py-3 px-4"
+            >
+              Accepted
+            </TabsTrigger>
+            <TabsTrigger
+              value="completed"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-secondary data-[state=active]:bg-transparent data-[state=active]:text-foreground text-xs uppercase tracking-wider font-bold py-3 px-4"
+            >
+              Completed
+            </TabsTrigger>
+            <TabsTrigger
+              value="cancelled"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-destructive data-[state=active]:bg-transparent data-[state=active]:text-foreground text-xs uppercase tracking-wider font-bold py-3 px-4"
+            >
+              Past/Cancel
+            </TabsTrigger>
+            <TabsTrigger
+              value="rejected"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-destructive data-[state=active]:bg-transparent data-[state=active]:text-foreground text-xs uppercase tracking-wider font-bold py-3 px-4"
+            >
+              Rejected
+            </TabsTrigger>
+          </TabsList>
 
-        
-        <TabsContent value="open" className="flex-1 outline-none">
-          <OpenEventList />
-        </TabsContent>
-        <TabsContent value="pending" className="flex-1 outline-none">
-          <AssignmentList status="pending,assigned" colorClass="" />
-        </TabsContent>
-        <TabsContent value="accepted" className="flex-1 outline-none">
-          <AssignmentList status="accepted,checked_in" colorClass="" />
-        </TabsContent>
-        <TabsContent value="completed" className="flex-1 outline-none">
-          <AssignmentList status="completed" colorClass="" />
-        </TabsContent>
-        <TabsContent value="cancelled" className="flex-1 outline-none">
-          <AssignmentList status="cancelled,no_show,declined" colorClass="" />
-        </TabsContent>
-        <TabsContent value="rejected" className="flex-1 outline-none">
-          <AssignmentList status="rejected" colorClass="" />
-        </TabsContent>
-      </Tabs>
+          <TabsContent value="open" className="flex-1 outline-none">
+            <OpenEventList />
+          </TabsContent>
+          <TabsContent value="pending" className="flex-1 outline-none">
+            <AssignmentList status="pending,assigned" colorClass="" />
+          </TabsContent>
+          <TabsContent value="accepted" className="flex-1 outline-none">
+            <AssignmentList status="accepted,checked_in" colorClass="" />
+          </TabsContent>
+          <TabsContent value="completed" className="flex-1 outline-none">
+            <AssignmentList status="completed" colorClass="" />
+          </TabsContent>
+          <TabsContent value="cancelled" className="flex-1 outline-none">
+            <AssignmentList status="cancelled,no_show,declined" colorClass="" />
+          </TabsContent>
+          <TabsContent value="rejected" className="flex-1 outline-none">
+            <AssignmentList status="rejected" colorClass="" />
+          </TabsContent>
+        </Tabs>
+      )}
     </div>
   );
 }
