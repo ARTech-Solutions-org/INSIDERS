@@ -1147,7 +1147,7 @@ export default function EventDetails() {
                     <span className="font-semibold text-primary">
                       {(() => {
                         const days = Math.max(1, Math.ceil((new Date(event.endTime).getTime() - new Date(event.startTime).getTime()) / 86400000));
-                        return ${days} day${days > 1 ? 's' : ''};
+                        return ` day`;
                       })()}
                     </span>
                   </div>
