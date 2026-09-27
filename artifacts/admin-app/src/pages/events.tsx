@@ -1,5 +1,6 @@
 import { useListEvents, useDeleteEvent, useGetEventFeedbackLink, useCreateEventFeedbackLink, getGetEventFeedbackLinkQueryKey } from "@workspace/api-client-react";
 import { Link } from "wouter";
+import { EventChatDialog } from "@/components/EventChatDialog";
 import {
   Table,
   TableBody,
@@ -184,7 +185,10 @@ export default function Events() {
                 data?.data?.map((event) => (
                   <TableRow key={event.id}>
                     <TableCell className="font-medium">
-                      {event.title}
+                      <div className="flex items-center gap-2">
+                        {event.title}
+                        <EventChatDialog eventId={event.id} />
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">

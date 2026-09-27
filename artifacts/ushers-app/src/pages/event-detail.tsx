@@ -455,8 +455,8 @@ export default function EventDetail() {
         <div className="bg-primary rounded-2xl p-6 pb-8 mx-5 mt-2 relative overflow-hidden shadow-sm">
           <div className="relative z-10">
             <p className="brand-meta text-primary-foreground/70 mb-3 tracking-widest">LIVE ASSIGNMENT</p>
-            <div className="flex items-center gap-3 mb-3">
-              <h1 className="brand-display text-4xl text-primary-foreground tracking-wide uppercase leading-tight m-0">{eventDetails.title}</h1>
+            <div className="flex items-start justify-between gap-3 mb-3 w-full">
+              <h1 className="brand-display text-4xl text-primary-foreground tracking-wide uppercase leading-tight m-0 break-words flex-1">{eventDetails.title}</h1>
               <EventChatViewer eventId={eventId} />
             </div>
             {assignment?.isTeamLead && (
