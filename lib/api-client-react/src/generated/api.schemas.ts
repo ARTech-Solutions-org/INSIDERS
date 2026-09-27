@@ -227,6 +227,18 @@ export interface UsherUpdate {
   /** @nullable */
   profilePhotoUrl?: string | null;
   languages?: string[] | null;
+  /** @nullable */
+  dressSize?: string | null;
+  /** @nullable */
+  shoeSize?: string | null;
+  /** @nullable */
+  tShirtSize?: string | null;
+  /** @nullable */
+  shirtSize?: string | null;
+  /** @nullable */
+  pantsSize?: string | null;
+  /** @nullable */
+  shortsSize?: string | null;
 }
 
 export interface UsherStatusUpdate {

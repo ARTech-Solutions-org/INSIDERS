@@ -70,7 +70,27 @@ export default function Profile() {
   const deleteAvailMutation = useDeleteMyAvailability();
 
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState<{fullName: string, phone: string, languages: string[]}>({ fullName: '', phone: '', languages: [] });
+  const [formData, setFormData] = useState<{
+    fullName: string;
+    phone: string;
+    languages: string[];
+    dressSize?: string | null;
+    shoeSize?: string | null;
+    tShirtSize?: string | null;
+    shirtSize?: string | null;
+    pantsSize?: string | null;
+    shortsSize?: string | null;
+  }>({ 
+    fullName: '', 
+    phone: '', 
+    languages: [],
+    dressSize: null,
+    shoeSize: null,
+    tShirtSize: null,
+    shirtSize: null,
+    pantsSize: null,
+    shortsSize: null
+  });
   const [newProfilePhoto, setNewProfilePhoto] = useState<File | null>(null);
   const [photoToCrop, setPhotoToCrop] = useState<File | null>(null);
 
@@ -92,7 +112,17 @@ export default function Profile() {
 
   useEffect(() => {
     if (profile) {
-      setFormData({ fullName: profile.fullName, phone: profile.phone, languages: profile.languages || [] });
+      setFormData({ 
+        fullName: profile.fullName, 
+        phone: profile.phone, 
+        languages: profile.languages || [],
+        dressSize: profile.dressSize || null,
+        shoeSize: profile.shoeSize || null,
+        tShirtSize: profile.tShirtSize || null,
+        shirtSize: profile.shirtSize || null,
+        pantsSize: profile.pantsSize || null,
+        shortsSize: profile.shortsSize || null
+      });
     }
   }, [profile]);
 
@@ -287,6 +317,44 @@ export default function Profile() {
                   allowCustom={true}
                 />
               </div>
+              <div className="w-full grid grid-cols-2 gap-2 mt-2">
+                <Input
+                  value={formData.dressSize || ''}
+                  onChange={(e) => setFormData({ ...formData, dressSize: e.target.value })}
+                  placeholder="Dress Size"
+                  className="rounded-xl border-border text-sm"
+                />
+                <Input
+                  value={formData.shoeSize || ''}
+                  onChange={(e) => setFormData({ ...formData, shoeSize: e.target.value })}
+                  placeholder="Shoe Size"
+                  className="rounded-xl border-border text-sm"
+                />
+                <Input
+                  value={formData.tShirtSize || ''}
+                  onChange={(e) => setFormData({ ...formData, tShirtSize: e.target.value })}
+                  placeholder="T-Shirt Size"
+                  className="rounded-xl border-border text-sm"
+                />
+                <Input
+                  value={formData.shirtSize || ''}
+                  onChange={(e) => setFormData({ ...formData, shirtSize: e.target.value })}
+                  placeholder="Shirt Size"
+                  className="rounded-xl border-border text-sm"
+                />
+                <Input
+                  value={formData.pantsSize || ''}
+                  onChange={(e) => setFormData({ ...formData, pantsSize: e.target.value })}
+                  placeholder="Pants Size"
+                  className="rounded-xl border-border text-sm"
+                />
+                <Input
+                  value={formData.shortsSize || ''}
+                  onChange={(e) => setFormData({ ...formData, shortsSize: e.target.value })}
+                  placeholder="Shorts Size"
+                  className="rounded-xl border-border text-sm"
+                />
+              </div>
               <div className="flex gap-2 pt-2">
                 <Button variant="outline" className="flex-1 rounded-xl text-xs font-bold tracking-widest uppercase" onClick={() => setIsEditing(false)}>CANCEL</Button>
                 <Button className="flex-1 rounded-xl text-xs font-bold tracking-widest uppercase" onClick={handleSave} disabled={updateMutation.isPending}>SAVE</Button>
@@ -308,14 +376,20 @@ export default function Profile() {
               {/* Languages display - prominent in view mode */}
               <div className="w-full bg-muted/30 border border-border/50 rounded-xl p-3 mb-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-bold tracking-widest uppercase text-muted-foreground">Languages</span>
+                  <span className="text-[10px] font-bold tracking-widest uppercase text-muted-foreground">Languages & Sizes</span>
                   <button
                     className="text-[10px] text-primary font-bold tracking-wider uppercase flex items-center gap-1 hover:opacity-70 transition-opacity"
                     onClick={() => {
                       setFormData({
                         fullName: profile.fullName || '',
                         phone: profile.phone || '',
-                        languages: profile.languages || []
+                        languages: profile.languages || [],
+                        dressSize: profile.dressSize || null,
+                        shoeSize: profile.shoeSize || null,
+                        tShirtSize: profile.tShirtSize || null,
+                        shirtSize: profile.shirtSize || null,
+                        pantsSize: profile.pantsSize || null,
+                        shortsSize: profile.shortsSize || null
                       });
                       setIsEditing(true);
                     }}
@@ -324,13 +398,25 @@ export default function Profile() {
                   </button>
                 </div>
                 {profile.languages && profile.languages.length > 0 ? (
-                  <div className="flex flex-wrap gap-1.5">
+                  <div className="flex flex-wrap gap-1.5 mb-3">
                     {profile.languages.map((lang: string) => (
                       <span key={lang} className="text-[9px] font-bold bg-primary/10 text-primary px-2 py-1 rounded-md uppercase tracking-wider">{lang}</span>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs text-muted-foreground italic">No languages added yet — tap Edit to add</p>
+                  <p className="text-xs text-muted-foreground italic mb-3">No languages added yet — tap Edit to add</p>
+                )}
+                
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  {profile.dressSize && <div><span className="text-muted-foreground font-semibold">Dress:</span> {profile.dressSize}</div>}
+                  {profile.shoeSize && <div><span className="text-muted-foreground font-semibold">Shoe:</span> {profile.shoeSize}</div>}
+                  {profile.tShirtSize && <div><span className="text-muted-foreground font-semibold">T-Shirt:</span> {profile.tShirtSize}</div>}
+                  {profile.shirtSize && <div><span className="text-muted-foreground font-semibold">Shirt:</span> {profile.shirtSize}</div>}
+                  {profile.pantsSize && <div><span className="text-muted-foreground font-semibold">Pants:</span> {profile.pantsSize}</div>}
+                  {profile.shortsSize && <div><span className="text-muted-foreground font-semibold">Shorts:</span> {profile.shortsSize}</div>}
+                </div>
+                {!profile.dressSize && !profile.shoeSize && !profile.tShirtSize && !profile.shirtSize && !profile.pantsSize && !profile.shortsSize && (
+                   <p className="text-xs text-muted-foreground italic border-t border-border/50 pt-2 mt-1">No clothing sizes added yet</p>
                 )}
               </div>
 
@@ -340,7 +426,13 @@ export default function Profile() {
                   setFormData({
                     fullName: profile.fullName || '',
                     phone: profile.phone || '',
-                    languages: profile.languages || []
+                    languages: profile.languages || [],
+                    dressSize: profile.dressSize || null,
+                    shoeSize: profile.shoeSize || null,
+                    tShirtSize: profile.tShirtSize || null,
+                    shirtSize: profile.shirtSize || null,
+                    pantsSize: profile.pantsSize || null,
+                    shortsSize: profile.shortsSize || null
                   });
                   setIsEditing(true);
                 }}
