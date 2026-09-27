@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { GeofenceMap } from '@/components/ui/geofence-map';
 import { useRoute } from 'wouter';
 import {
@@ -469,7 +469,7 @@ export default function EventDetail() {
               </span>
             )}
             <span className="inline-flex px-3 py-1 bg-green-500/20 text-green-100 border border-green-500/30 text-[10px] font-bold uppercase tracking-widest rounded-md mb-4 mr-2">
-              {workingDays > 1 ? ` EGP ( \u00d7  days)` : ` EGP`}
+              {workingDays > 1 ? `${totalPay} EGP (${payAmount} \u00d7 ${workingDays} days)` : `${payAmount} EGP`}
             </span>
             <div className="flex flex-col gap-3 text-primary-foreground/90 mt-4">
               <div className="flex items-center gap-3">
