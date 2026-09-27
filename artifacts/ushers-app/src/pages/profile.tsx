@@ -321,31 +321,49 @@ export default function Profile() {
                   allowCustom={true}
                 />
               </div>
-              <div className="w-full grid grid-cols-2 gap-2 mt-2">
-                <Select value={formData.dressSize || ''} onValueChange={(val) => setFormData({ ...formData, dressSize: val })}>
-                  <SelectTrigger className="rounded-xl border-border text-sm"><SelectValue placeholder="Dress Size" /></SelectTrigger>
-                  <SelectContent>{CLOTHING_SIZES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-                </Select>
-                <Select value={formData.shoeSize || ''} onValueChange={(val) => setFormData({ ...formData, shoeSize: val })}>
-                  <SelectTrigger className="rounded-xl border-border text-sm"><SelectValue placeholder="Shoe Size" /></SelectTrigger>
-                  <SelectContent>{SHOE_SIZES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-                </Select>
-                <Select value={formData.tShirtSize || ''} onValueChange={(val) => setFormData({ ...formData, tShirtSize: val })}>
-                  <SelectTrigger className="rounded-xl border-border text-sm"><SelectValue placeholder="T-Shirt Size" /></SelectTrigger>
-                  <SelectContent>{CLOTHING_SIZES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-                </Select>
-                <Select value={formData.shirtSize || ''} onValueChange={(val) => setFormData({ ...formData, shirtSize: val })}>
-                  <SelectTrigger className="rounded-xl border-border text-sm"><SelectValue placeholder="Shirt Size" /></SelectTrigger>
-                  <SelectContent>{CLOTHING_SIZES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-                </Select>
-                <Select value={formData.pantsSize || ''} onValueChange={(val) => setFormData({ ...formData, pantsSize: val })}>
-                  <SelectTrigger className="rounded-xl border-border text-sm"><SelectValue placeholder="Pants Size" /></SelectTrigger>
-                  <SelectContent>{CLOTHING_SIZES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-                </Select>
-                <Select value={formData.shortsSize || ''} onValueChange={(val) => setFormData({ ...formData, shortsSize: val })}>
-                  <SelectTrigger className="rounded-xl border-border text-sm"><SelectValue placeholder="Shorts Size" /></SelectTrigger>
-                  <SelectContent>{CLOTHING_SIZES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-                </Select>
+              <div className="w-full grid grid-cols-2 gap-x-2 gap-y-3 mt-3">
+                <div className="space-y-1">
+                  <label className="text-[10px] uppercase font-bold text-muted-foreground ml-1">Dress Size</label>
+                  <Select value={formData.dressSize || ''} onValueChange={(val) => setFormData({ ...formData, dressSize: val })}>
+                    <SelectTrigger className="rounded-xl border-border text-sm"><SelectValue placeholder="Dress Size" /></SelectTrigger>
+                    <SelectContent>{CLOTHING_SIZES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] uppercase font-bold text-muted-foreground ml-1">Shoe Size</label>
+                  <Select value={formData.shoeSize || ''} onValueChange={(val) => setFormData({ ...formData, shoeSize: val })}>
+                    <SelectTrigger className="rounded-xl border-border text-sm"><SelectValue placeholder="Shoe Size" /></SelectTrigger>
+                    <SelectContent>{SHOE_SIZES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] uppercase font-bold text-muted-foreground ml-1">T-Shirt Size</label>
+                  <Select value={formData.tShirtSize || ''} onValueChange={(val) => setFormData({ ...formData, tShirtSize: val })}>
+                    <SelectTrigger className="rounded-xl border-border text-sm"><SelectValue placeholder="T-Shirt Size" /></SelectTrigger>
+                    <SelectContent>{CLOTHING_SIZES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] uppercase font-bold text-muted-foreground ml-1">Shirt Size</label>
+                  <Select value={formData.shirtSize || ''} onValueChange={(val) => setFormData({ ...formData, shirtSize: val })}>
+                    <SelectTrigger className="rounded-xl border-border text-sm"><SelectValue placeholder="Shirt Size" /></SelectTrigger>
+                    <SelectContent>{CLOTHING_SIZES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] uppercase font-bold text-muted-foreground ml-1">Pants Size</label>
+                  <Select value={formData.pantsSize || ''} onValueChange={(val) => setFormData({ ...formData, pantsSize: val })}>
+                    <SelectTrigger className="rounded-xl border-border text-sm"><SelectValue placeholder="Pants Size" /></SelectTrigger>
+                    <SelectContent>{CLOTHING_SIZES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] uppercase font-bold text-muted-foreground ml-1">Shorts Size</label>
+                  <Select value={formData.shortsSize || ''} onValueChange={(val) => setFormData({ ...formData, shortsSize: val })}>
+                    <SelectTrigger className="rounded-xl border-border text-sm"><SelectValue placeholder="Shorts Size" /></SelectTrigger>
+                    <SelectContent>{CLOTHING_SIZES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
               </div>
               <div className="flex gap-2 pt-2">
                 <Button variant="outline" className="flex-1 rounded-xl text-xs font-bold tracking-widest uppercase" onClick={() => setIsEditing(false)}>CANCEL</Button>
