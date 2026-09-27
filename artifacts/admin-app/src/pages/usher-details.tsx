@@ -294,6 +294,30 @@ export default function UsherDetails() {
               Suspend
             </Button>
           )}
+          {usher.status === "suspended" && isSuper && (
+            <>
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-orange-600 border-orange-300 hover:bg-orange-50"
+                disabled={isUpdating}
+                onClick={() => {
+                  setSuspendUntilDate('');
+                  setSuspendDialogOpen(true);
+                }}
+              >
+                Change Duration
+              </Button>
+              <Button
+                size="sm"
+                className="bg-green-600 hover:bg-green-700 text-white"
+                disabled={isUpdating}
+                onClick={() => updateStatus({ id: usher.id, data: { status: "active", version: usher.version } })}
+              >
+                Unsuspend
+              </Button>
+            </>
+          )}
           {usher.status === "declined" && (
             <Button 
               size="sm" 
@@ -767,9 +791,46 @@ export default function UsherDetails() {
       {usher && suspendDialogOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="bg-background border border-border rounded-2xl shadow-xl p-6 w-full max-w-sm mx-4">
-            <h2 className="text-lg font-bold mb-1">Suspend Account</h2>
-            <p className="text-sm text-muted-foreground mb-4">Optionally set an end date for the suspension. Leave blank for indefinite.</p>
-            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1 block">Suspended Until</label>
+            <h2 className="text-lg font-bold mb-1">
+              {usher.status === 'suspended' ? 'Change Suspension Duration' : 'Suspend Account'}
+            </h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              Choose a preset duration or set a custom end date. Leave blank for indefinite.
+            </p>
+
+            {/* Preset buttons */}
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Quick Select</p>
+            <div className="grid grid-cols-3 gap-2 mb-4">
+              {[
+                { label: '1 Week', days: 7 },
+                { label: '2 Weeks', days: 14 },
+                { label: '1 Month', days: 30 },
+                { label: '3 Months', days: 90 },
+                { label: '6 Months', days: 180 },
+                { label: '1 Year', days: 365 },
+              ].map(({ label, days }) => {
+                const d = new Date();
+                d.setDate(d.getDate() + days);
+                const val = d.toISOString().slice(0, 16);
+                const isActive = suspendUntilDate === val;
+                return (
+                  <button
+                    key={label}
+                    className={`py-2 px-1 rounded-lg text-xs font-bold border transition-colors ${
+                      isActive
+                        ? 'bg-red-600 text-white border-red-600'
+                        : 'border-border hover:bg-muted text-foreground'
+                    }`}
+                    onClick={() => setSuspendUntilDate(val)}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Custom date */}
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Custom Date</p>
             <input
               type="datetime-local"
               className="w-full border border-border rounded-lg px-3 py-2 text-sm mb-5 bg-background"
@@ -777,10 +838,11 @@ export default function UsherDetails() {
               onChange={e => setSuspendUntilDate(e.target.value)}
               min={new Date().toISOString().slice(0, 16)}
             />
+
             <div className="flex gap-3">
               <button
                 className="flex-1 border border-border rounded-lg py-2 text-sm font-semibold hover:bg-muted transition-colors"
-                onClick={() => { setSuspendDialogOpen(false); setSuspendUntilDate(""); }}
+                onClick={() => { setSuspendDialogOpen(false); setSuspendUntilDate(''); }}
               >
                 Cancel
               </button>
@@ -791,16 +853,16 @@ export default function UsherDetails() {
                   updateStatus({
                     id: usher.id,
                     data: {
-                      status: "suspended",
+                      status: 'suspended',
                       version: usher.version,
                       suspendedUntil: suspendUntilDate ? new Date(suspendUntilDate).toISOString() : null
                     }
                   });
                   setSuspendDialogOpen(false);
-                  setSuspendUntilDate("");
+                  setSuspendUntilDate('');
                 }}
               >
-                Confirm Suspend
+                {usher.status === 'suspended' ? 'Update Duration' : 'Confirm Suspend'}
               </button>
             </div>
           </div>

@@ -51,5 +51,5 @@ export interface UsherProfile {
   /** @nullable */
   reliabilityScore?: number | null;
   /** @nullable */
-  lastRatingRecalcAt?: Date | null;
+  lastRatingRecalcAt?: Date | null;`r`n  suspendedUntil?: Date | null;
 }

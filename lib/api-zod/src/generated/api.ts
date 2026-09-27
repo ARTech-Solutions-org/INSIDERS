@@ -82,7 +82,7 @@ export const RegisterUsherResponse = zod.object({
   "clientRatingAvg": zod.number().nullish(),
   "punctualityScore": zod.number().nullish(),
   "reliabilityScore": zod.number().nullish(),
-  "lastRatingRecalcAt": zod.coerce.date().nullish()
+  "lastRatingRecalcAt": zod.coerce.date().nullish(),`r`n  "suspendedUntil": zod.coerce.date().nullish()
 })
 })
 
@@ -130,7 +130,7 @@ export const LoginUsherResponse = zod.object({
   "clientRatingAvg": zod.number().nullish(),
   "punctualityScore": zod.number().nullish(),
   "reliabilityScore": zod.number().nullish(),
-  "lastRatingRecalcAt": zod.coerce.date().nullish()
+  "lastRatingRecalcAt": zod.coerce.date().nullish(),`r`n  "suspendedUntil": zod.coerce.date().nullish()
 })
 })
 
@@ -221,7 +221,7 @@ export const ListUshersResponse = zod.object({
   "clientRatingAvg": zod.number().nullish(),
   "punctualityScore": zod.number().nullish(),
   "reliabilityScore": zod.number().nullish(),
-  "lastRatingRecalcAt": zod.coerce.date().nullish()
+  "lastRatingRecalcAt": zod.coerce.date().nullish(),`r`n  "suspendedUntil": zod.coerce.date().nullish()
 })),
   "total": zod.number().int()
 })
@@ -263,7 +263,7 @@ export const GetMyUsherProfileResponse = zod.object({
   "clientRatingAvg": zod.number().nullish(),
   "punctualityScore": zod.number().nullish(),
   "reliabilityScore": zod.number().nullish(),
-  "lastRatingRecalcAt": zod.coerce.date().nullish()
+  "lastRatingRecalcAt": zod.coerce.date().nullish(),`r`n  "suspendedUntil": zod.coerce.date().nullish()
 })
 
 
@@ -323,7 +323,7 @@ export const UpdateMyUsherProfileResponse = zod.object({
   "clientRatingAvg": zod.number().nullish(),
   "punctualityScore": zod.number().nullish(),
   "reliabilityScore": zod.number().nullish(),
-  "lastRatingRecalcAt": zod.coerce.date().nullish()
+  "lastRatingRecalcAt": zod.coerce.date().nullish(),`r`n  "suspendedUntil": zod.coerce.date().nullish()
 })
 
 
@@ -367,7 +367,7 @@ export const GetUsherResponse = zod.object({
   "clientRatingAvg": zod.number().nullish(),
   "punctualityScore": zod.number().nullish(),
   "reliabilityScore": zod.number().nullish(),
-  "lastRatingRecalcAt": zod.coerce.date().nullish()
+  "lastRatingRecalcAt": zod.coerce.date().nullish(),`r`n  "suspendedUntil": zod.coerce.date().nullish()
 })
 
 
@@ -431,7 +431,7 @@ export const UpdateUsherResponse = zod.object({
   "clientRatingAvg": zod.number().nullish(),
   "punctualityScore": zod.number().nullish(),
   "reliabilityScore": zod.number().nullish(),
-  "lastRatingRecalcAt": zod.coerce.date().nullish()
+  "lastRatingRecalcAt": zod.coerce.date().nullish(),`r`n  "suspendedUntil": zod.coerce.date().nullish()
 })
 
 
@@ -481,7 +481,7 @@ export const UpdateUsherStatusResponse = zod.object({
   "clientRatingAvg": zod.number().nullish(),
   "punctualityScore": zod.number().nullish(),
   "reliabilityScore": zod.number().nullish(),
-  "lastRatingRecalcAt": zod.coerce.date().nullish()
+  "lastRatingRecalcAt": zod.coerce.date().nullish(),`r`n  "suspendedUntil": zod.coerce.date().nullish()
 })
 
 
@@ -822,7 +822,7 @@ export const GetEventResponse = zod.object({
   "clientRatingAvg": zod.number().nullish(),
   "punctualityScore": zod.number().nullish(),
   "reliabilityScore": zod.number().nullish(),
-  "lastRatingRecalcAt": zod.coerce.date().nullish()
+  "lastRatingRecalcAt": zod.coerce.date().nullish(),`r`n  "suspendedUntil": zod.coerce.date().nullish()
 }).optional(),
   "lateArrivalMinutes": zod.number().nullish(),
   "earlyLeaveMinutes": zod.number().nullish(),
@@ -1219,7 +1219,7 @@ export const ApplyToEventResponse = zod.object({
   "clientRatingAvg": zod.number().nullish(),
   "punctualityScore": zod.number().nullish(),
   "reliabilityScore": zod.number().nullish(),
-  "lastRatingRecalcAt": zod.coerce.date().nullish()
+  "lastRatingRecalcAt": zod.coerce.date().nullish(),`r`n  "suspendedUntil": zod.coerce.date().nullish()
 }).optional()
 })
 
@@ -1280,7 +1280,7 @@ export const ListEventAssignmentsResponseItem = zod.object({
   "clientRatingAvg": zod.number().nullish(),
   "punctualityScore": zod.number().nullish(),
   "reliabilityScore": zod.number().nullish(),
-  "lastRatingRecalcAt": zod.coerce.date().nullish()
+  "lastRatingRecalcAt": zod.coerce.date().nullish(),`r`n  "suspendedUntil": zod.coerce.date().nullish()
 }).optional(),
   "lateArrivalMinutes": zod.number().nullish(),
   "earlyLeaveMinutes": zod.number().nullish(),
@@ -1354,7 +1354,7 @@ export const AssignUsherToEventResponse = zod.object({
   "clientRatingAvg": zod.number().nullish(),
   "punctualityScore": zod.number().nullish(),
   "reliabilityScore": zod.number().nullish(),
-  "lastRatingRecalcAt": zod.coerce.date().nullish()
+  "lastRatingRecalcAt": zod.coerce.date().nullish(),`r`n  "suspendedUntil": zod.coerce.date().nullish()
 }).optional(),
   "lateArrivalMinutes": zod.number().nullish(),
   "earlyLeaveMinutes": zod.number().nullish(),
@@ -1428,7 +1428,7 @@ export const UpdateAssignmentResponse = zod.object({
   "clientRatingAvg": zod.number().nullish(),
   "punctualityScore": zod.number().nullish(),
   "reliabilityScore": zod.number().nullish(),
-  "lastRatingRecalcAt": zod.coerce.date().nullish()
+  "lastRatingRecalcAt": zod.coerce.date().nullish(),`r`n  "suspendedUntil": zod.coerce.date().nullish()
 }).optional(),
   "lateArrivalMinutes": zod.number().nullish(),
   "earlyLeaveMinutes": zod.number().nullish(),
@@ -1504,7 +1504,7 @@ export const AdminCheckinResponse = zod.object({
   "clientRatingAvg": zod.number().nullish(),
   "punctualityScore": zod.number().nullish(),
   "reliabilityScore": zod.number().nullish(),
-  "lastRatingRecalcAt": zod.coerce.date().nullish()
+  "lastRatingRecalcAt": zod.coerce.date().nullish(),`r`n  "suspendedUntil": zod.coerce.date().nullish()
 }).optional(),
   "lateArrivalMinutes": zod.number().nullish(),
   "earlyLeaveMinutes": zod.number().nullish(),
@@ -1569,7 +1569,7 @@ export const AdminCheckoutResponse = zod.object({
   "clientRatingAvg": zod.number().nullish(),
   "punctualityScore": zod.number().nullish(),
   "reliabilityScore": zod.number().nullish(),
-  "lastRatingRecalcAt": zod.coerce.date().nullish()
+  "lastRatingRecalcAt": zod.coerce.date().nullish(),`r`n  "suspendedUntil": zod.coerce.date().nullish()
 }).optional(),
   "lateArrivalMinutes": zod.number().nullish(),
   "earlyLeaveMinutes": zod.number().nullish(),
@@ -1669,7 +1669,7 @@ export const SmartAssignBatchResponseItem = zod.object({
   "clientRatingAvg": zod.number().nullish(),
   "punctualityScore": zod.number().nullish(),
   "reliabilityScore": zod.number().nullish(),
-  "lastRatingRecalcAt": zod.coerce.date().nullish()
+  "lastRatingRecalcAt": zod.coerce.date().nullish(),`r`n  "suspendedUntil": zod.coerce.date().nullish()
 }).optional(),
   "lateArrivalMinutes": zod.number().nullish(),
   "earlyLeaveMinutes": zod.number().nullish(),
@@ -1771,7 +1771,7 @@ export const ListMyAssignmentsResponseItem = zod.object({
   "clientRatingAvg": zod.number().nullish(),
   "punctualityScore": zod.number().nullish(),
   "reliabilityScore": zod.number().nullish(),
-  "lastRatingRecalcAt": zod.coerce.date().nullish()
+  "lastRatingRecalcAt": zod.coerce.date().nullish(),`r`n  "suspendedUntil": zod.coerce.date().nullish()
 }).optional(),
   "lateArrivalMinutes": zod.number().nullish(),
   "earlyLeaveMinutes": zod.number().nullish(),
@@ -1901,7 +1901,7 @@ export const AcceptAssignmentResponse = zod.object({
   "clientRatingAvg": zod.number().nullish(),
   "punctualityScore": zod.number().nullish(),
   "reliabilityScore": zod.number().nullish(),
-  "lastRatingRecalcAt": zod.coerce.date().nullish()
+  "lastRatingRecalcAt": zod.coerce.date().nullish(),`r`n  "suspendedUntil": zod.coerce.date().nullish()
 }).optional(),
   "lateArrivalMinutes": zod.number().nullish(),
   "earlyLeaveMinutes": zod.number().nullish(),
@@ -2034,7 +2034,7 @@ export const DeclineAssignmentResponse = zod.object({
   "clientRatingAvg": zod.number().nullish(),
   "punctualityScore": zod.number().nullish(),
   "reliabilityScore": zod.number().nullish(),
-  "lastRatingRecalcAt": zod.coerce.date().nullish()
+  "lastRatingRecalcAt": zod.coerce.date().nullish(),`r`n  "suspendedUntil": zod.coerce.date().nullish()
 }).optional(),
   "lateArrivalMinutes": zod.number().nullish(),
   "earlyLeaveMinutes": zod.number().nullish(),
@@ -2169,7 +2169,7 @@ export const UsherCheckinResponse = zod.object({
   "clientRatingAvg": zod.number().nullish(),
   "punctualityScore": zod.number().nullish(),
   "reliabilityScore": zod.number().nullish(),
-  "lastRatingRecalcAt": zod.coerce.date().nullish()
+  "lastRatingRecalcAt": zod.coerce.date().nullish(),`r`n  "suspendedUntil": zod.coerce.date().nullish()
 }).optional(),
   "lateArrivalMinutes": zod.number().nullish(),
   "earlyLeaveMinutes": zod.number().nullish(),
@@ -2304,7 +2304,7 @@ export const UsherCheckoutResponse = zod.object({
   "clientRatingAvg": zod.number().nullish(),
   "punctualityScore": zod.number().nullish(),
   "reliabilityScore": zod.number().nullish(),
-  "lastRatingRecalcAt": zod.coerce.date().nullish()
+  "lastRatingRecalcAt": zod.coerce.date().nullish(),`r`n  "suspendedUntil": zod.coerce.date().nullish()
 }).optional(),
   "lateArrivalMinutes": zod.number().nullish(),
   "earlyLeaveMinutes": zod.number().nullish(),
@@ -2438,7 +2438,7 @@ export const CancelAssignmentResponse = zod.object({
   "clientRatingAvg": zod.number().nullish(),
   "punctualityScore": zod.number().nullish(),
   "reliabilityScore": zod.number().nullish(),
-  "lastRatingRecalcAt": zod.coerce.date().nullish()
+  "lastRatingRecalcAt": zod.coerce.date().nullish(),`r`n  "suspendedUntil": zod.coerce.date().nullish()
 }).optional(),
   "lateArrivalMinutes": zod.number().nullish(),
   "earlyLeaveMinutes": zod.number().nullish(),
@@ -2578,7 +2578,7 @@ export const TeamCheckinMemberResponse = zod.object({
   "clientRatingAvg": zod.number().nullish(),
   "punctualityScore": zod.number().nullish(),
   "reliabilityScore": zod.number().nullish(),
-  "lastRatingRecalcAt": zod.coerce.date().nullish()
+  "lastRatingRecalcAt": zod.coerce.date().nullish(),`r`n  "suspendedUntil": zod.coerce.date().nullish()
 }).optional(),
   "lateArrivalMinutes": zod.number().nullish(),
   "earlyLeaveMinutes": zod.number().nullish(),
