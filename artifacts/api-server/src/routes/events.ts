@@ -598,6 +598,11 @@ router.post("/events/:id/apply", requireAuth, async (req, res) => {
   }
 
   const usherId = req.user!.id;
+  const [usher] = await db.select({ status: ushersTable.status }).from(ushersTable).where(eq(ushersTable.id, usherId));
+  if (!usher || usher.status !== "active") {
+    res.status(403).json({ error: "Your account must be active to apply for events." });
+    return;
+  }
 
   const [existingEvent] = await db.select().from(eventsTable).where(eq(eventsTable.id, eventId));
   if (!existingEvent) { res.status(404).json({ error: "Event not found." }); return; }
