@@ -11,7 +11,8 @@ import {
   getListUsherDocumentsQueryKey,
   getGetUsherReliabilityEventsQueryKey,
   useGetMe,
-  useUpdateUsher
+  useUpdateUsher,
+  useGetRatingConfig
 } from "@workspace/api-client-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAuthToken } from "@/lib/auth";
@@ -112,6 +113,8 @@ export default function UsherDetails() {
   const { data: usher, isLoading, isError } = useGetUsher(usherId, {
     query: { enabled: !!usherId, queryKey: getGetUsherQueryKey(usherId) as any }
   });
+
+  const { data: ratingConfig } = useGetRatingConfig();
 
   const { data: stats } = useGetUsherStats(usherId);
   const { data: documents } = useListUsherDocuments(usherId, {
@@ -289,7 +292,16 @@ export default function UsherDetails() {
               variant="outline" 
               className="text-red-600 border-red-300 hover:bg-red-50"
               disabled={isUpdating}
-              onClick={() => setSuspendDialogOpen(true)}
+              onClick={() => {
+                if (ratingConfig?.defaultSuspensionDays) {
+                  const d = new Date();
+                  d.setDate(d.getDate() + ratingConfig.defaultSuspensionDays);
+                  setSuspendUntilDate(d.toISOString().slice(0, 16));
+                } else {
+                  setSuspendUntilDate('');
+                }
+                setSuspendDialogOpen(true);
+              }}
             >
               Suspend
             </Button>
@@ -732,7 +744,16 @@ export default function UsherDetails() {
                         size="sm"
                         variant="destructive"
                         disabled={isUpdating}
-                        onClick={() => setSuspendDialogOpen(true)}
+                        onClick={() => {
+                          if (ratingConfig?.defaultSuspensionDays) {
+                            const d = new Date();
+                            d.setDate(d.getDate() + ratingConfig.defaultSuspensionDays);
+                            setSuspendUntilDate(d.toISOString().slice(0, 16));
+                          } else {
+                            setSuspendUntilDate('');
+                          }
+                          setSuspendDialogOpen(true);
+                        }}
                       >
                         {isUpdating ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
                         Suspend & Cancel Upcoming

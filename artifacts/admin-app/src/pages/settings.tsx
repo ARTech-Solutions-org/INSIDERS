@@ -27,6 +27,7 @@ const formSchema = z.object({
   lateCancellationPenalty: z.coerce.number().min(0),
   lateCancellationWindowHours: z.coerce.number().min(0),
   reliabilityFlagThreshold: z.coerce.number().min(1),
+  defaultSuspensionDays: z.coerce.number().min(1),
 }).refine((data) => {
   const sum = data.clientRatingWeight + data.punctualityWeight + data.reliabilityWeight;
   return Math.abs(sum - 1) < 0.01;
@@ -56,6 +57,7 @@ export default function Settings() {
       lateCancellationPenalty: 0.5,
       lateCancellationWindowHours: 24,
       reliabilityFlagThreshold: 3,
+      defaultSuspensionDays: 14,
     },
   });
 
@@ -73,6 +75,7 @@ export default function Settings() {
         lateCancellationPenalty: config.lateCancellationPenalty || 0.5,
         lateCancellationWindowHours: config.lateCancellationWindowHours || 24,
         reliabilityFlagThreshold: config.reliabilityFlagThreshold || 3,
+        defaultSuspensionDays: config.defaultSuspensionDays || 14,
       });
     }
   }, [config, form]);
@@ -334,6 +337,21 @@ export default function Settings() {
                           <Input type="number" {...field} />
                         </FormControl>
                         <FormDescription>Number of incidents within the lookback window before an usher is flagged.</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="defaultSuspensionDays"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Default Suspension Duration (Days)</FormLabel>
+                        <FormControl>
+                          <Input type="number" {...field} />
+                        </FormControl>
+                        <FormDescription>The default number of days an account is suspended for.</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}

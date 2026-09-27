@@ -3181,7 +3181,8 @@ export const GetRatingConfigResponse = zod.object({
   "noShowPenalty": zod.number().optional(),
   "lateCancellationPenalty": zod.number().optional(),
   "lateCancellationWindowHours": zod.number().int().optional(),
-  "reliabilityFlagThreshold": zod.number().int().optional()
+  "reliabilityFlagThreshold": zod.number().int().optional(),
+  "defaultSuspensionDays": zod.number().int().optional()
 })
 
 
@@ -3199,7 +3200,8 @@ export const UpdateRatingConfigBody = zod.object({
   "noShowPenalty": zod.number().optional(),
   "lateCancellationPenalty": zod.number().optional(),
   "lateCancellationWindowHours": zod.number().int().optional(),
-  "reliabilityFlagThreshold": zod.number().int().optional()
+  "reliabilityFlagThreshold": zod.number().int().optional(),
+  "defaultSuspensionDays": zod.number().int().optional()
 })
 
 export const UpdateRatingConfigResponse = zod.object({
@@ -3213,7 +3215,8 @@ export const UpdateRatingConfigResponse = zod.object({
   "noShowPenalty": zod.number().optional(),
   "lateCancellationPenalty": zod.number().optional(),
   "lateCancellationWindowHours": zod.number().int().optional(),
-  "reliabilityFlagThreshold": zod.number().int().optional()
+  "reliabilityFlagThreshold": zod.number().int().optional(),
+  "defaultSuspensionDays": zod.number().int().optional()
 })
 
 

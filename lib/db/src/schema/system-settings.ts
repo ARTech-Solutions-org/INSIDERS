@@ -13,6 +13,7 @@ export interface RatingConfig {
   lateCancellationPenalty: number;
   lateCancellationWindowHours: number;
   reliabilityFlagThreshold: number;
+  defaultSuspensionDays: number;
 }
 
 export const DEFAULT_RATING_CONFIG: RatingConfig = {
@@ -27,6 +28,7 @@ export const DEFAULT_RATING_CONFIG: RatingConfig = {
   lateCancellationPenalty: 0.5,
   lateCancellationWindowHours: 24,
   reliabilityFlagThreshold: 3,
+  defaultSuspensionDays: 14,
 };
 
 export const systemSettingsTable = pgTable("system_settings", {

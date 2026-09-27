@@ -17,4 +17,5 @@ export interface RatingConfig {
   lateCancellationPenalty?: number;
   lateCancellationWindowHours?: number;
   reliabilityFlagThreshold?: number;
+  defaultSuspensionDays?: number;
 }
