@@ -375,9 +375,31 @@ export default function Profile() {
             <div className="relative z-10 flex flex-col items-center w-full">
               <h2 className="brand-display text-2xl uppercase tracking-wide">{profile.fullName}</h2>
               <div className="flex items-center gap-3 mt-2 mb-4">
-                <span className="brand-meta inline-flex items-center px-2 py-1 bg-green-500/10 text-green-600 border border-green-500/20 rounded-md">
-                  <CheckCircle2 className="w-3 h-3 mr-1" /> ACTIVE
-                </span>
+                {profile.status === 'active' && (
+                  <span className="brand-meta inline-flex items-center px-2 py-1 bg-green-500/10 text-green-600 border border-green-500/20 rounded-md">
+                    <CheckCircle2 className="w-3 h-3 mr-1" /> ACTIVE
+                  </span>
+                )}
+                {profile.status === 'pending' && (
+                  <span className="brand-meta inline-flex items-center px-2 py-1 bg-yellow-500/10 text-yellow-600 border border-yellow-500/20 rounded-md">
+                    <CheckCircle2 className="w-3 h-3 mr-1" /> PENDING
+                  </span>
+                )}
+                {profile.status === 'suspended' && (
+                  <span className="brand-meta inline-flex items-center px-2 py-1 bg-red-500/10 text-red-600 border border-red-500/20 rounded-md">
+                    <X className="w-3 h-3 mr-1" /> SUSPENDED
+                  </span>
+                )}
+                {profile.status === 'blacklisted' && (
+                  <span className="brand-meta inline-flex items-center px-2 py-1 bg-gray-900/10 text-gray-900 dark:text-gray-400 border border-gray-900/20 rounded-md">
+                    <X className="w-3 h-3 mr-1" /> BLACKLISTED
+                  </span>
+                )}
+                {profile.status === 'declined' && (
+                  <span className="brand-meta inline-flex items-center px-2 py-1 bg-red-500/10 text-red-600 border border-red-500/20 rounded-md">
+                    <X className="w-3 h-3 mr-1" /> DECLINED
+                  </span>
+                )}
                 <span className="flex items-center text-sm font-semibold text-muted-foreground border border-border px-2 py-1 bg-background rounded-md">
                   <Star className="w-4 h-4 text-secondary fill-secondary mr-1" />
                   {profile.avgRating?.toFixed(1) || 'N/A'}
