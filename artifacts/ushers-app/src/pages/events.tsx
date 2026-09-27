@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useListMyAssignments, MyAssignment, useListEvents, useGetMyUsherProfile } from '@workspace/api-client-react';
 import { Link } from 'wouter';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -155,9 +155,30 @@ function AssignmentList({ status, colorClass }: { status: string, colorClass: st
   );
 }
 
-function SuspendedScreen() {
+function SuspendedScreen({ suspendedUntil }: { suspendedUntil?: string | null }) {
+  const endDate = suspendedUntil ? new Date(suspendedUntil) : null;
+
+  const getTimeLeft = () => {
+    if (!endDate) return null;
+    const diff = endDate.getTime() - Date.now();
+    if (diff <= 0) return null;
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+    return { days, hours, minutes, seconds };
+  };
+
+  const [timeLeft, setTimeLeft] = useState(getTimeLeft());
+
+  useEffect(() => {
+    if (!endDate) return;
+    const timer = setInterval(() => setTimeLeft(getTimeLeft()), 1000);
+    return () => clearInterval(timer);
+  }, [suspendedUntil]);
+
   return (
-    <div className="flex-1 flex flex-col items-center justify-center py-16 px-6 text-center">
+    <div className="flex-1 flex flex-col items-center justify-center py-12 px-6 text-center">
       {/* Icon */}
       <div className="w-20 h-20 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-6">
         <ShieldOff className="w-10 h-10 text-red-500" />
@@ -170,6 +191,36 @@ function SuspendedScreen() {
       <p className="text-muted-foreground text-sm mb-6 max-w-xs leading-relaxed">
         Your account has been suspended due to repeated reliability issues. You cannot view or apply for events during this period.
       </p>
+
+      {/* Countdown or Indefinite */}
+      {endDate && timeLeft ? (
+        <div className="w-full max-w-xs mb-6">
+          <p className="text-xs font-bold uppercase tracking-widest text-red-500 mb-3">Suspension ends in</p>
+          <div className="grid grid-cols-4 gap-2">
+            {[
+              { label: 'Days', value: timeLeft.days },
+              { label: 'Hrs', value: timeLeft.hours },
+              { label: 'Min', value: timeLeft.minutes },
+              { label: 'Sec', value: timeLeft.seconds },
+            ].map(({ label, value }) => (
+              <div key={label} className="bg-red-500/5 border border-red-500/20 rounded-xl p-3 flex flex-col items-center">
+                <span className="brand-display text-2xl text-red-500 leading-none">
+                  {String(value).padStart(2, '0')}
+                </span>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-1">{label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : endDate ? (
+        <div className="mb-6 px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-lg">
+          <p className="text-sm text-green-600 font-semibold">Suspension period has ended — contact admin to reactivate</p>
+        </div>
+      ) : (
+        <div className="mb-6 px-4 py-2 bg-red-500/5 border border-red-500/20 rounded-lg">
+          <p className="text-sm text-red-500 font-semibold">Indefinite suspension — no end date set</p>
+        </div>
+      )}
 
       {/* Info Card */}
       <div className="w-full max-w-xs bg-red-500/5 border border-red-500/20 rounded-2xl p-5 text-left space-y-3">
@@ -196,6 +247,7 @@ export default function Events() {
   const { data: profileData } = useGetMyUsherProfile();
   const profile = (profileData as any)?.data ?? profileData;
   const isSuspended = profile?.status === 'suspended';
+  const suspendedUntil: string | null = profile?.suspendedUntil ?? null;
 
   return (
     <div className="p-5 flex flex-col h-full relative overflow-hidden">
@@ -205,7 +257,7 @@ export default function Events() {
       </div>
 
       {isSuspended ? (
-        <SuspendedScreen />
+        <SuspendedScreen suspendedUntil={suspendedUntil} />
       ) : (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 flex flex-col">
           <TabsList className="w-full h-auto flex flex-wrap bg-transparent border-b border-border/50 p-0 rounded-none justify-start">

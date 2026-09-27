@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRoute, Link } from "wouter";
 import { 
   useGetUsher, 
@@ -104,6 +104,8 @@ export default function UsherDetails() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isInstaPayModalOpen, setIsInstaPayModalOpen] = useState(false);
+  const [suspendDialogOpen, setSuspendDialogOpen] = useState(false);
+  const [suspendUntilDate, setSuspendUntilDate] = useState("");
   const { data: me } = useGetMe();
   const isSuper = me?.type === "admin" && me?.role === "super_admin";
 
@@ -287,7 +289,7 @@ export default function UsherDetails() {
               variant="outline" 
               className="text-red-600 border-red-300 hover:bg-red-50"
               disabled={isUpdating}
-              onClick={() => updateStatus({ id: usher.id, data: { status: "suspended", version: usher.version } })}
+              onClick={() => setSuspendDialogOpen(true)}
             >
               Suspend
             </Button>
@@ -706,7 +708,7 @@ export default function UsherDetails() {
                         size="sm"
                         variant="destructive"
                         disabled={isUpdating}
-                        onClick={() => updateStatus({ id: usher.id, data: { status: "suspended", version: usher.version } })}
+                        onClick={() => setSuspendDialogOpen(true)}
                       >
                         {isUpdating ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
                         Suspend & Cancel Upcoming
@@ -761,6 +763,48 @@ export default function UsherDetails() {
               : `https://ipn.eg/S/${usher.paymentMethodDetails}`
           }
         />
+      )}
+      {usher && suspendDialogOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-background border border-border rounded-2xl shadow-xl p-6 w-full max-w-sm mx-4">
+            <h2 className="text-lg font-bold mb-1">Suspend Account</h2>
+            <p className="text-sm text-muted-foreground mb-4">Optionally set an end date for the suspension. Leave blank for indefinite.</p>
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1 block">Suspended Until</label>
+            <input
+              type="datetime-local"
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm mb-5 bg-background"
+              value={suspendUntilDate}
+              onChange={e => setSuspendUntilDate(e.target.value)}
+              min={new Date().toISOString().slice(0, 16)}
+            />
+            <div className="flex gap-3">
+              <button
+                className="flex-1 border border-border rounded-lg py-2 text-sm font-semibold hover:bg-muted transition-colors"
+                onClick={() => { setSuspendDialogOpen(false); setSuspendUntilDate(""); }}
+              >
+                Cancel
+              </button>
+              <button
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white rounded-lg py-2 text-sm font-semibold transition-colors disabled:opacity-50"
+                disabled={isUpdating}
+                onClick={() => {
+                  updateStatus({
+                    id: usher.id,
+                    data: {
+                      status: "suspended",
+                      version: usher.version,
+                      suspendedUntil: suspendUntilDate ? new Date(suspendUntilDate).toISOString() : null
+                    }
+                  });
+                  setSuspendDialogOpen(false);
+                  setSuspendUntilDate("");
+                }}
+              >
+                Confirm Suspend
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -163,8 +163,11 @@ router.patch("/ushers/:id/status", requireAdmin, async (req, res) => {
       }
 
       const newVersion = existing.version + 1;
+      const suspendedUntilValue = parsed.data.status === 'suspended'
+        ? (parsed.data.suspendedUntil ? new Date(parsed.data.suspendedUntil) : null)
+        : null; // clear when unsuspending
       const [updated] = await tx.update(ushersTable)
-        .set({ status: parsed.data.status, version: newVersion })
+        .set({ status: parsed.data.status, suspendedUntil: suspendedUntilValue, version: newVersion })
         .where(and(eq(ushersTable.id, usherId), eq(ushersTable.version, existing.version)))
         .returning();
       

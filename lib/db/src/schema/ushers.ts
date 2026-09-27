@@ -18,6 +18,7 @@ export const ushersTable = pgTable("ushers", {
   profilePhotoKey: text("profile_photo_key"),
   passwordHash: varchar("password_hash", { length: 255 }).notNull(),
   status: varchar("status", { length: 50 }).default("pending"),
+  suspendedUntil: timestamp("suspended_until", { withTimezone: true }),
   gender: varchar("gender", { length: 20 }),
   dateOfBirth: date("date_of_birth"),
   height: integer("height"),
