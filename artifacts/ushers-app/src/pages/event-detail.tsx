@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { GeofenceMap } from '@/components/ui/geofence-map';
 import { useRoute } from 'wouter';
 import {
@@ -474,7 +474,11 @@ export default function EventDetail() {
             <div className="flex flex-col gap-3 text-primary-foreground/90 mt-4">
               <div className="flex items-center gap-3">
                 <Calendar className="w-5 h-5 text-primary-foreground/60" strokeWidth={1.5} />
-                <span className="font-semibold tracking-wide text-sm">{format(new Date(eventDetails.startTime), 'EEEE, MMM d, yyyy').toUpperCase()}</span>
+                <span className="font-semibold tracking-wide text-sm">
+                  {workingDays > 1 
+                    ? ` - `
+                    : format(new Date(eventDetails.startTime), 'EEEE, MMM d, yyyy').toUpperCase()}
+                </span>
               </div>
               <div className="flex items-center gap-3">
                 <Clock className="w-5 h-5 text-primary-foreground/60" strokeWidth={1.5} />
