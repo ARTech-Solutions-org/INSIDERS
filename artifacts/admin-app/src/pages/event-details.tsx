@@ -1046,7 +1046,7 @@ export default function EventDetails() {
             </Dialog>
           )}
 
-          {!isCompleted && event.status !== 'cancelled' && (
+          {!isCompleted && event.status !== 'cancelled' && event.status !== 'draft' && (
             <Button
               variant="default"
               className="gap-2 bg-green-600 hover:bg-green-700 text-white"
@@ -1071,25 +1071,29 @@ export default function EventDetails() {
             </Button>
           )}
 
-          <Button
-            variant="outline"
-            className="gap-2"
-            onClick={handleExportPDF}
-            disabled={isExportingPDF}
-          >
-            {isExportingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
-            Export PDF
-          </Button>
+          {event.status !== 'draft' && (
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={handleExportPDF}
+              disabled={isExportingPDF}
+            >
+              {isExportingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
+              Export PDF
+            </Button>
+          )}
 
-          <Button
-            variant="outline"
-            className="gap-2"
-            onClick={handleExportSalarySheet}
-            disabled={isExportingSalary}
-          >
-            {isExportingSalary ? <Loader2 className="w-4 h-4 animate-spin" /> : <TableIcon className="w-4 h-4" />}
-            Export Salary
-          </Button>
+          {event.status !== 'draft' && (
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={handleExportSalarySheet}
+              disabled={isExportingSalary}
+            >
+              {isExportingSalary ? <Loader2 className="w-4 h-4 animate-spin" /> : <TableIcon className="w-4 h-4" />}
+              Export Salary
+            </Button>
+          )}
 
           <Button 
             variant={event.status === "published" ? "outline" : "default"} 
