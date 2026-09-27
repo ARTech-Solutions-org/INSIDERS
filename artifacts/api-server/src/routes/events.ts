@@ -1212,6 +1212,7 @@ router.get("/events/:id/chats", requireAuth, async (req, res) => {
 
 // POST /events/:id/chats
 router.post("/events/:id/chats", requireAdmin, async (req, res) => {
+  try {
   const eventId = parseInt(req.params.id as string, 10);
   const adminId = req.user!.id;
   const bodySchema = z.object({ message: z.string().min(1) });
