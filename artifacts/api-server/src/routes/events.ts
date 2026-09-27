@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { randomBytes } from "crypto";
-import { db, eventsTable, eventAssignmentsTable, deductionRulesTable, eventHolderLinksTable, ushersTable, usherAvailabilityTable, eventTeamsTable, adminsTable, eventFeedbackLinksTable, balanceTransactionsTable, notificationsTable, assignmentDeductionsTable } from "@workspace/db";
+import { db, eventsTable, eventAssignmentsTable, deductionRulesTable, eventHolderLinksTable, ushersTable, usherAvailabilityTable, eventTeamsTable, adminsTable, eventFeedbackLinksTable, balanceTransactionsTable, notificationsTable, assignmentDeductionsTable, eventChatsTable } from "@workspace/db";
 import { eq, and, gte, sql, desc, lt, gt, ne, inArray, lte } from "drizzle-orm";
 import { requireAdmin, requireAuth } from "../middleware/auth.js";
 import { audit } from "../lib/audit.js";
@@ -1184,6 +1184,81 @@ router.post("/events/:id/feedback-link", requireAdmin, async (req, res) => {
   }).returning();
 
   res.json(link);
+});
+
+// GET /events/:id/chats
+router.get("/events/:id/chats", requireAuth, async (req, res) => {
+  const eventId = parseInt(req.params.id as string, 10);
+  const chats = await db
+    .select({
+      id: eventChatsTable.id,
+      eventId: eventChatsTable.eventId,
+      adminId: eventChatsTable.adminId,
+      message: eventChatsTable.message,
+      createdAt: eventChatsTable.createdAt,
+      adminName: adminsTable.fullName,
+    })
+    .from(eventChatsTable)
+    .leftJoin(adminsTable, eq(eventChatsTable.adminId, adminsTable.id))
+    .where(eq(eventChatsTable.eventId, eventId))
+    .orderBy(eventChatsTable.createdAt);
+  res.json(chats);
+});
+
+// POST /events/:id/chats
+router.post("/events/:id/chats", requireAdmin, async (req, res) => {
+  const eventId = parseInt(req.params.id as string, 10);
+  const adminId = req.user!.adminId!;
+  const bodySchema = z.object({ message: z.string().min(1) });
+  const parsed = bodySchema.safeParse(req.body);
+  
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.format() });
+    return;
+  }
+  
+  const [event] = await db.select().from(eventsTable).where(eq(eventsTable.id, eventId));
+  if (!event) {
+    res.status(404).json({ error: "Event not found" });
+    return;
+  }
+
+  const [chat] = await db.insert(eventChatsTable).values({
+    eventId,
+    adminId,
+    message: parsed.data.message
+  }).returning();
+
+  // Find assigned ushers to notify
+  const assignments = await db
+    .select({ usherId: eventAssignmentsTable.usherId })
+    .from(eventAssignmentsTable)
+    .where(eq(eventAssignmentsTable.eventId, eventId));
+  
+  const usherIds = assignments.map(a => a.usherId);
+  
+  if (usherIds.length > 0) {
+    // Insert DB notifications
+    await db.insert(notificationsTable).values(usherIds.map(usherId => ({
+      recipientType: "usher",
+      recipientId: usherId,
+      type: "event_chat",
+      message: `New message from admin in ${event.title}`,
+    })));
+
+    // Send push notifications
+    await sendPushToUshers(
+      usherIds,
+      `New Message: ${event.title}`,
+      parsed.data.message,
+      { type: "event_chat", eventId: eventId.toString() }
+    ).catch(e => console.error("Failed to send push for event chat:", e));
+  }
+  
+  // also return adminName
+  const [admin] = await db.select().from(adminsTable).where(eq(adminsTable.id, adminId));
+  
+  res.json({ ...chat, adminName: admin?.fullName });
 });
 
 export default router;

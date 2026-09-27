@@ -25,6 +25,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { EventChatViewer } from '@/components/EventChatViewer';
 
 
 
@@ -454,7 +455,10 @@ export default function EventDetail() {
         <div className="bg-primary rounded-2xl p-6 pb-8 mx-5 mt-2 relative overflow-hidden shadow-sm">
           <div className="relative z-10">
             <p className="brand-meta text-primary-foreground/70 mb-3 tracking-widest">LIVE ASSIGNMENT</p>
-            <h1 className="brand-display text-4xl mb-3 text-primary-foreground tracking-wide uppercase leading-tight">{eventDetails.title}</h1>
+            <div className="flex items-center gap-3 mb-3">
+              <h1 className="brand-display text-4xl text-primary-foreground tracking-wide uppercase leading-tight m-0">{eventDetails.title}</h1>
+              <EventChatViewer eventId={eventId} />
+            </div>
             {assignment?.isTeamLead && (
               <span className="inline-flex px-3 py-1 bg-secondary text-secondary-foreground text-[10px] font-bold uppercase tracking-widest rounded-md mb-4">
                 TEAM LEAD

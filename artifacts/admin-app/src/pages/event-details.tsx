@@ -87,6 +87,7 @@ import {
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { LocationPicker } from "@/components/ui/location-picker";
+import { EventChatDialog } from "@/components/EventChatDialog";
 
 function AssignmentPayInput({ assignment, updateAssignment, eventId }: { assignment: any, updateAssignment: any, eventId: number }) {
   const [val, setVal] = useState(assignment.overriddenPay ?? "");
@@ -831,6 +832,7 @@ export default function EventDetails() {
               </Button>
             </Link>
             <h1 className="text-3xl font-bold tracking-tight">{event.title}</h1>
+            <EventChatDialog eventId={eventId} />
             <Badge 
               variant="outline" 
               className={
