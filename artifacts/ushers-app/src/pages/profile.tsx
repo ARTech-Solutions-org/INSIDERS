@@ -58,6 +58,7 @@ const COMMON_LANGUAGES = ['Arabic', 'English', 'French', 'German', 'Spanish', 'I
 
 const CLOTHING_SIZES = ["XXS", "XS", "S", "M", "L", "XL", "XXL", "3XL", "4XL"];
 const SHOE_SIZES = Array.from({ length: 14 }, (_, i) => (35 + i).toString());
+const PANTS_SIZES = Array.from({ length: 27 }, (_, i) => (28 + i).toString());
 
 export default function Profile() {
   const [, setLocation] = useLocation();
@@ -354,14 +355,14 @@ export default function Profile() {
                   <label className="text-[10px] uppercase font-bold text-muted-foreground ml-1">Pants Size</label>
                   <Select value={formData.pantsSize || ''} onValueChange={(val) => setFormData({ ...formData, pantsSize: val })}>
                     <SelectTrigger className="rounded-xl border-border text-sm"><SelectValue placeholder="Pants Size" /></SelectTrigger>
-                    <SelectContent>{CLOTHING_SIZES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                    <SelectContent>{PANTS_SIZES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] uppercase font-bold text-muted-foreground ml-1">Shorts Size</label>
                   <Select value={formData.shortsSize || ''} onValueChange={(val) => setFormData({ ...formData, shortsSize: val })}>
                     <SelectTrigger className="rounded-xl border-border text-sm"><SelectValue placeholder="Shorts Size" /></SelectTrigger>
-                    <SelectContent>{CLOTHING_SIZES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                    <SelectContent>{PANTS_SIZES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
               </div>
