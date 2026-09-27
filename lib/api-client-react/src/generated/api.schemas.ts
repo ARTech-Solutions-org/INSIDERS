@@ -173,6 +173,8 @@ export interface UsherProfile {
   reliabilityScore?: number | null;
   /** @nullable */
   lastRatingRecalcAt?: string | null;
+  /** @nullable */
+  suspendedUntil?: string | null;
 }
 
 export interface AuthResult {
@@ -244,6 +246,8 @@ export interface UsherUpdate {
 export interface UsherStatusUpdate {
   status: string;
   version?: number;
+  /** @nullable */
+  suspendedUntil?: string | null;
 }
 
 export interface UsherListResponse {
@@ -328,6 +332,7 @@ export interface RatingConfig {
   lateCancellationPenalty?: number;
   lateCancellationWindowHours?: number;
   reliabilityFlagThreshold?: number;
+  defaultSuspensionDays?: number;
 }
 
 export interface ReliabilityEvent {

@@ -452,7 +452,7 @@ export const UpdateUsherStatusParams = zod.object({
 export const UpdateUsherStatusBody = zod.object({
   "status": zod.string(),
   "version": zod.number().int().optional(),
-  "suspendedUntil": zod.string().datetime({ offset: true }).optional().nullable()
+  "suspendedUntil": zod.coerce.date().nullish()
 })
 
 export const UpdateUsherStatusResponse = zod.object({

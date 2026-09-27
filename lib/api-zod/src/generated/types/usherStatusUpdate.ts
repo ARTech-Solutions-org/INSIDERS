@@ -8,4 +8,6 @@
 export interface UsherStatusUpdate {
   status: string;
   version?: number;
+  /** @nullable */
+  suspendedUntil?: Date | null;
 }
