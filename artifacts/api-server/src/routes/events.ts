@@ -1197,7 +1197,7 @@ router.get("/events/:id/chats", requireAuth, async (req, res) => {
       adminId: eventChatsTable.adminId,
       message: eventChatsTable.message,
       createdAt: eventChatsTable.createdAt,
-      adminName: adminsTable.fullName,
+      adminName: adminsTable.name,
     })
     .from(eventChatsTable)
     .leftJoin(adminsTable, eq(eventChatsTable.adminId, adminsTable.id))
@@ -1264,7 +1264,7 @@ router.post("/events/:id/chats", requireAdmin, async (req, res) => {
   // also return adminName
   const [admin] = await db.select().from(adminsTable).where(eq(adminsTable.id, adminId));
   
-  res.json({ ...chat, adminName: admin?.fullName });
+  res.json({ ...chat, adminName: admin?.name });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
