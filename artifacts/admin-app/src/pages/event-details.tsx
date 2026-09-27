@@ -2170,10 +2170,9 @@ export default function EventDetails() {
           <table className="w-full border-collapse border border-gray-300 text-sm mb-8" style={{ tableLayout: 'fixed' }}>
             <thead>
               <tr className="bg-slate-800 text-white">
-                <th className="p-2 border border-gray-300 w-16">Photo</th>
+                <th className="p-2 border border-gray-300 w-20">Photo</th>
                 <th className="p-2 border border-gray-300 text-left">Name</th>
                 <th className="p-2 border border-gray-300 text-left">Role/Team</th>
-                <th className="p-2 border border-gray-300 text-left">Phone</th>
                 <th className="p-2 border border-gray-300 text-left">Signature / Notes</th>
               </tr>
             </thead>
@@ -2188,9 +2187,9 @@ export default function EventDetails() {
                   <tr key={assignment.id} className="border-b border-gray-300" style={{ pageBreakInside: 'avoid' }}>
                     <td className="p-2 border border-gray-300 text-center">
                       {photoUrl ? (
-                        <img src={photoUrl} className="w-10 h-10 rounded-full object-cover mx-auto" crossOrigin="anonymous" alt="Photo" />
+                        <img src={photoUrl} className="w-14 h-14 rounded-full object-cover mx-auto" crossOrigin="anonymous" alt="Photo" />
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-gray-200 mx-auto" />
+                        <div className="w-14 h-14 rounded-full bg-gray-200 mx-auto" />
                       )}
                     </td>
                     <td className="p-2 border border-gray-300" dir="auto">{usher?.fullName || 'N/A'}</td>
@@ -2198,7 +2197,6 @@ export default function EventDetails() {
                       <div className="font-medium">{teamName}</div>
                       <div className="text-gray-500 text-xs">{roleStr}</div>
                     </td>
-                    <td className="p-2 border border-gray-300" dir="auto">{usher?.phone || 'N/A'}</td>
                     <td className="p-2 border border-gray-300"></td>
                   </tr>
                 );
