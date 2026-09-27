@@ -23,6 +23,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MultiSelectDropdown } from '@/components/ui/multi-select-dropdown';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format, addDays } from 'date-fns';
 import { ImageCropper } from '@/components/ui/image-cropper';
 
@@ -54,6 +55,9 @@ const getImageUrl = (key?: string | null) => {
 };
 
 const COMMON_LANGUAGES = ['Arabic', 'English', 'French', 'German', 'Spanish', 'Italian'];
+
+const CLOTHING_SIZES = ["XXS", "XS", "S", "M", "L", "XL", "XXL", "3XL", "4XL"];
+const SHOE_SIZES = Array.from({ length: 14 }, (_, i) => (35 + i).toString());
 
 export default function Profile() {
   const [, setLocation] = useLocation();
@@ -318,42 +322,30 @@ export default function Profile() {
                 />
               </div>
               <div className="w-full grid grid-cols-2 gap-2 mt-2">
-                <Input
-                  value={formData.dressSize || ''}
-                  onChange={(e) => setFormData({ ...formData, dressSize: e.target.value })}
-                  placeholder="Dress Size"
-                  className="rounded-xl border-border text-sm"
-                />
-                <Input
-                  value={formData.shoeSize || ''}
-                  onChange={(e) => setFormData({ ...formData, shoeSize: e.target.value })}
-                  placeholder="Shoe Size"
-                  className="rounded-xl border-border text-sm"
-                />
-                <Input
-                  value={formData.tShirtSize || ''}
-                  onChange={(e) => setFormData({ ...formData, tShirtSize: e.target.value })}
-                  placeholder="T-Shirt Size"
-                  className="rounded-xl border-border text-sm"
-                />
-                <Input
-                  value={formData.shirtSize || ''}
-                  onChange={(e) => setFormData({ ...formData, shirtSize: e.target.value })}
-                  placeholder="Shirt Size"
-                  className="rounded-xl border-border text-sm"
-                />
-                <Input
-                  value={formData.pantsSize || ''}
-                  onChange={(e) => setFormData({ ...formData, pantsSize: e.target.value })}
-                  placeholder="Pants Size"
-                  className="rounded-xl border-border text-sm"
-                />
-                <Input
-                  value={formData.shortsSize || ''}
-                  onChange={(e) => setFormData({ ...formData, shortsSize: e.target.value })}
-                  placeholder="Shorts Size"
-                  className="rounded-xl border-border text-sm"
-                />
+                <Select value={formData.dressSize || ''} onValueChange={(val) => setFormData({ ...formData, dressSize: val })}>
+                  <SelectTrigger className="rounded-xl border-border text-sm"><SelectValue placeholder="Dress Size" /></SelectTrigger>
+                  <SelectContent>{CLOTHING_SIZES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                </Select>
+                <Select value={formData.shoeSize || ''} onValueChange={(val) => setFormData({ ...formData, shoeSize: val })}>
+                  <SelectTrigger className="rounded-xl border-border text-sm"><SelectValue placeholder="Shoe Size" /></SelectTrigger>
+                  <SelectContent>{SHOE_SIZES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                </Select>
+                <Select value={formData.tShirtSize || ''} onValueChange={(val) => setFormData({ ...formData, tShirtSize: val })}>
+                  <SelectTrigger className="rounded-xl border-border text-sm"><SelectValue placeholder="T-Shirt Size" /></SelectTrigger>
+                  <SelectContent>{CLOTHING_SIZES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                </Select>
+                <Select value={formData.shirtSize || ''} onValueChange={(val) => setFormData({ ...formData, shirtSize: val })}>
+                  <SelectTrigger className="rounded-xl border-border text-sm"><SelectValue placeholder="Shirt Size" /></SelectTrigger>
+                  <SelectContent>{CLOTHING_SIZES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                </Select>
+                <Select value={formData.pantsSize || ''} onValueChange={(val) => setFormData({ ...formData, pantsSize: val })}>
+                  <SelectTrigger className="rounded-xl border-border text-sm"><SelectValue placeholder="Pants Size" /></SelectTrigger>
+                  <SelectContent>{CLOTHING_SIZES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                </Select>
+                <Select value={formData.shortsSize || ''} onValueChange={(val) => setFormData({ ...formData, shortsSize: val })}>
+                  <SelectTrigger className="rounded-xl border-border text-sm"><SelectValue placeholder="Shorts Size" /></SelectTrigger>
+                  <SelectContent>{CLOTHING_SIZES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                </Select>
               </div>
               <div className="flex gap-2 pt-2">
                 <Button variant="outline" className="flex-1 rounded-xl text-xs font-bold tracking-widest uppercase" onClick={() => setIsEditing(false)}>CANCEL</Button>
