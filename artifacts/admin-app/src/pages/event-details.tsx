@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import { useRoute, Link } from "wouter";
 // @ts-ignore
 
@@ -1143,12 +1143,37 @@ export default function EventDetails() {
                     <span className="font-medium">EGP {event.budget?.toLocaleString() || "Not set"}</span>
                   </div>
                   <div className="flex justify-between border-b pb-2">
+                    <span className="text-muted-foreground">Working Days</span>
+                    <span className="font-semibold text-primary">
+                      {(() => {
+                        const days = Math.max(1, Math.ceil((new Date(event.endTime).getTime() - new Date(event.startTime).getTime()) / 86400000));
+                        return ${days} day${days > 1 ? 's' : ''};
+                      })()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between border-b pb-2">
                     <span className="text-muted-foreground">Leader Pay Rate</span>
-                    <span className="font-medium">EGP {event.leaderRate?.toLocaleString() || "Not set"}</span>
+                    <span className="font-medium">
+                      {(() => {
+                        const days = Math.max(1, Math.ceil((new Date(event.endTime).getTime() - new Date(event.startTime).getTime()) / 86400000));
+                        const daily = event.leaderRate || 0;
+                        return days > 1
+                          ? `EGP ${daily.toLocaleString()}/day x ${days} = EGP ${(daily * days).toLocaleString()}`
+                          : `EGP ${daily.toLocaleString()}`; 
+                      })()}
+                    </span>
                   </div>
                   <div className="flex justify-between border-b pb-2">
                     <span className="text-muted-foreground">Regular Pay Rate</span>
-                    <span className="font-medium">EGP {event.regularRate?.toLocaleString() || "Not set"}</span>
+                    <span className="font-medium">
+                      {(() => {
+                        const days = Math.max(1, Math.ceil((new Date(event.endTime).getTime() - new Date(event.startTime).getTime()) / 86400000));
+                        const daily = event.regularRate || 0;
+                        return days > 1
+                          ? `EGP ${daily.toLocaleString()}/day x ${days} = EGP ${(daily * days).toLocaleString()}`
+                          : `EGP ${daily.toLocaleString()}`; 
+                      })()}
+                    </span>
                   </div>
   
                 <div className="flex justify-between border-b pb-2">

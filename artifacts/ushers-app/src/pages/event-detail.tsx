@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { GeofenceMap } from '@/components/ui/geofence-map';
 import { useRoute } from 'wouter';
 import {
@@ -19,7 +19,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import {
-  MapPin, Calendar, Clock, Navigation, AlertTriangle,
+  MapPin, Calendar, CalendarDays, Clock, Navigation, AlertTriangle,
   CheckCircle2, XCircle, Info, ShieldAlert, Phone, LocateFixed, Camera
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -410,6 +410,10 @@ export default function EventDetail() {
   };
 
   const payAmount = assignment?.overriddenPay ?? ((assignment?.role === 'leader' || assignment?.isTeamLead) ? eventDetails?.leaderRate : eventDetails?.regularRate) ?? 0;
+  const workingDays = eventDetails?.startTime && eventDetails?.endTime
+    ? Math.max(1, Math.ceil((new Date(eventDetails.endTime).getTime() - new Date(eventDetails.startTime).getTime()) / 86400000))
+    : 1;
+  const totalPay = workingDays > 1 ? payAmount * workingDays : payAmount;
 
   return (
     <ErrorBoundary>
@@ -465,7 +469,7 @@ export default function EventDetail() {
               </span>
             )}
             <span className="inline-flex px-3 py-1 bg-green-500/20 text-green-100 border border-green-500/30 text-[10px] font-bold uppercase tracking-widest rounded-md mb-4 mr-2">
-              {payAmount} EGP
+              {workingDays > 1 ? ` EGP ( \u00d7  days)` : ` EGP`}
             </span>
             <div className="flex flex-col gap-3 text-primary-foreground/90 mt-4">
               <div className="flex items-center gap-3">
@@ -476,6 +480,12 @@ export default function EventDetail() {
                 <Clock className="w-5 h-5 text-primary-foreground/60" strokeWidth={1.5} />
                 <span className="font-semibold tracking-wide text-sm">{format(new Date(eventDetails.startTime), 'h:mm a')} - {format(new Date(eventDetails.endTime), 'h:mm a')}</span>
               </div>
+              {workingDays > 1 && (
+                <div className="flex items-center gap-3">
+                  <CalendarDays className="w-5 h-5 text-primary-foreground/60" strokeWidth={1.5} />
+                  <span className="font-semibold tracking-wide text-sm">{workingDays} WORKING DAYS</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
