@@ -1188,7 +1188,8 @@ router.post("/events/:id/feedback-link", requireAdmin, async (req, res) => {
 
 // GET /events/:id/chats
 router.get("/events/:id/chats", requireAuth, async (req, res) => {
-  const eventId = parseInt(req.params.id as string, 10);
+  try {
+    const eventId = parseInt(req.params.id as string, 10);
   const chats = await db
     .select({
       id: eventChatsTable.id,
@@ -1203,12 +1204,16 @@ router.get("/events/:id/chats", requireAuth, async (req, res) => {
     .where(eq(eventChatsTable.eventId, eventId))
     .orderBy(eventChatsTable.createdAt);
   res.json(chats);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
 // POST /events/:id/chats
 router.post("/events/:id/chats", requireAdmin, async (req, res) => {
   const eventId = parseInt(req.params.id as string, 10);
-  const adminId = req.user!.adminId!;
+  const adminId = req.user!.id;
   const bodySchema = z.object({ message: z.string().min(1) });
   const parsed = bodySchema.safeParse(req.body);
   
@@ -1259,6 +1264,10 @@ router.post("/events/:id/chats", requireAdmin, async (req, res) => {
   const [admin] = await db.select().from(adminsTable).where(eq(adminsTable.id, adminId));
   
   res.json({ ...chat, adminName: admin?.fullName });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
 export default router;
