@@ -1,138 +1,307 @@
 <div align="center">
-  <img src="./readme-assets/insiders-logo-white.png" alt="INSIDERS Logo" width="200" />
+  <img src="./readme-assets/insiders-logo-white.png" alt="INSIDERS Logo" width="220" />
+  <p align="center">
+    <strong>We Command the Crowd</strong><br/>
+    The Premier End-to-End Event Staffing, Usher Management & Operations Platform
+  </p>
+  <p align="center">
+    <img src="https://img.shields.io/badge/Architecture-PWA%20%2B%20Admin%20SPA%20%2B%20API-003087?style=flat-square" alt="Architecture" />
+    <img src="https://img.shields.io/badge/Frontend-React%2018%20%7C%20Tailwind%20CSS%20%7C%20Vite-0070C0?style=flat-square" alt="Frontend" />
+    <img src="https://img.shields.io/badge/Backend-Node.js%20%7C%20Express%20%7C%20Drizzle%20ORM-0A192F?style=flat-square" alt="Backend" />
+    <img src="https://img.shields.io/badge/Database-PostgreSQL%20%28Neon%29-3178C6?style=flat-square" alt="Database" />
+    <img src="https://img.shields.io/badge/Notifications-Firebase%20FCM-FFA611?style=flat-square" alt="Firebase" />
+  </p>
 </div>
 
+---
+
 ## Table of Contents
-- [Introduction](#introduction)
+- [Executive Overview](#executive-overview)
 - [The Problem It Solves](#the-problem-it-solves)
-- [Real-World Use Cases](#real-world-use-cases)
-- [Who Uses It](#who-uses-it)
-- [Key Features In Detail](#key-features-in-detail)
-- [The Financial & Rating Engine](#the-financial--rating-engine)
-- [How It Works (User Journey)](#how-it-works-user-journey)
-- [Branding & Technology](#branding--technology)
+- [System Architecture & Ecosystem](#system-architecture--ecosystem)
+- [Key Features & Core Modules](#key-features--core-modules)
+  - [1. Usher Onboarding, National ID & InstaPay Integration](#1-usher-onboarding-national-id--instapay-integration)
+  - [2. Smart Event Staffing, Teams & Waitlists](#2-smart-event-staffing-teams--waitlists)
+  - [3. Geofenced Attendance & Live Selfie Photo Verification](#3-geofenced-attendance--live-selfie-photo-verification)
+  - [4. Dedicated Event Announcements & Live Chat Stream](#4-dedicated-event-announcements--live-chat-stream)
+  - [5. Apparel & Uniform Logistics (Automated Sizes Aggregator)](#5-apparel--uniform-logistics-automated-sizes-aggregator)
+  - [6. Smart Deduction Engine & Lateness Matrix](#6-smart-deduction-engine--lateness-matrix)
+  - [7. Usher Suspension Engine & Disciplinary Countdown](#7-usher-suspension-engine--disciplinary-countdown)
+  - [8. Executive Financial Suite & Branded Excel Payroll Export](#8-executive-financial-suite--branded-excel-payroll-export)
+  - [9. High-Definition Printable Ushers Sheet (PDF)](#9-high-definition-printable-ushers-sheet-pdf)
+  - [10. Intelligent Bilingual Venue Mapping & Geofencing](#10-intelligent-bilingual-venue-mapping--geofencing)
+  - [11. Automated Rating & Punctuality Scoring Engine](#11-automated-rating--punctuality-scoring-engine)
+  - [12. Live Admin Command Center & Immutable Audit Log](#12-live-admin-command-center--immutable-audit-log)
+- [End-to-End User Journeys](#end-to-end-user-journeys)
+  - [The Usher's Experience](#the-ushers-experience)
+  - [The Event Organizer's Workflow](#the-event-organizers-workflow)
+- [Visual Assets & Recommended Screenshots](#visual-assets--recommended-screenshots)
+- [Branding & Design System](#branding--design-system)
 
 ---
 
-## Introduction
-Welcome to **INSIDERS** — a premier, end-to-end event staffing and usher management platform designed to command the crowd with efficiency, transparency, and elegance. Whether you are an event organizer looking to coordinate hundreds of staff members, or an usher seeking your next high-profile assignment, INSIDERS provides a seamless, digital-first experience tailored to the dynamic needs of the modern events industry.
+## Executive Overview
+**INSIDERS** is a full-scale event staffing and crowd operations platform built for premier event agencies, production houses, and staffing organizations. 
+
+Managing hundreds of ushers, supervisors, and guest-experience personnel across multi-day conferences, exhibitions, concerts, and VIP galas requires rigorous coordination. INSIDERS replaces chaotic WhatsApp groups, untracked spreadsheets, and paper sign-in sheets with an automated, synchronized digital command system.
+
+---
 
 ## The Problem It Solves
-Historically, managing event staff manually has been chaotic. Relying on fragmented WhatsApp groups, endless spreadsheets, paper sign-in sheets, and manual payroll calculations often leads to miscommunication, fraudulent attendance, and severe operational friction. 
 
-**INSIDERS eliminates this friction by providing:**
-- **Centralized Communication:** No more scattered messages; all assignments, updates, and broadcasts happen natively within the app.
-- **Absolute Accountability:** GPS-verified check-ins ensure staff are physically present at the venue, completely eradicating "ghost" attendance.
-- **Automated Payroll & Ratings:** The system automatically calculates deductions for tardiness and tracks financial ledgers with zero human error.
-- **Smart Staffing:** Admins can filter staff based on physical traits, language proficiency, and past performance ratings, eliminating the guesswork in hiring.
-
-## Real-World Use Cases
-INSIDERS is built to scale across various types of events:
-- **Massive Tech Conferences:** Coordinating 200+ ushers across different halls, ensuring everyone is at their designated zone (e.g., VIP Registration, Main Stage).
-- **Exclusive VIP Gatherings:** Filtering ushers to only select those who speak specific foreign languages or have a verified "VIP Handling" skill badge.
-- **Concerts & Festivals:** Utilizing the broadcast feature to instantly notify all staff of schedule changes, gate closures, or emergency procedures in real-time.
+| Traditional Staffing Hassles | The INSIDERS Solution |
+| :--- | :--- |
+| **Ghost Attendance & Lateness**<br/>Staff claim they arrived on time or have friends sign paper sheets for them. | **Dual-Factor Check-in**<br/>GPS geofencing combined with mandatory live selfie capture at the venue. |
+| **Manual Payroll Calculation**<br/>Counting hours, deductions, daily rates, and multi-day shifts in Excel by hand takes days. | **Automated Financial Engine**<br/>Instant salary calculation with deductions, multi-day pay, and 1-click branded Excel sheets with InstaPay links. |
+| **Uniform & Sizing Chaos**<br/>Organizers manually message hundreds of ushers to tally T-shirt and pants sizes before ordering uniforms. | **Automated Sizes Aggregator**<br/>Instant headcount of clothing sizes per event on the dashboard and in exported rosters. |
+| **Fragmented Communication**<br/>Lost updates in massive group chats, missed announcements, and last-minute shift confusion. | **Dedicated Event Chat & FCM Push**<br/>Per-event announcement channels and urgent broadcast push notifications directly on ushers' mobile devices. |
+| **Lack of Disciplinary Recourse**<br/>No-shows and latecomers repeatedly accept shifts without accountability. | **Auto-Rating & Suspension Engine**<br/>Automated punctuality rating deductions, preset disciplinary suspensions, and automated upcoming shift revocations. |
 
 ---
 
-## Who Uses It
+## System Architecture & Ecosystem
 
-### 📱 Ushers (Mobile App)
-The frontline ambassadors of any event. Through the dedicated mobile application (available as a sleek Progressive Web App), ushers can:
-- **Onboard Seamlessly:** Register, submit national identification documents, and await admin approval.
-- **Manage a Rich Profile:** Update their availability calendar and highlight unique skills (e.g., spoken languages, height, specialized experience).
-- **Handle Assignments:** Receive instant push notifications for new event assignments and accept or decline them on the spot.
-- **Log Attendance Safely:** Check in and out of events using strict location-based GPS verification.
-- **Track Finances & Performance:** Monitor their current digital wallet balance, view detailed transaction history, and check their performance ratings for past events.
+INSIDERS consists of three deeply integrated applications running on top of a unified PostgreSQL backend:
 
-### 💻 Admins & Organizers (Admin Dashboard)
-The control center for event managers. Through the comprehensive web-based admin panel, organizers can:
-- **Plan Complex Events:** Create new events, set precise geographical locations (Geo-fencing) via an interactive map, and define strict staffing budgets.
-- **Assign Staff Intelligently:** Browse the usher database, filter by specific skills or high ratings, and assign them directly to events.
-- **Monitor Live Status:** Track real-time attendance, identifying exactly who has arrived, who is late, and who missed their checkout.
-- **Manage Users & Approvals:** Review pending usher applications, verify uploaded documents, and approve or suspend accounts.
-- **Communicate Instantly:** Send targeted broadcast push notifications to specific groups or all active ushers.
-- *(Super Admins)* **Financial Oversight:** Oversee system-wide payouts, modify base pay, and track budget utilization to the last penny.
-
----
-
-## Key Features In Detail
-
-### 1. Usher Registration & Approval Workflow
-A strict and streamlined onboarding process. Ushers sign up and must complete their profile by uploading an ID and a professional headshot. Admins then review these pending applications in a dedicated queue, ensuring only verified and qualified staff join the platform.
-<br/>
-<img src="./readme-assets/account-approval.png" alt="Account Approval Screen" width="600" />
-
-### 2. Smart Event Assignments & Waitlists
-Admins can select ushers for upcoming events based on smart filters (availability, rating, specific skills). Once assigned, ushers receive an instant push notification and must confirm their attendance. If an usher declines or drops out, admins can quickly tap into the waitlist to find immediate replacements.
-<br/>
-<img src="./readme-assets/event-assignment.png" alt="Event Assignment Screen" width="600" />
-
-### 3. GPS-Verified Check-in/Check-out
-To guarantee punctuality and attendance, ushers use the app to check in and out of their shifts. The system strictly verifies their GPS coordinates against the event's designated location radius (e.g., within 500 meters of the venue). If they are outside the radius, the check-in button is disabled.
-<br/>
-<img src="./readme-assets/checkin-screen.png" alt="Check-in Screen" width="600" />
-
-### 4. Comprehensive Profile & Skills Engine
-Ushers act as their own digital resume. They can add specific skills, physical traits (like height), and spoken languages. They also maintain a personal calendar, marking days they are unavailable, which prevents admins from accidentally assigning them to conflicting shifts.
-<br/>
-<img src="./readme-assets/profile-skills.png" alt="Profile and Skills" width="600" />
-
-### 5. Live Admin Command Dashboard
-A high-level command center displaying active events, pending approvals, and overall system health. Organizers can dive into specific events to monitor budget usage and staff attendance in real-time, instantly spotting anomalies like a "Missed Checkout."
-<br/>
-<img src="./readme-assets/admin-dashboard.png" alt="Admin Dashboard" width="600" />
-
-### 6. Real-Time Broadcasts & Communications
-When last-minute changes happen, admins can push broadcast messages that instantly notify the relevant ushers on their mobile devices (via native push notifications), ensuring everyone is on the same page without relying on external chat apps.
-<br/>
-<img src="./readme-assets/broadcasts-screen.png" alt="Broadcasts Screen" width="600" />
-
-### 7. Audit Log & Accountability
-Every critical action on the platform—from an admin approving an account, assigning an usher, to modifying a budget—is recorded in a secure, immutable audit log. This guarantees complete transparency and operational accountability across the entire management team.
-<br/>
-<img src="./readme-assets/audit-log.png" alt="Audit Log" width="600" />
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                              INSIDERS                                  │
+├───────────────────────────────┬────────────────────────────────────────┤
+│ 📱 Ushers Mobile PWA          │ 💻 Admin Operations Hub                │
+│ • Progressive Web App         │ • Executive Analytics & Dashboards     │
+│ • Offline-ready with SW       │ • Visual Event Builder & Map Geofence │
+│ • GPS Geolocation & Camera    │ • Smart Usher Filtering & Allocation  │
+│ • FCM Push Notifications      │ • Live Attendance & Selfie Audit       │
+│ • Wallet & InstaPay Profile   │ • ExcelJS & jsPDF Exporters            │
+└───────────────┬───────────────┴────────────────┬───────────────────────┘
+                │                                │
+                ▼                                ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                        🚀 API & Realtime Server                        │
+│ • Node.js / Express REST Engine with OpenAPI Schema Generation         │
+│ • Drizzle ORM + PostgreSQL (Neon Database with Connection Pooling)    │
+│ • Firebase Cloud Messaging (FCM) Push Service                          │
+│ • LocationIQ Geocoding & Custom Venue Discovery Service                │
+└────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## The Financial & Rating Engine
+## Key Features & Core Modules
 
-INSIDERS treats reliability as a measurable metric. We have built a proprietary engine that connects an usher's performance directly to their reputation and payout.
+### 1. Usher Onboarding, National ID & InstaPay Integration
+Ushers onboard through a structured registration pipeline. Applicants submit:
+- Personal details, spoken languages, and physical attributes (height, age, experience).
+- Professional headshot and front/back National ID documents.
+- **InstaPay Integration:** Automatic extraction and validation of Egyptian InstaPay handles/payment links for zero-friction electronic payouts.
+- Account approval queue where administrators inspect submitted credentials before granting platform access.
 
-### Automated Ratings & Feedback
-Quality control is built-in. After an event, the system calculates an **Auto-Rating** based on the usher's punctuality. 
-- Arriving perfectly on time yields a 5-star rating.
-- Every minute of delay automatically deducts a fraction of a star.
-- Admins and clients can also provide manual reviews, which are averaged with the auto-rating to create a final, transparent score. 
-
-<img src="./readme-assets/ratings-feedback.png" alt="Ratings Screen" width="600" />
-
-### Financial Ledgers & Payouts
-The platform handles the math. Every completed event automatically adds the agreed-upon pay (minus any automated deductions for being late) to the usher's digital wallet. 
-- **Admin Overrides:** Admins can manually override a payout if an usher worked extra hours or took on a harder role.
-- **Payout Processing:** When an usher requests their money, or when the agency distributes cash/transfers, admins log the transaction in the system, keeping the ledger perfectly balanced.
+<div align="center">
+  <img src="./readme-assets/account-approval.png" alt="Account Approval Screen" width="600" />
+</div>
 
 ---
 
-## How It Works (User Journey)
+### 2. Smart Event Staffing, Teams & Waitlists
+Event managers can schedule single-day or multi-day events with fine-grained staffing controls:
+- **Team Structuring:** Organize ushers into operational teams (e.g., VIP Protocol, Main Stage, Gate Registration, Media Logistics).
+- **Leadership Roles:** Designate Team Leads with higher daily rates and supervisory responsibilities.
+- **Multi-Day Compensation:** Automated calculation of working days and total earnings preview (`dailyRate × workingDays`).
+- **Smart Filtering:** Filter the entire database by gender, height, language proficiency, rating, and governorate.
+- **Instant Allocation & Waitlists:** One-click assignment with push notification invites. Ushers can accept or decline, with immediate waitlist replacements.
 
-### The Usher's Journey
-1. **Onboarding:** Sarah downloads the INSIDERS app, creates an account, and uploads her national ID and a professional headshot.
-2. **Verification:** An admin reviews her profile, verifies her documents, and approves her account to join the roster.
-3. **Getting Booked:** Sarah fills out her profile (fluent in French, 170cm, Registration expert) and marks her available days. She soon receives a push notification: *"You've been assigned to the Global Tech Summit!"*
-4. **The Event:** On the day of the event, Sarah arrives at the venue and taps **Check In** on her app. The app verifies her GPS location confirms she is on-site, and logs her exact arrival time.
-5. **Wrapping Up:** When her shift ends, she taps **Check Out**. Later that week, she checks her app to see her 5-star rating (since she was perfectly on time) and her updated financial balance ready for payout.
-
-### The Admin's Journey
-1. **Planning:** Ahmed is organizing a large conference. He logs into the Admin Dashboard, creates the "Global Tech Summit" event, pins the exact venue coordinates on the interactive map, and assigns a strict total budget.
-2. **Staffing:** He opens the event dashboard and uses the smart filters to find 50 available ushers with high ratings and specific language skills. He assigns them with one click.
-3. **Live Monitoring:** On the day of the summit, Ahmed watches the dashboard as ushers check in. He notices two ushers are running 15 minutes late and easily reassigns a backup usher from the waitlist to cover the gap.
-4. **Post-Event:** After a successful event, Ahmed reviews the system's automated punctuality deductions (latecomers automatically lose a portion of their rating and pay), finalizes the performance reviews, and processes the financial payouts with a single click.
+<div align="center">
+  <img src="./readme-assets/event-assignment.png" alt="Event Assignment Screen" width="600" />
+</div>
 
 ---
 
-## Branding & Technology
-INSIDERS is built around a sleek, premium, and minimalistic visual identity. The platform heavily utilizes a striking contrast of deep blacks and sharp whites, accented with bold typography and subtle animations. This design language reflects our core philosophy: professionalism, authority, and elegance.
+### 3. Geofenced Attendance & Live Selfie Photo Verification
+To eliminate fraudulent attendance, INSIDERS enforces dual-factor check-in:
+- **GPS Geofence Radius:** The app verifies the usher's precise GPS coordinates against the event venue coordinates (e.g., within 300–500m). Check-in remains disabled outside the radius.
+- **Live Selfie Photo:** Ushers must take and submit a live photo in uniform upon arrival.
+- **Admin Check-in Details Modal:** Admins can click any checked-in usher to view their arrival timestamp, exact minutes late (if any), GPS location accuracy, and submitted selfie photo.
 
-Under the hood, INSIDERS leverages modern **Progressive Web App (PWA)** technology, allowing ushers to install the app directly on their phones without going through app stores, while still receiving native-level push notifications and GPS access.
+<div align="center">
+  <img src="./readme-assets/checkin-screen.png" alt="Check-in Screen" width="600" />
+</div>
 
-<img src="./readme-assets/branding-overview.png" alt="INSIDERS Visual Identity" width="600" />
+---
+
+### 4. Dedicated Event Announcements & Live Chat Stream
+Smooth operations depend on real-time field communication:
+- **In-Event Chat Stream:** Each event has an interactive channel where admins can publish announcements, gate assignments, and schedule modifications.
+- **Push Notification Integration:** Urgent messages trigger native mobile push notifications to all assigned ushers via Firebase Cloud Messaging.
+- **Mobile-Optimized Viewer:** Clean, responsive chat interface designed specifically for ushers on the move.
+
+<div align="center">
+  <img src="./readme-assets/broadcasts-screen.png" alt="Event Chat and Broadcasts" width="600" />
+</div>
+
+---
+
+### 5. Apparel & Uniform Logistics (Automated Sizes Aggregator)
+Uniform distribution is one of the most tedious aspects of event preparation. INSIDERS automates the entire supply chain:
+- **Comprehensive Size Profiles:** Ushers maintain clothing measurements in their profile (T-Shirt/Top, Jacket, Pants with numerical sizing 28–44, and Shoe sizes).
+- **Real-Time Sizes Summary:** The event details page aggregates the uniform requirements of all assigned staff into an instant tally.
+- **Roster Export Integration:** The uniform breakdown is automatically embedded into exported PDF sheets for warehouse and wardrobe teams.
+
+---
+
+### 6. Smart Deduction Engine & Lateness Matrix
+Admins have granular control over punctuality and attendance policies:
+- **Configurable Deduction Rules:** Set specific grace periods and monetary deductions per event (e.g., 15–30 mins late = EGP 50 deduction, 30–60 mins late = EGP 100 deduction).
+- **Upfront Policy Transparency:** Deduction rules appear as highlighted warning badges on event cards in the Ushers App before staff confirm attendance.
+- **Automated Execution:** Deductions are automatically calculated at checkout and reflected in financial sheets without manual math.
+
+---
+
+### 7. Usher Suspension Engine & Disciplinary Countdown
+Reliability is reinforced through a multi-tiered disciplinary system:
+- **Preset & Custom Suspension Durations:** Admins can suspend unreliable staff for preset durations (3 days, 7 days, 14 days, 30 days) or select a custom date.
+- **Automated Default Sanctions:** The platform supports default penalty suspension days for severe violations or no-shows.
+- **Live Suspension Countdown:** Suspended ushers see a dedicated suspension screen in their mobile app with an active countdown timer.
+- **Automatic Shift Revocation:** Suspending an usher automatically revokes their upcoming event assignments and frees slots for waitlisted staff.
+
+---
+
+### 8. Executive Financial Suite & Branded Excel Payroll Export
+Seamless financial oversight with one-click payroll generation:
+- **Digital Wallets:** Every completed shift credits the usher's ledger (net of deductions and bonuses).
+- **Executive Excel Export (ExcelJS):** Generates a formatted, publication-ready Excel spreadsheet styled in the Insiders Navy & Teal brand palette.
+- **Attendance Whitelisting:** Automatically filters out cancelled, declined, or no-show applicants, including only ushers who actually checked in.
+- **Payroll Breakdown:** Distinguishes supervisors from regular ushers, calculates total working days, gross pay, deductions, net totals, and embeds clickable InstaPay links for batch disbursements.
+
+---
+
+### 9. High-Definition Printable Ushers Sheet (PDF)
+A dedicated on-site operational sheet generated dynamically:
+- **Enlarged High-Clarity Photos:** Enlarged usher portraits for quick visual identification at security checkpoints and supervisor desks.
+- **Operational Data:** Full name, assigned operational role/team, and dedicated signature/notes column for physical roll calls.
+- **Uniform Sizes Matrix:** Embedded summary of all clothing sizes on the subsequent page for equipment handover.
+- **Print & Mobile Friendly:** Rendered using high-DPI HTML canvas and jsPDF with Arabic typography support.
+
+---
+
+### 10. Intelligent Bilingual Venue Mapping & Geofencing
+Pinpoint venue setup powered by an integrated mapping engine:
+- **LocationIQ Integration:** Instant autocomplete search supporting English and Arabic venue names across Egypt and the Middle East.
+- **Custom Saved Places:** Admins can bookmark frequent venues (halls, stadiums, exhibition centres) with pre-calibrated coordinates and radii.
+- **Interactive Leaflet Map:** Draggable pins, dynamic radius circles, and real-time geofence visualization.
+
+---
+
+### 11. Automated Rating & Punctuality Scoring Engine
+A continuous feedback loop that rewards top performers:
+- **Auto-Rating Algorithm:** Computes an objective punctuality score based on exact check-in minutes relative to call time.
+- **Admin & Client Reviews:** Manual reviews combined with the auto-score to form a 5-star weighted rating.
+- **Merit-Based Allocation:** High-rated ushers are prioritized in search results and automated invitations.
+
+<div align="center">
+  <img src="./readme-assets/ratings-feedback.png" alt="Ratings and Performance Screen" width="600" />
+</div>
+
+---
+
+### 12. Live Admin Command Center & Immutable Audit Log
+Complete operational transparency for executive teams:
+- **Live Command Dashboard:** High-level metrics tracking active events, confirmed staff, check-in completion rates, and budget utilization.
+- **Immutable Audit Trail:** Every critical management action—application approval, salary adjustment, manual check-in override, or suspension—is logged with admin timestamps and IP origins.
+
+<div align="center">
+  <img src="./readme-assets/admin-dashboard.png" alt="Admin Command Dashboard" width="600" />
+</div>
+
+<div align="center">
+  <img src="./readme-assets/audit-log.png" alt="Audit Log Screen" width="600" />
+</div>
+
+---
+
+## End-to-End User Journeys
+
+### The Usher's Experience
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as Usher
+    participant App as Mobile PWA
+    participant API as Backend Server
+    participant Admin as Event Manager
+
+    U->>App: Registers with ID, headshot, InstaPay & clothing sizes
+    API->>Admin: Queued in Admin Approvals
+    Admin->>API: Approves application
+    Admin->>API: Assigns usher to upcoming event (with team & daily rate)
+    API->>App: Push Notification: "You have been assigned to Tech Summit"
+    U->>App: Reviews schedule, venue map & deduction rules → Confirms
+    Note over U,App: Event Day at Venue
+    U->>App: Arrives on-site → Takes live selfie → Taps Check In
+    App->>API: GPS Coordinates + Selfie verified against venue geofence
+    Note over U,App: Shift Completed
+    U->>App: Checks Out
+    API->>U: Punctuality auto-rating calculated + Earnings credited to Wallet
+```
+
+### The Event Organizer's Workflow
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Admin as Event Organizer
+    participant Hub as Admin Hub
+    participant API as Backend Server
+    participant PWA as Ushers Roster
+
+    Admin->>Hub: Creates event, selects venue via LocationIQ map & sets geofence radius
+    Admin->>Hub: Configures daily rate, multi-day schedule & deduction rules
+    Admin->>Hub: Assigns staff using smart filters (rating, skills, height, language)
+    Admin->>Hub: Reviews automated uniform Sizes Summary for wardrobe preparation
+    Note over Admin,Hub: On Event Day
+    Admin->>Hub: Monitors live check-ins, inspects selfies & late arrivals in real-time
+    Admin->>Hub: Posts critical updates in the Event Announcement stream
+    Admin->>Hub: Downloads printable Ushers Sheet (PDF) with high-clarity portraits
+    Note over Admin,Hub: Post Event
+    Admin->>Hub: Clicks "Export Salary" → Generates branded Excel sheet with InstaPay links
+    Admin->>API: Disburses payouts with 100% attendance & deduction accuracy
+```
+
+---
+
+## Visual Assets & Recommended Screenshots
+
+To showcase the platform with maximum impact, the following screenshots should be included in the repository under `./readme-assets/`:
+
+| # | Feature / Screenshot Name | Application & Route | What to Capture | Target Filename |
+|---|:---|:---|:---|:---|
+| **1** | **Admin Command Dashboard** | Admin Hub (`/dashboard`) | High-level metrics, active events, staff attendance stats, and quick actions. | `admin-dashboard.png` |
+| **2** | **Event Details & Attendance** | Admin Hub (`/events/:id`) | Event header, team assignments, check-in badges, and action buttons. | `event-details.png` |
+| **3** | **Check-in Verification Modal** | Admin Hub (`/events/:id` → Click Usher) | Modal showing arrival time, late minutes, GPS accuracy, and live selfie photo. | `checkin-details-modal.png` |
+| **4** | **Event Announcements & Chat** | Admin Hub (`/events/:id` tab) or PWA | Dedicated event chat stream with announcements and messages. | `event-chat.png` |
+| **5** | **Uniform Sizes Aggregator** | Admin Hub (`/events/:id`) | The "Sizes Summary" card displaying aggregated T-shirt, pants, and shoe counts. | `sizes-summary.png` |
+| **6** | **Deduction Rules Tab** | Admin Hub (`/events/:id` → Deductions) | Multi-tier lateness and absence deduction rules configuration table. | `deduction-rules.png` |
+| **7** | **Usher Suspension Dialog** | Admin Hub (`/ushers/:id` → Suspend) | Suspension modal with preset buttons (3d, 7d, 14d, 30d, custom date picker). | `suspension-dialog.png` |
+| **8** | **Printable Ushers Sheet (PDF)** | Exported PDF Preview | Rendered PDF showing enlarged usher photos, teams, signature lines, and sizes. | `ushers-sheet-pdf.png` |
+| **9** | **Branded Excel Salary Sheet** | Microsoft Excel Preview | Navy & Teal styled Excel sheet showing supervisors, rates, deductions, and InstaPay links. | `salary-sheet-excel.png` |
+| **10** | **Venue Geofencing & Map** | Admin Hub (`/events/new`) | Leaflet map with LocationIQ search, draggable pin, and geofence radius circle. | `map-geofence.png` |
+| **11** | **Usher Profile & Apparel** | Ushers App (`/profile`) | Profile view with clothing sizes (T-Shirt, Pants 28-44, Shoes) and InstaPay handle. | `usher-profile-sizes.png` |
+| **12** | **Mobile Check-in & Selfie** | Ushers App (`/events/:id`) | Check-in view with live GPS status button and selfie camera capture. | `usher-checkin-selfie.png` |
+| **13** | **Suspended Usher View** | Ushers App (`/events`) | Dedicated suspension alert screen showing the live countdown timer. | `usher-suspension-timer.png` |
+
+---
+
+## Branding & Design System
+
+INSIDERS follows a visual philosophy of **Authority, Professionalism, and Clean Elegance**:
+- **Monochrome & Deep Navy Canvas:** Sleek high-contrast dark interface accented with Navy (`#00003087`) and Electric Teal (`#0070C0`).
+- **Typography:** Modern, legible sans-serif hierarchy tailored for rapid scanning under intense event conditions.
+- **Micro-Interactions:** Subtle status badges, smooth drawer transitions, and responsive feedback indicators across both mobile PWA and desktop panels.
+
+<div align="center">
+  <img src="./readme-assets/branding-overview.png" alt="INSIDERS Brand Identity" width="600" />
+</div>
+
+---
+
+<div align="center">
+  <sub>Designed and engineered for high-performance event operations. © INSIDERS. All rights reserved.</sub>
+</div>
