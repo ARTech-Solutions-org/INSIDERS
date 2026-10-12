@@ -1,5 +1,7 @@
 <div align="center">
-  <img src="./readme-assets/insiders-logo-white.png" alt="INSIDERS Logo" width="220" />
+  <a href="./readme-assets/insiders-logo-white.png" target="_blank">
+    <img src="./readme-assets/insiders-logo-white.png" alt="INSIDERS Logo" width="220" />
+  </a>
   <p align="center">
     <strong>We Command the Crowd</strong><br/>
     The Premier End-to-End Event Staffing, Usher Management & Operations Platform
@@ -35,7 +37,9 @@
 - [End-to-End User Journeys](#end-to-end-user-journeys)
   - [The Usher's Experience](#the-ushers-experience)
   - [The Event Organizer's Workflow](#the-event-organizers-workflow)
-- [Visual Assets & Recommended Screenshots](#visual-assets--recommended-screenshots)
+- [Visual Assets & High-Resolution Screenshot Guide](#visual-assets--high-resolution-screenshot-guide)
+  - [Optimizing Tall & High-Resolution Screenshots](#optimizing-tall--high-resolution-screenshots)
+  - [Recommended Assets Index](#recommended-assets-index)
 - [Branding & Design System](#branding--design-system)
 
 ---
@@ -97,7 +101,9 @@ Ushers onboard through a structured registration pipeline. Applicants submit:
 - Account approval queue where administrators inspect submitted credentials before granting platform access.
 
 <div align="center">
-  <img src="./readme-assets/account-approval.png" alt="Account Approval Screen" width="600" />
+  <a href="./readme-assets/account-approval.png" target="_blank" title="Click to view full-resolution screenshot">
+    <img src="./readme-assets/account-approval.png" alt="Account Approval Screen" width="750" />
+  </a>
 </div>
 
 ---
@@ -111,7 +117,9 @@ Event managers can schedule single-day or multi-day events with fine-grained sta
 - **Instant Allocation & Waitlists:** One-click assignment with push notification invites. Ushers can accept or decline, with immediate waitlist replacements.
 
 <div align="center">
-  <img src="./readme-assets/event-assignment.png" alt="Event Assignment Screen" width="600" />
+  <a href="./readme-assets/event-assignment.png" target="_blank" title="Click to view full-resolution screenshot">
+    <img src="./readme-assets/event-assignment.png" alt="Event Assignment Screen" width="750" />
+  </a>
 </div>
 
 ---
@@ -123,7 +131,10 @@ To eliminate fraudulent attendance, INSIDERS enforces dual-factor check-in:
 - **Admin Check-in Details Modal:** Admins can click any checked-in usher to view their arrival timestamp, exact minutes late (if any), GPS location accuracy, and submitted selfie photo.
 
 <div align="center">
-  <img src="./readme-assets/checkin-screen.png" alt="Check-in Screen" width="600" />
+  <a href="./readme-assets/checkin-screen.png" target="_blank" title="Click to view full-resolution screenshot">
+    <img src="./readme-assets/checkin-screen.png" alt="Check-in Screen" width="340" />
+  </a>
+  <p><sub>📱 Mobile View: Click image to expand in full native resolution</sub></p>
 </div>
 
 ---
@@ -135,7 +146,9 @@ Smooth operations depend on real-time field communication:
 - **Mobile-Optimized Viewer:** Clean, responsive chat interface designed specifically for ushers on the move.
 
 <div align="center">
-  <img src="./readme-assets/broadcasts-screen.png" alt="Event Chat and Broadcasts" width="600" />
+  <a href="./readme-assets/broadcasts-screen.png" target="_blank" title="Click to view full-resolution screenshot">
+    <img src="./readme-assets/broadcasts-screen.png" alt="Event Chat and Broadcasts" width="750" />
+  </a>
 </div>
 
 ---
@@ -198,7 +211,9 @@ A continuous feedback loop that rewards top performers:
 - **Merit-Based Allocation:** High-rated ushers are prioritized in search results and automated invitations.
 
 <div align="center">
-  <img src="./readme-assets/ratings-feedback.png" alt="Ratings and Performance Screen" width="600" />
+  <a href="./readme-assets/ratings-feedback.png" target="_blank" title="Click to view full-resolution screenshot">
+    <img src="./readme-assets/ratings-feedback.png" alt="Ratings and Performance Screen" width="750" />
+  </a>
 </div>
 
 ---
@@ -209,11 +224,17 @@ Complete operational transparency for executive teams:
 - **Immutable Audit Trail:** Every critical management action—application approval, salary adjustment, manual check-in override, or suspension—is logged with admin timestamps and IP origins.
 
 <div align="center">
-  <img src="./readme-assets/admin-dashboard.png" alt="Admin Command Dashboard" width="600" />
+  <a href="./readme-assets/admin-dashboard.png" target="_blank" title="Click to view full-resolution screenshot">
+    <img src="./readme-assets/admin-dashboard.png" alt="Admin Command Dashboard" width="820" />
+  </a>
 </div>
 
+<br/>
+
 <div align="center">
-  <img src="./readme-assets/audit-log.png" alt="Audit Log Screen" width="600" />
+  <a href="./readme-assets/audit-log.png" target="_blank" title="Click to view full-resolution screenshot">
+    <img src="./readme-assets/audit-log.png" alt="Audit Log Screen" width="820" />
+  </a>
 </div>
 
 ---
@@ -267,25 +288,38 @@ sequenceDiagram
 
 ---
 
-## Visual Assets & Recommended Screenshots
+## Visual Assets & High-Resolution Screenshot Guide
 
-To showcase the platform with maximum impact, the following screenshots should be included in the repository under `./readme-assets/`:
+### Optimizing Tall & High-Resolution Screenshots
 
-| # | Feature / Screenshot Name | Application & Route | What to Capture | Target Filename |
-|---|:---|:---|:---|:---|
-| **1** | **Admin Command Dashboard** | Admin Hub (`/dashboard`) | High-level metrics, active events, staff attendance stats, and quick actions. | `admin-dashboard.png` |
-| **2** | **Event Details & Attendance** | Admin Hub (`/events/:id`) | Event header, team assignments, check-in badges, and action buttons. | `event-details.png` |
-| **3** | **Check-in Verification Modal** | Admin Hub (`/events/:id` → Click Usher) | Modal showing arrival time, late minutes, GPS accuracy, and live selfie photo. | `checkin-details-modal.png` |
-| **4** | **Event Announcements & Chat** | Admin Hub (`/events/:id` tab) or PWA | Dedicated event chat stream with announcements and messages. | `event-chat.png` |
-| **5** | **Uniform Sizes Aggregator** | Admin Hub (`/events/:id`) | The "Sizes Summary" card displaying aggregated T-shirt, pants, and shoe counts. | `sizes-summary.png` |
-| **6** | **Deduction Rules Tab** | Admin Hub (`/events/:id` → Deductions) | Multi-tier lateness and absence deduction rules configuration table. | `deduction-rules.png` |
-| **7** | **Usher Suspension Dialog** | Admin Hub (`/ushers/:id` → Suspend) | Suspension modal with preset buttons (3d, 7d, 14d, 30d, custom date picker). | `suspension-dialog.png` |
-| **8** | **Printable Ushers Sheet (PDF)** | Exported PDF Preview | Rendered PDF showing enlarged usher photos, teams, signature lines, and sizes. | `ushers-sheet-pdf.png` |
-| **9** | **Branded Excel Salary Sheet** | Microsoft Excel Preview | Navy & Teal styled Excel sheet showing supervisors, rates, deductions, and InstaPay links. | `salary-sheet-excel.png` |
-| **10** | **Venue Geofencing & Map** | Admin Hub (`/events/new`) | Leaflet map with LocationIQ search, draggable pin, and geofence radius circle. | `map-geofence.png` |
-| **11** | **Usher Profile & Apparel** | Ushers App (`/profile`) | Profile view with clothing sizes (T-Shirt, Pants 28-44, Shoes) and InstaPay handle. | `usher-profile-sizes.png` |
-| **12** | **Mobile Check-in & Selfie** | Ushers App (`/events/:id`) | Check-in view with live GPS status button and selfie camera capture. | `usher-checkin-selfie.png` |
-| **13** | **Suspended Usher View** | Ushers App (`/events`) | Dedicated suspension alert screen showing the live countdown timer. | `usher-suspension-timer.png` |
+When capturing tall (portrait/vertical 9:16 mobile) screenshots or full-height dashboard scrolls, follow these rules to maintain **100% original visual fidelity**:
+
+1. **Lossless Format (PNG Only):** Always save screenshots in **PNG format** (`.png`). Never save as `.jpg` or `.jpeg` (JPEG produces color banding, fuzzy text, and compression noise on dark UI).
+2. **Native Retina Resolution:**
+   - **For Mobile Screens:** Capture at your device's native resolution (e.g. 1080×2400 or 1170×2532). When placed in the README with `width="320"` to `width="360"`, the image renders at crisp **3× Retina pixel density**.
+   - **For Desktop Dashboards:** Capture at 1920×1080 or higher (DPR 2×).
+3. **Prevent Transfer Compression:** When transferring screenshots from your phone to PC, **do not use WhatsApp or Facebook Messenger** (they compress images by 70%+). Use **Telegram (Send as File/Uncompressed)**, Google Drive, AirDrop, or a direct USB cable.
+4. **Click-to-Expand Full Quality:** Every screenshot in this README is wrapped in an anchor link (`<a href="./readme-assets/...png" target="_blank">`). Clicking any screenshot on GitHub opens the unscaled, 100% raw high-resolution image in full quality.
+
+---
+
+### Recommended Assets Index
+
+| # | Feature / Screenshot Name | Application & Route | What to Capture | Target Filename | Recommended Width |
+|---|:---|:---|:---|:---|:---:|
+| **1** | **Admin Command Dashboard** | Admin Hub (`/dashboard`) | High-level metrics, active events, staff attendance stats, and quick actions. | `admin-dashboard.png` | `820px` (Wide) |
+| **2** | **Event Details & Attendance** | Admin Hub (`/events/:id`) | Event header, team assignments, check-in badges, and action buttons. | `event-details.png` | `820px` (Wide) |
+| **3** | **Check-in Verification Modal** | Admin Hub (`/events/:id` → Click Usher) | Modal showing arrival time, late minutes, GPS accuracy, and live selfie photo. | `checkin-details-modal.png` | `550px` (Modal) |
+| **4** | **Event Announcements & Chat** | Admin Hub (`/events/:id` tab) or PWA | Dedicated event chat stream with announcements and messages. | `event-chat.png` | `750px` (Desktop) / `340px` (Mobile) |
+| **5** | **Uniform Sizes Aggregator** | Admin Hub (`/events/:id`) | The "Sizes Summary" card displaying aggregated T-shirt, pants, and shoe counts. | `sizes-summary.png` | `600px` (Card) |
+| **6** | **Deduction Rules Tab** | Admin Hub (`/events/:id` → Deductions) | Multi-tier lateness and absence deduction rules configuration table. | `deduction-rules.png` | `750px` (Table) |
+| **7** | **Usher Suspension Dialog** | Admin Hub (`/ushers/:id` → Suspend) | Suspension modal with preset buttons (3d, 7d, 14d, 30d, custom date picker). | `suspension-dialog.png` | `500px` (Modal) |
+| **8** | **Printable Ushers Sheet (PDF)** | Exported PDF Preview | Rendered PDF showing enlarged usher photos, teams, signature lines, and sizes. | `ushers-sheet-pdf.png` | `750px` (Document) |
+| **9** | **Branded Excel Salary Sheet** | Microsoft Excel Preview | Navy & Teal styled Excel sheet showing supervisors, rates, deductions, and InstaPay links. | `salary-sheet-excel.png` | `820px` (Spreadsheet) |
+| **10** | **Venue Geofencing & Map** | Admin Hub (`/events/new`) | Leaflet map with LocationIQ search, draggable pin, and geofence radius circle. | `map-geofence.png` | `750px` (Map) |
+| **11** | **Usher Profile & Apparel** | Ushers App (`/profile`) | Profile view with clothing sizes (T-Shirt, Pants 28-44, Shoes) and InstaPay handle. | `usher-profile-sizes.png` | `340px` (Tall Mobile) |
+| **12** | **Mobile Check-in & Selfie** | Ushers App (`/events/:id`) | Check-in view with live GPS status button and selfie camera capture. | `usher-checkin-selfie.png` | `340px` (Tall Mobile) |
+| **13** | **Suspended Usher View** | Ushers App (`/events`) | Dedicated suspension alert screen showing the live countdown timer. | `usher-suspension-timer.png` | `340px` (Tall Mobile) |
 
 ---
 
@@ -297,7 +331,9 @@ INSIDERS follows a visual philosophy of **Authority, Professionalism, and Clean 
 - **Micro-Interactions:** Subtle status badges, smooth drawer transitions, and responsive feedback indicators across both mobile PWA and desktop panels.
 
 <div align="center">
-  <img src="./readme-assets/branding-overview.png" alt="INSIDERS Brand Identity" width="600" />
+  <a href="./readme-assets/branding-overview.png" target="_blank" title="Click to view full-resolution screenshot">
+    <img src="./readme-assets/branding-overview.png" alt="INSIDERS Brand Identity" width="750" />
+  </a>
 </div>
 
 ---
